@@ -175,13 +175,13 @@ export default function HomePage() {
           display: flex;
           flex-direction: column;
           padding: 32px 28px;
-          background: rgba(15, 23, 42, 0.6);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(148, 163, 184, 0.1);
-          border-radius: 20px;
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%);
+          border: 2px solid rgba(148, 163, 184, 0.2);
+          border-radius: 16px;
           text-decoration: none;
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           overflow: hidden;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         .card-glow {
           position: absolute;
@@ -197,9 +197,9 @@ export default function HomePage() {
           opacity: 0.15;
         }
         .tool-card:hover {
-          transform: translateY(-8px) scale(1.02);
-          border-color: rgba(148, 163, 184, 0.3);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+          transform: translateY(-4px);
+          border-color: rgba(148, 163, 184, 0.4);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
         .tool-icon-wrap {
           position: relative;

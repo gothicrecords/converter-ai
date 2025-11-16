@@ -259,8 +259,8 @@ export default function PdfSuite(){
         .btn-icon{width:18px;height:18px}
         .result{margin-top:20px}
         .result>div:first-child{padding:12px 16px;background:rgba(148,163,184,0.1);border-radius:8px;font-size:14px;color:#cbd5e1}
-        .link{color:#60a5fa;text-decoration:none;font-weight:500}
-        .link:hover{text-decoration:underline}
+        .link{color:#60a5fa;text-decoration:none;font-weight:500;transition:color 0.2s}
+        .link:hover{color:#93c5fd}
         ul{list-style:none;padding:0;margin:0}
         li{padding:8px 12px;background:rgba(148,163,184,0.05);border-radius:8px;margin-bottom:8px}
         @media (max-width:640px){

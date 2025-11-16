@@ -36,7 +36,7 @@ button:disabled,.btn-primary:disabled{opacity:0.5;cursor:not-allowed}
 /* Download Actions */
 .download-actions{margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:12px}
 .open-link{color:#60a5fa;font-size:14px;font-weight:500;text-decoration:none;transition:color 0.2s}
-.open-link:hover{color:#93c5fd;text-decoration:underline}
+.open-link:hover{color:#93c5fd}
 
 /* Before/After Slider */
 .slider{position:relative;width:100%;height:clamp(450px, 80vh, 1100px);background:#0b0f18;border-radius:16px;overflow:hidden;cursor:ew-resize;box-shadow:0 20px 50px rgba(0,0,0,0.5);user-select:none;-webkit-user-select:none;touch-action:none;transition:box-shadow 0.3s} 
