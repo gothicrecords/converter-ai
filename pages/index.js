@@ -121,6 +121,9 @@ export default function Home() {
   return (
     <div className="container">
       <h1>Upscaler AI</h1>
+      <div style={{textAlign:'center', marginBottom: 16}}>
+        <a href="/pdf" style={{color:'#9fb0c8', fontWeight:700, textDecoration:'none'}}>Vai al PDF Converter →</a>
+      </div>
 
       {!originalUrl && (
         <div
