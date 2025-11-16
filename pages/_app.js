@@ -43,6 +43,7 @@ function MyApp({ Component, pageProps }) {
         .nav-item.active{background:#2563eb;color:#fff}
         .nav-sub{display:flex;gap:6px;margin-left:auto}
         .sub-item{color:#9fb0c8;text-decoration:none;padding:6px 10px;border-radius:8px}
+        .nav-item:hover,.sub-item:hover{text-decoration:none}
         .sub-item:hover{background:#132038}
         @media (max-width:640px){
           .nav-sub{flex-basis:100%;margin-left:0}

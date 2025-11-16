@@ -24,41 +24,41 @@ export default function PdfSuite(){
       const key = (window.location.hash || '').replace('#','');
       if (tabs.some(t => t.key === key)) {
         setActive(key);
-        setFiles([]);
-        setOutUrl('');
-        setOutList([]);
-        setStatus('');
-      }
-    };
-    // initial
-    applyHash();
-    // listen to changes
-    window.addEventListener('hashchange', applyHash);
-    return () => window.removeEventListener('hashchange', applyHash);
-  }, []);
-
-  const onPick = (e) => setFiles(Array.from(e.target.files||[]));
-
-  const submit = async () => {
-    if (!files.length) return;
-    setLoading(true); setOutUrl(''); setOutList([]); setStatus('Elaborazione...');
-    const fd = new FormData();
-    if (active === 'jpg2pdf') {
-      files.forEach(f=>fd.append('images', f));
-    } else {
-      const multi = (active === 'pdf2jpg' || active === 'pdf2docx' || active === 'docx2pdf');
-      if (multi) files.forEach(f=>fd.append('file', f)); else fd.append('file', files[0]);
-    }
-
-    const route = active === 'jpg2pdf' ? '/api/pdf/jpg-to-pdf'
-      : active === 'pdf2jpg' ? '/api/pdf/pdf-to-jpg'
-      : active === 'docx2pdf' ? '/api/pdf/docx-to-pdf'
-      : '/api/pdf/pdf-to-docx';
-
-    try{
-      const res = await fetch(route,{ method:'POST', body: fd });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.hint || j.details || j.error || 'Errore');
+        <style jsx>{`
+          .pdf-wrap{max-width:1000px;margin:0 auto;padding:40px 24px}
+          .page-header{text-align:center;margin-bottom:40px}
+          .page-title{font-size:clamp(28px,5vw,40px);font-weight:800;margin:0 0 12px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+          .page-subtitle{font-size:16px;color:#94a3b8;margin:0}
+          .tabs{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:32px}
+          .tab{display:flex;align-items:center;gap:8px;background:#111827;color:#cfe0ff;border:2px solid rgba(148,163,184,0.25);border-radius:12px;padding:12px 18px;cursor:pointer;transition:all 0.2s;font-weight:600;text-decoration:none}
+          .tab:hover{transform:translateY(-2px);border-color:rgba(148,163,184,0.4)}
+          .tab.active{color:#fff;box-shadow:0 8px 16px rgba(0,0,0,0.25)}
+          .tab-icon{width:20px;height:20px}
+          .panel{margin-top:16px;padding:28px;background:#0b1220;border:2px solid rgba(148,163,184,0.2);border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,0.35)}
+          .drop{border:2px dashed rgba(148,163,184,0.35);border-radius:12px;padding:32px;text-align:center;cursor:pointer;position:relative;min-height:180px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;background:#0f172a}
+          .drop:hover{border-color:rgba(148,163,184,0.55);background:#111827}
+          .drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+          .drop p{margin:0;font-size:15px;color:#94a3b8}
+          .actions{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap}
+          .primary{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:10px;padding:12px 20px;cursor:pointer;font-weight:600;transition:all 0.2s;text-decoration:none}
+          .primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 16px rgba(102,126,234,0.3)}
+          .primary:disabled{opacity:0.5;cursor:not-allowed}
+          .download-btn{background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%)}
+          .download-btn:hover{box-shadow:0 8px 16px rgba(67,233,123,0.3)}
+          .btn-icon{width:18px;height:18px}
+          .result{margin-top:20px}
+          .result>div:first-child{padding:12px 16px;background:#0b1220;border:1px solid rgba(148,163,184,0.15);border-radius:8px;font-size:14px;color:#cbd5e1}
+          .link{color:#60a5fa;text-decoration:none;font-weight:500}
+          .link:hover{color:#93c5fd;text-decoration:none}
+          ul{list-style:none;padding:0;margin:0}
+          li{padding:8px 12px;background:#0b1220;border:1px solid rgba(148,163,184,0.12);border-radius:8px;margin-bottom:8px}
+          @media (max-width:640px){
+            .pdf-wrap{padding:24px 16px}
+            .tabs{gap:8px}
+            .tab{padding:10px 14px;font-size:14px}
+            .panel{padding:20px}
+          }
+        `}</style>
       if (j.urls && Array.isArray(j.urls)) {
         setOutList(j.urls);
       } else if (j.url) {

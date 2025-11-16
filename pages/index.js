@@ -113,12 +113,6 @@ export default function HomePage() {
                       radial-gradient(circle at 70% 60%, rgba(167, 139, 250, 0.08) 0%, transparent 50%);
           pointer-events: none;
           z-index: -1;
-          animation: float 20s ease-in-out infinite;
-        }
-        @keyframes float {
-          0%, 100% { transform: translate(0, 0) rotate(0deg); }
-          33% { transform: translate(30px, -30px) rotate(120deg); }
-          66% { transform: translate(-20px, 20px) rotate(240deg); }
         }
         .hero {
           text-align: center;
@@ -194,12 +188,11 @@ export default function HomePage() {
           filter: blur(60px);
         }
         .tool-card:hover .card-glow {
-          opacity: 0.15;
-        }
-        .tool-card:hover {
-          transform: translateY(-4px);
-          border-color: rgba(148, 163, 184, 0.4);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            opacity: 0.12; }
+          .tool-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(148, 163, 184, 0.4);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
         }
         .tool-icon-wrap {
           position: relative;
@@ -236,7 +229,8 @@ export default function HomePage() {
           color: #f1f5f9;
           margin: 0 0 12px;
           position: relative;
-        }
+          } 
+          .tool-title { text-decoration: none; }
         .tool-desc {
           font-size: 15px;
           color: #94a3b8;
@@ -256,7 +250,8 @@ export default function HomePage() {
           font-weight: 600;
           color: #cbd5e1;
           transition: color 0.3s;
-        }
+          } 
+          .tool-cta { text-decoration: none; }
         .tool-card:hover .tool-cta {
           color: #f1f5f9;
         }
