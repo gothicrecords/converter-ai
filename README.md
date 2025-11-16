@@ -1,15 +1,25 @@
 # Upscaler AI - Full Project Scaffold
+
+## Changelog (2025-11-16)
+- Migrated upscaling to local Sharp (libvips) processing: no external HF API.
+- Quality/speed heuristics: fast single-pass for large images, two-pass detail for small ones.
+- Output JPEG tuned (mozjpeg) with correct `image/jpeg` data URL MIME.
+- Desktop viewing improved: larger container and slider for clearer differences.
+- Slider labels added (Originale / Upscalata 2x) to avoid confusion.
+- Mobile UX refined: responsive layout, touch-friendly controls, viewport meta.
+
+Current stack: Next.js (API routes) + Sharp; optional Cloudinary hosting fallback.
 ## What this is
-A complete minimal web app (frontend + Node.js backend) that accepts image uploads and
-sends them to the HuggingFace Inference API (Real-ESRGAN) to perform upscaling, then
-returns the upscaled image to the user.
+A minimal web app (Next.js frontend + API route) that accepts image uploads and
+performs fast, high-quality 2x upscaling locally via Sharp (libvips), then returns
+the upscaled image to the user (optionally hosted on Cloudinary).
 
 This scaffold is intentionally simple and production-ready enough to deploy on
-Hostinger (Node.js hosting), Vercel, Render, or any similar host.
+Vercel, Render, Hostinger, or any similar host.
 
 ## What I provide in this archive
-- `server.js` : Express backend handling upload and forwarding to HuggingFace
-- `public/index.html`, `public/styles.css`, `public/client.js` : frontend with drag&drop
+- Next.js app with `pages/` (frontend + API routes)
+- `public/styles.css` : custom responsive UI and slider styles
 - `package.json`
 - `.env.example` : shows required environment variables
 - `README.md` : this file with deployment instructions
@@ -17,48 +27,38 @@ Hostinger (Node.js hosting), Vercel, Render, or any similar host.
 
 ## Quick local run (development)
 1. Install Node.js (16+ recommended)
-2. Copy `.env.example` -> `.env` and fill `HF_API_TOKEN`
+2. (Optional) Configure Cloudinary env vars if you want hosted URLs:
+   - `CLOUDINARY_CLOUD_NAME`
+   - `CLOUDINARY_API_KEY`
+   - `CLOUDINARY_API_SECRET`
 3. Install dependencies:
    ```
    npm install
    ```
 4. Run:
    ```
-   npm start
+   npm run dev
    ```
 5. Open http://localhost:3000
 
 ## Environment variables
-- `HF_API_TOKEN` : Your HuggingFace API token (get it at https://huggingface.co/settings/tokens)
-- `PORT` (optional) : port to run on (default 3000)
+- Cloudinary (optional): see above
+- `PORT` (optional): dev server port (default 3000)
 
 ## How it works (summary)
 - The frontend sends the image file via POST `/api/upscale`.
-- `server.js` receives the file, creates a `FormData` POST to the HF Inference API model endpoint,
-  receives the response (image bytes) and streams them back to the client.
-- The client displays the returned image and allows download.
+- The Next.js API route parses upload, processes locally with Sharp (2x upscale),
+  and returns either a Cloudinary URL or a `data:image/jpeg;base64,...` URL.
+- The client displays a before/after slider with labels and provides download/full-res link.
 
-## Hostinger (Node.js) deployment notes
-1. Zip the project and upload via Hostinger file manager OR push via Git if Hostinger Git deploy is enabled.
-2. In the Hostinger control panel, create an "Node.js" app and set:
-   - Start script: `node server.js`
-   - Environment variables: add `HF_API_TOKEN` with your HuggingFace token
-3. Install dependencies on Hostinger (SSH into the host or use the control panel console):
-   ```
-   npm install
-   ```
-4. Start the app via Hostinger's "Start" button or process manager.
-5. Make sure port mapping is configured (Hostinger usually maps external port to your app automatically) and domain points to the hosting.
+## Deployment notes
+- Vercel: import repo, ensure Sharp works on default Node runtime. Add Cloudinary env vars if needed.
+- Other hosts: run `npm run dev` for development or configure a production build as desired.
 
 ## Notes, limitations and tips
-- HuggingFace free tier has rate limits and model cold-start latency. For production, consider:
-  - Upgrading HF plan for higher throughput
-  - Caching results (e.g., for identical images / hashes)
-  - Limiting upload size and validating file types
-- Protect your HF API key: never embed it in frontend code. Use server-side calls only.
-- Consider background jobs for very slow models: queue uploads and notify users when ready.
-- For monetization: integrate Stripe on the server, create authenticated endpoints, and enforce quotas.
-- For scaling: add a storage layer (S3), CDN, and queue/router (BullMQ / Redis).
+- Local Sharp upscaling is fast and reliable; quality tuned for natural look.
+- Limit upload size and validate image MIME types.
+- For scaling: add storage (S3), CDN, queuing if you add heavier processing.
 
 ## Security
 - Validate MIME types and file size.
