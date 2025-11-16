@@ -1,0 +1,48 @@
+// utils/upscale.js  (o dove hai la funzione)
+import fetch from 'node-fetch';
+import FormData from 'form-data';
+import { Readable } from 'stream';
+
+async function upscaleImage(fileBuffer: Buffer) {
+  const apiKey = process.env.DEEPAI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error('DEEPAI_API_KEY mancante nel file .env');
+  }
+
+  try {
+    const form = new FormData();
+    form.append('image', Readable.from(fileBuffer), { filename: 'image.jpg' }); // DeepAI accetta anche PNG
+
+    const response = await fetch('https://api.deepai.org/api/upscale-image', {
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+      },
+      body: form,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`DeepAI error: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+
+    if (result.output_url) {
+      return result.output_url; // URL immagine upscalata
+    } else {
+      throw new Error('Risposta DeepAI senza output_url: ' + JSON.stringify(result));
+    }
+
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Errore upscale DeepAI:', error.message);
+    } else {
+      console.error('Errore upscale DeepAI:', error);
+    }
+    throw error;
+  }
+}
+
+export default upscaleImage;
