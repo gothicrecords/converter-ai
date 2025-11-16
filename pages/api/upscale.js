@@ -25,36 +25,41 @@ export default async function handler(req, res) {
   const form = formidable({ multiples: false });
 
   try {
-    const [fields, files] = await form.parse(req);
-    
-    const imageFile = files.file && files.file.length > 0 ? files.file[0] : null;
+    // Support both callback and promise styles robustly
+    const parsed = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) return reject(err);
+        resolve({ fields, files });
+      });
+    });
 
-    if (!imageFile) {
+    const { files } = parsed;
+
+    // Accept 'image' or 'file' field names; normalize array/single
+    let file = files?.image ?? files?.file ?? null;
+    if (Array.isArray(file)) file = file[0];
+
+    if (!file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // formidable v3 uses `filepath`
-    const filePath = imageFile.filepath;
+    const filePath = file.filepath || file.path; // v3 vs older
     if (!filePath) {
       return res.status(400).json({ error: 'Uploaded file path missing' });
     }
 
-    // Read the file from the temporary path
     const buffer = await fs.readFile(filePath);
-
-    // Upscale the image using the utility function
     const url = await upscaleImage(buffer);
 
-    // Clean up the temporary file
-    await fs.unlink(filePath);
+    // best-effort cleanup
+    try { await fs.unlink(filePath); } catch {}
 
     return res.status(200).json({ url });
 
   } catch (error) {
     console.error('API Error:', error);
-    // Ensure a response is always sent
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Upscale failed', details: error.message });
+      res.status(500).json({ error: 'Upscale failed', details: String(error?.message || error) });
     }
   }
 }

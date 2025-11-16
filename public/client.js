@@ -48,7 +48,8 @@ uploadBtn.addEventListener("click", async ()=>{
     });
     const j = await res.json();
     if(!res.ok) {
-      status.textContent = j.error || "Upscale failed";
+      const details = j.details ? ` - ${j.details}` : '';
+      status.textContent = (j.error || "Upscale failed") + details;
       uploadBtn.disabled = false;
       return;
     }

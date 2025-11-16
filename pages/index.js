@@ -10,6 +10,8 @@ export default function Home() {
   const [sliderPos, setSliderPos] = useState(50);
   const sliderRef = useRef(null);
   const dragging = useRef(false);
+  const rafId = useRef(null);
+  const pendingPos = useRef(null);
 
   const onFileSelect = (file) => {
     if (!file || !file.type?.startsWith('image/')) {
@@ -38,7 +40,7 @@ export default function Home() {
     try {
       const res = await fetch('/api/upscale', { method: 'POST', body: fd });
       const j = await res.json();
-      if (!res.ok) throw new Error(j.error || 'Upscale failed');
+      if (!res.ok) throw new Error(j.details || j.error || 'Upscale failed');
       setUpscaledUrl(j.url);
       setStatus('Fatto!');
     } catch (err) {
@@ -48,46 +50,73 @@ export default function Home() {
     }
   };
 
-  // Slider interactions (mouse + touch)
+  const handleDownload = async () => {
+    if (!upscaledUrl) return;
+    try {
+      const res = await fetch(upscaledUrl);
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `upscaled-${Date.now()}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Download failed:', e);
+    }
+  };
+
+  // Slider interactions using Pointer Events for consistent mouse/touch/pen dragging
   useEffect(() => {
     const el = sliderRef.current;
-    if (!el) return;
+    if (!el || !upscaledUrl) return;
+
     const getPercent = (clientX) => {
       const r = el.getBoundingClientRect();
       const x = Math.min(Math.max(clientX - r.left, 0), r.width);
       return (x / r.width) * 100;
     };
-    const start = (clientX) => {
+
+    const commit = () => {
+      if (pendingPos.current == null) return;
+      setSliderPos(pendingPos.current);
+      rafId.current = null;
+      pendingPos.current = null;
+    };
+    const schedule = () => {
+      if (rafId.current) return;
+      rafId.current = requestAnimationFrame(commit);
+    };
+    const onPointerDown = (e) => {
       dragging.current = true;
-      setSliderPos(getPercent(clientX));
+      try { el.setPointerCapture(e.pointerId); } catch {}
+      pendingPos.current = getPercent(e.clientX);
+      schedule();
     };
-    const move = (clientX) => {
+    const onPointerMove = (e) => {
       if (!dragging.current) return;
-      setSliderPos(getPercent(clientX));
+      pendingPos.current = getPercent(e.clientX);
+      schedule();
     };
-    const end = () => { dragging.current = false; };
+    const onPointerUp = (e) => {
+      dragging.current = false;
+      try { el.releasePointerCapture(e.pointerId); } catch {}
+    };
 
-    const onMouseDown = (e) => start(e.clientX);
-    const onMouseMove = (e) => move(e.clientX);
-    const onTouchStart = (e) => start(e.touches[0].clientX);
-    const onTouchMove = (e) => move(e.touches[0].clientX);
-
-    el.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', end);
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('touchmove', onTouchMove, { passive: true });
-    window.addEventListener('touchend', end);
+    el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('pointermove', onPointerMove);
+    el.addEventListener('pointerup', onPointerUp);
+    el.addEventListener('pointercancel', onPointerUp);
 
     return () => {
-      el.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', end);
-      el.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', end);
+      el.removeEventListener('pointerdown', onPointerDown);
+      el.removeEventListener('pointermove', onPointerMove);
+      el.removeEventListener('pointerup', onPointerUp);
+      el.removeEventListener('pointercancel', onPointerUp);
     };
-  }, []);
+  }, [upscaledUrl]);
 
   return (
     <div className="container">
@@ -99,7 +128,6 @@ export default function Home() {
           className="dropzone"
           onDrop={onDrop}
           onDragOver={(e) => e.preventDefault()}
-          onClick={() => document.getElementById('fileInput').click()}
         >
           <p>Trascina qui la tua immagine o clicca per selezionare</p>
           <input
@@ -113,7 +141,7 @@ export default function Home() {
 
       {originalUrl && !upscaledUrl && (
         <div className="controls">
-          <button onClick={handleUpscale} disabled={loading}>
+          <button className="btn-primary" onClick={handleUpscale} disabled={loading}>
             {loading ? 'Upscaling…' : 'Upscale'}
           </button>
         </div>
@@ -123,8 +151,7 @@ export default function Home() {
 
       {originalUrl && upscaledUrl && (
         <div className="result">
-          <h3>Before / After</h3>
-          <div ref={sliderRef} className="slider">
+          <div ref={sliderRef} className="slider" role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(sliderPos)}>
             <img src={originalUrl} alt="Originale" />
             <div
               className="clip"
@@ -136,7 +163,10 @@ export default function Home() {
               <div className="handle">↔</div>
             </div>
           </div>
-          <a id="downloadLink" href={upscaledUrl} download="upscaled.png">Download</a>
+          <div style={{marginTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12}}>
+            <button onClick={handleDownload} className="btn-secondary">Download</button>
+            <a href={upscaledUrl} target="_blank" rel="noreferrer" style={{color:'#9fb0c8', fontSize: 14}}>Apri a piena risoluzione</a>
+          </div>
         </div>
       )}
     </div>
