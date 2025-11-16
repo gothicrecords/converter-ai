@@ -1,4 +1,4 @@
-// utils/upscale.js
+import fetch from 'node-fetch';
 import { v2 as cloudinary } from 'cloudinary';
 
 // Configura Cloudinary
@@ -9,41 +9,53 @@ cloudinary.config({
 });
 
 async function upscaleImage(fileBuffer) {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const HF_API_TOKEN = process.env.HF_API_TOKEN;
 
-  if (!cloudName || !apiKey) {
-    throw new Error('Cloudinary config mancante in .env');
+  if (!HF_API_TOKEN) {
+    throw new Error('HF_API_TOKEN mancante in .env');
   }
 
   try {
-    // Carica l'immagine su Cloudinary con trasformazione di upscale
+    // Chiama HuggingFace Inference API per Real-ESRGAN
+    const response = await fetch('https://router.huggingface.co/hf-inference/models/nightmareai/real-esrgan', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${HF_API_TOKEN}`,
+        'Content-Type': 'application/octet-stream',
+      },
+      body: fileBuffer,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Errore HF API');
+    }
+
+    const upscaledBuffer = await response.arrayBuffer();
+
+    // Carica l'immagine upscalata su Cloudinary
     const uploadResult = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           resource_type: 'image',
-          transformation: [
-            { effect: 'upscale', dpr: '2.0' },
-            { fetch_format: 'auto' }
-          ]
+          folder: 'upscaler-ai',
         },
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
         }
       );
-      uploadStream.end(fileBuffer);
+      uploadStream.end(Buffer.from(upscaledBuffer));
     });
 
-    // Ritorna l'URL upscalato (già trasformato)
     if (uploadResult && uploadResult.secure_url) {
       return uploadResult.secure_url;
     } else {
-      throw new Error('Upload fallito: ' + JSON.stringify(uploadResult));
+      throw new Error('Upload Cloudinary fallito');
     }
 
   } catch (err) {
-    console.error('Errore Cloudinary upscale:', err && err.message ? err.message : err);
+    console.error('Errore upscale:', err.message);
     throw err;
   }
 }

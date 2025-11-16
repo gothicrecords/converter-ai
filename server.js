@@ -1,9 +1,11 @@
-const express = require('express');
-const next = require('next');
-const multer = require('multer');
-const { v2: cloudinary } = require('cloudinary');
-const upscaleImage = require('./utils/upscale.js');
-require('dotenv').config();
+import express from 'express';
+import next from 'next';
+import multer from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
+import upscaleImage from './utils/upscale.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });

@@ -6,7 +6,7 @@ import FormData from 'form-data';
   const buffer = Buffer.from(pngBase64, 'base64');
 
   const form = new FormData();
-  form.append('image', buffer, { filename: '1x1.png', contentType: 'image/png' });
+  form.append('file', buffer, { filename: '1x1.png', contentType: 'image/png' });
 
   try {
     const res = await fetch('http://localhost:3000/api/upscale', {

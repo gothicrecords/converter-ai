@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   try {
     const [fields, files] = await form.parse(req);
     
-    const imageFile = files.image && files.image.length > 0 ? files.image[0] : null;
+    const imageFile = files.file && files.file.length > 0 ? files.file[0] : null;
 
     if (!imageFile) {
       return res.status(400).json({ error: 'No file uploaded' });

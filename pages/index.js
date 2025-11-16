@@ -1,178 +1,144 @@
-// pages/index.js
+// pages/index.js (no Tailwind, uses styles.css + custom slider)
 import { useState, useRef, useEffect } from 'react';
-import Head from 'next/head';
 
 export default function Home() {
   const [originalFile, setOriginalFile] = useState(null);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [upscaledUrl, setUpscaledUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState('');
   const [sliderPos, setSliderPos] = useState(50);
   const sliderRef = useRef(null);
-  const isDragging = useRef(false);
+  const dragging = useRef(false);
 
-  // Drag & Drop
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      handleFile(file);
+  const onFileSelect = (file) => {
+    if (!file || !file.type?.startsWith('image/')) {
+      setStatus('Seleziona un file immagine.');
+      return;
     }
-  };
-
-  const handleFile = (file) => {
     setOriginalFile(file);
     const url = URL.createObjectURL(file);
     setOriginalUrl(url);
     setUpscaledUrl(null);
+    setStatus(`Selezionato: ${file.name}`);
   };
 
-  // Upscale
+  const onDrop = (e) => {
+    e.preventDefault();
+    const f = e.dataTransfer.files?.[0];
+    onFileSelect(f);
+  };
+
   const handleUpscale = async () => {
     if (!originalFile) return;
     setLoading(true);
-
-    const formData = new FormData();
-    formData.append('file', originalFile);
-
+    setStatus('Upscaling in corso...');
+    const fd = new FormData();
+    fd.append('image', originalFile);
     try {
-      const res = await fetch('/api/upscale', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.url) {
-        setUpscaledUrl(data.url);
-      } else {
-        alert('Errore: ' + data.error);
-      }
+      const res = await fetch('/api/upscale', { method: 'POST', body: fd });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || 'Upscale failed');
+      setUpscaledUrl(j.url);
+      setStatus('Fatto!');
     } catch (err) {
-      alert('Errore rete: ' + err.message);
+      setStatus(`Errore: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Slider Drag
+  // Slider interactions (mouse + touch)
   useEffect(() => {
-    const slider = sliderRef.current;
-    if (!slider) return;
-
-    const move = (e) => {
-      if (!isDragging.current) return;
-      const rect = slider.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const percent = (x / rect.width) * 100;
-      if (percent >= 0 && percent <= 100) {
-        setSliderPos(percent);
-      }
+    const el = sliderRef.current;
+    if (!el) return;
+    const getPercent = (clientX) => {
+      const r = el.getBoundingClientRect();
+      const x = Math.min(Math.max(clientX - r.left, 0), r.width);
+      return (x / r.width) * 100;
     };
+    const start = (clientX) => {
+      dragging.current = true;
+      setSliderPos(getPercent(clientX));
+    };
+    const move = (clientX) => {
+      if (!dragging.current) return;
+      setSliderPos(getPercent(clientX));
+    };
+    const end = () => { dragging.current = false; };
 
-    const start = () => { isDragging.current = true; };
-    const end = () => { isDragging.current = false; };
+    const onMouseDown = (e) => start(e.clientX);
+    const onMouseMove = (e) => move(e.clientX);
+    const onTouchStart = (e) => start(e.touches[0].clientX);
+    const onTouchMove = (e) => move(e.touches[0].clientX);
 
-    slider.addEventListener('mousedown', start);
-    window.addEventListener('mousemove', move);
+    el.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', end);
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', end);
 
     return () => {
-      slider.removeEventListener('mousedown', start);
-      window.removeEventListener('mousemove', move);
+      el.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', end);
+      el.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', end);
     };
   }, []);
 
   return (
-    <>
-      <Head>
-        <title>PixelForge AI - Upscale Immagini 4K</title>
-        <meta name="description" content="Upscale immagini con AI, before/after in tempo reale" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <div className="container">
+      <h1>Upscaler AI</h1>
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex flex-col items-center justify-center p-6">
-        <h1 className="text-5xl font-bold mb-2 text-cyan-400">PixelForge AI</h1>
-        <p className="text-lg mb-8 text-gray-300">Upscale immagini 4K con un click</p>
+      {!originalUrl && (
+        <div
+          id="dropzone"
+          className="dropzone"
+          onDrop={onDrop}
+          onDragOver={(e) => e.preventDefault()}
+          onClick={() => document.getElementById('fileInput').click()}
+        >
+          <p>Trascina qui la tua immagine o clicca per selezionare</p>
+          <input
+            id="fileInput"
+            type="file"
+            accept="image/*"
+            onChange={(e) => onFileSelect(e.target.files?.[0])}
+          />
+        </div>
+      )}
 
-        {/* Drop Zone */}
-        {!originalUrl && (
-          <div
-            onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
-            onClick={() => document.getElementById('fileInput').click()}
-            className="w-full max-w-2xl h-64 border-4 border-dashed border-cyan-500 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-cyan-300 transition-all"
-          >
-            <p className="text-xl">Trascina immagine qui</p>
-            <p className="text-sm text-gray-400 mt-2">o clicca per selezionare</p>
-            <input
-              id="fileInput"
-              type="file"
-              accept="image/*"
-              onChange={(e) => e.target.files[0] && handleFile(e.target.files[0])}
-              className="hidden"
-            />
-          </div>
-        )}
-
-        {/* Pulsante Upscale */}
-        {originalUrl && !upscaledUrl && (
-          <button
-            onClick={handleUpscale}
-            disabled={loading}
-            className="mt-8 px-8 py-4 bg-cyan-500 text-white font-bold rounded-full text-lg hover:bg-cyan-400 disabled:opacity-50 transition-all"
-          >
-            {loading ? 'Upscaling...' : 'Upscale 4K'}
+      {originalUrl && !upscaledUrl && (
+        <div className="controls">
+          <button onClick={handleUpscale} disabled={loading}>
+            {loading ? 'Upscaling…' : 'Upscale'}
           </button>
-        )}
+        </div>
+      )}
 
-        {/* Before/After Slider */}
-        {originalUrl && upscaledUrl && (
-          <div className="mt-12 w-full max-w-3xl">
-            <p className="text-center mb-4 font-semibold">Trascina per vedere la differenza</p>
+      <div className="status">{status}</div>
+
+      {originalUrl && upscaledUrl && (
+        <div className="result">
+          <h3>Before / After</h3>
+          <div ref={sliderRef} className="slider">
+            <img src={originalUrl} alt="Originale" />
             <div
-              ref={sliderRef}
-              className="relative w-full h-96 bg-gray-800 rounded-2xl overflow-hidden shadow-2xl cursor-ew-resize"
+              className="clip"
+              style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
             >
-              {/* Originale */}
-              <img
-                src={originalUrl}
-                alt="Originale"
-                className="absolute inset-0 w-full h-full object-contain"
-              />
-              {/* Upscalata (clip) */}
-              <div
-                className="absolute inset-0 w-full h-full overflow-hidden"
-                style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
-              >
-                <img
-                  src={upscaledUrl}
-                  alt="Upscalata"
-                  className="absolute inset-0 w-full h-full object-contain"
-                />
-              </div>
-              {/* Divider */}
-              <div
-                className="absolute top-0 w-1 h-full bg-white shadow-lg"
-                style={{ left: `${sliderPos}%`, transform: 'translateX(-50%)' }}
-              >
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-cyan-500 rounded-full flex items-center justify-center text-white font-bold shadow-xl">
-                  ↔
-                </div>
-              </div>
+              <img src={upscaledUrl} alt="Upscalata" />
             </div>
-
-            <div className="mt-6 text-center">
-              <a
-                href={upscaledUrl}
-                download
-                className="inline-block px-6 py-3 bg-green-500 text-white font-bold rounded-full hover:bg-green-400 transition-all"
-              >
-                Scarica 4K
-              </a>
+            <div className="divider" style={{ left: `${sliderPos}%`, transform: 'translateX(-50%)' }}>
+              <div className="handle">↔</div>
             </div>
           </div>
-        )}
-      </div>
-    </>
+          <a id="downloadLink" href={upscaledUrl} download="upscaled.png">Download</a>
+        </div>
+      )}
+    </div>
   );
 }
