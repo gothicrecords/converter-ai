@@ -7,19 +7,21 @@ function MyApp({ Component, pageProps }) {
   const router = useRouter();
   const isPdf = router.pathname.startsWith('/pdf');
   const isHome = router.pathname === '/';
+  const isUpscaler = router.pathname === '/upscaler';
 
   return (
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
         <meta name="theme-color" content="#0f1720" />
-        <title>Upscaler AI - 8K Image Enhancement</title>
+        <title>Tool Suite - Upscaler AI & PDF Converter</title>
       </Head>
 
       <nav className="app-nav">
         <div className="nav-inner">
           <div className="nav-main">
-            <Link href="/" className={`nav-item ${isHome ? 'active' : ''}`}>Upscaler</Link>
+            <Link href="/" className={`nav-item ${isHome ? 'active' : ''}`}>Home</Link>
+            <Link href="/upscaler" className={`nav-item ${isUpscaler ? 'active' : ''}`}>Upscaler</Link>
             <Link href="/pdf" className={`nav-item ${isPdf ? 'active' : ''}`}>PDF Tools</Link>
           </div>
           <div className="nav-sub">

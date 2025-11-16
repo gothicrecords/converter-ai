@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
+import { BsFileEarmarkImageFill, BsFileEarmarkPdfFill, BsFileEarmarkWordFill } from 'react-icons/bs';
+import { HiDocument, HiDownload, HiArchive } from 'react-icons/hi';
 
 const tabs = [
-  { key: 'jpg2pdf', label: 'JPG → PDF' },
-  { key: 'pdf2jpg', label: 'PDF → JPG' },
-  { key: 'docx2pdf', label: 'WORD → PDF' },
-  { key: 'pdf2docx', label: 'PDF → WORD' },
+  { key: 'jpg2pdf', label: 'JPG → PDF', icon: BsFileEarmarkImageFill, color: '#f093fb' },
+  { key: 'pdf2jpg', label: 'PDF → JPG', icon: BsFileEarmarkPdfFill, color: '#4facfe' },
+  { key: 'docx2pdf', label: 'WORD → PDF', icon: BsFileEarmarkWordFill, color: '#43e97b' },
+  { key: 'pdf2docx', label: 'PDF → WORD', icon: HiDocument, color: '#fa709a' },
 ];
 
 export default function PdfSuite(){
@@ -121,21 +123,30 @@ export default function PdfSuite(){
   return (
     <div className="pdf-wrap">
       <Head><title>PDF Converter Suite</title></Head>
-      <h1>PDF Converter Suite</h1>
+      
+      <div className="page-header">
+        <h1 className="page-title">PDF Converter Suite</h1>
+        <p className="page-subtitle">Converti i tuoi file in pochi secondi</p>
+      </div>
+
       <div className="tabs">
-        {tabs.map(t => (
-          <button
-            key={t.key}
-            className={'tab ' + (active===t.key?'active':'')}
-            onClick={()=>{
-              // update hash for deep-linking and state for immediacy
-              try { window.location.hash = t.key; } catch {}
-              setActive(t.key); setFiles([]); setOutUrl(''); setOutList([]); setStatus('');
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+        {tabs.map(t => {
+          const IconComp = t.icon;
+          return (
+            <button
+              key={t.key}
+              className={'tab ' + (active===t.key?'active':'')}
+              onClick={()=>{
+                try { window.location.hash = t.key; } catch {}
+                setActive(t.key); setFiles([]); setOutUrl(''); setOutList([]); setStatus('');
+              }}
+              style={active === t.key ? { borderColor: t.color, background: `${t.color}15` } : {}}
+            >
+              <IconComp className="tab-icon" style={{ color: active === t.key ? t.color : '#94a3b8' }} />
+              <span>{t.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="panel">
@@ -149,12 +160,17 @@ export default function PdfSuite(){
           <p>{files.length? `${files.length} file selezionati` : 'Trascina qui i file o clicca per selezionare'}</p>
         </div>
         <div className="actions">
-          <button className="primary" onClick={submit} disabled={loading || !files.length}>{loading? 'Converto…':'Converti'}</button>
+          <button className="primary" onClick={submit} disabled={loading || !files.length}>
+            {loading ? 'Converto…' : 'Converti'}
+          </button>
           {outUrl && (
-            <button style={{marginLeft:10}} className="primary" onClick={handleDownload}>Download</button>
+            <button className="primary download-btn" onClick={handleDownload}>
+              <HiDownload className="btn-icon" />
+              Download
+            </button>
           )}
           {!!outList.length && (
-            <button style={{marginLeft:10}} className="primary" onClick={async ()=>{
+            <button className="primary download-btn" onClick={async ()=>{
               try {
                 const JSZip = (await import('jszip')).default;
                 const zip = new JSZip();
@@ -192,7 +208,10 @@ export default function PdfSuite(){
               } catch (e) {
                 console.error(e);
               }
-            }}>Download ZIP</button>
+            }}>
+              <HiArchive className="btn-icon" />
+              Download ZIP
+            </button>
           )}
         </div>
         <div className="result">
@@ -217,17 +236,39 @@ export default function PdfSuite(){
       </div>
 
       <style jsx>{`
-        .pdf-wrap{max-width:1000px;margin:0 auto;padding:24px}
-        h1{margin:0 0 16px;font-size:32px}
-        .tabs{display:flex;gap:8px;flex-wrap:wrap}
-        .tab{background:#1a2235;color:#cfe0ff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer}
-        .tab.active{background:#2563eb;color:#fff}
-        .panel{margin-top:16px;padding:16px;background:#0f172a;border:1px solid #1f2a44;border-radius:12px}
-        .drop{border:2px dashed #334155;border-radius:12px;padding:24px;text-align:center;cursor:pointer;position:relative;min-height:160px;display:flex;align-items:center;justify-content:center}
+        .pdf-wrap{max-width:1000px;margin:0 auto;padding:40px 24px}
+        .page-header{text-align:center;margin-bottom:40px}
+        .page-title{font-size:clamp(28px,5vw,40px);font-weight:800;margin:0 0 12px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .page-subtitle{font-size:16px;color:#94a3b8;margin:0}
+        .tabs{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:32px}
+        .tab{display:flex;align-items:center;gap:8px;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);color:#cfe0ff;border:1px solid rgba(148,163,184,0.1);border-radius:12px;padding:12px 18px;cursor:pointer;transition:all 0.3s;font-weight:600}
+        .tab:hover{transform:translateY(-2px);border-color:rgba(148,163,184,0.3)}
+        .tab.active{color:#fff;box-shadow:0 8px 16px rgba(0,0,0,0.2)}
+        .tab-icon{width:20px;height:20px}
+        .panel{margin-top:16px;padding:28px;background:rgba(15,23,42,0.6);backdrop-filter:blur(12px);border:1px solid rgba(148,163,184,0.1);border-radius:16px}
+        .drop{border:2px dashed rgba(148,163,184,0.3);border-radius:12px;padding:32px;text-align:center;cursor:pointer;position:relative;min-height:180px;display:flex;align-items:center;justify-content:center;transition:all 0.3s}
+        .drop:hover{border-color:rgba(148,163,184,0.5);background:rgba(148,163,184,0.05)}
         .drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
-        .actions{margin-top:12px}
-        .primary{background:#2563eb;color:#fff;border:none;border-radius:10px;padding:12px 18px;cursor:pointer}
-        .link{color:#9cc1ff}
+        .drop p{margin:0;font-size:15px;color:#94a3b8}
+        .actions{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap}
+        .primary{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:10px;padding:12px 20px;cursor:pointer;font-weight:600;transition:all 0.3s}
+        .primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 16px rgba(102,126,234,0.3)}
+        .primary:disabled{opacity:0.5;cursor:not-allowed}
+        .download-btn{background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%)}
+        .download-btn:hover{box-shadow:0 8px 16px rgba(67,233,123,0.3)}
+        .btn-icon{width:18px;height:18px}
+        .result{margin-top:20px}
+        .result>div:first-child{padding:12px 16px;background:rgba(148,163,184,0.1);border-radius:8px;font-size:14px;color:#cbd5e1}
+        .link{color:#60a5fa;text-decoration:none;font-weight:500}
+        .link:hover{text-decoration:underline}
+        ul{list-style:none;padding:0;margin:0}
+        li{padding:8px 12px;background:rgba(148,163,184,0.05);border-radius:8px;margin-bottom:8px}
+        @media (max-width:640px){
+          .pdf-wrap{padding:24px 16px}
+          .tabs{gap:8px}
+          .tab{padding:10px 14px;font-size:14px}
+          .panel{padding:20px}
+        }
       `}</style>
     </div>
   );
