@@ -9,7 +9,7 @@ import FormData from 'form-data';
   form.append('image', buffer, { filename: '1x1.png', contentType: 'image/png' });
 
   try {
-    const res = await fetch('http://localhost:3000/api/upscale-deepai', {
+    const res = await fetch('http://localhost:3000/api/upscale', {
       method: 'POST',
       body: form
     });

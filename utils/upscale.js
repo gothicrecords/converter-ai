@@ -23,7 +23,7 @@ async function upscaleImage(fileBuffer) {
         {
           resource_type: 'image',
           transformation: [
-            { effect: 'upscale', quality: 'auto:good' },
+            { effect: 'upscale', dpr: '2.0' },
             { fetch_format: 'auto' }
           ]
         },
