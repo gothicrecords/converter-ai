@@ -153,6 +153,7 @@ export default function Home() {
         <div className="result">
           <div ref={sliderRef} className="slider" role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(sliderPos)}>
             <img src={originalUrl} alt="Originale" />
+            <div className="badge left">Originale</div>
             <div
               className="clip"
               style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
@@ -162,6 +163,7 @@ export default function Home() {
             <div className="divider" style={{ left: `${sliderPos}%`, transform: 'translateX(-50%)' }}>
               <div className="handle">↔</div>
             </div>
+            <div className="badge right">Upscalata 2x</div>
           </div>
           <div style={{marginTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12}}>
             <button onClick={handleDownload} className="btn-secondary">Download</button>
