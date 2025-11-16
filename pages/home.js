@@ -12,7 +12,7 @@ const tools = [
   },
   {
     id: 'jpg2pdf',
-    title: 'JPG → PDF',
+    title: 'JPG -> PDF',
     description: 'Converti più immagini in un unico documento PDF.',
     icon: '📄',
     href: '/pdf#jpg2pdf',
@@ -20,7 +20,7 @@ const tools = [
   },
   {
     id: 'pdf2jpg',
-    title: 'PDF → JPG',
+    title: 'PDF -> JPG',
     description: 'Estrai immagini JPG dai tuoi file PDF.',
     icon: '🖼️',
     href: '/pdf#pdf2jpg',
@@ -28,7 +28,7 @@ const tools = [
   },
   {
     id: 'docx2pdf',
-    title: 'WORD → PDF',
+    title: 'WORD -> PDF',
     description: 'Trasforma documenti Word in PDF professionali.',
     icon: '📝',
     href: '/pdf#docx2pdf',
@@ -36,7 +36,7 @@ const tools = [
   },
   {
     id: 'pdf2docx',
-    title: 'PDF → WORD',
+    title: 'PDF -> WORD',
     description: 'Converti PDF in documenti Word modificabili.',
     icon: '📋',
     href: '/pdf#pdf2docx',
@@ -64,7 +64,7 @@ export default function HomePage() {
             </div>
             <h2 className="tool-title">{tool.title}</h2>
             <p className="tool-desc">{tool.description}</p>
-            <div className="tool-arrow" style={{ color: tool.color }}>→</div>
+            <div className="tool-arrow" style={{ color: tool.color }}>-&gt;</div>
           </Link>
         ))}
       </div>

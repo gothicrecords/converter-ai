@@ -25,10 +25,10 @@ function MyApp({ Component, pageProps }) {
             <Link href="/pdf" className={`nav-item ${isPdf ? 'active' : ''}`}>PDF Tools</Link>
           </div>
           <div className="nav-sub">
-            <Link href="/pdf#jpg2pdf" className="sub-item">JPG -> PDF</Link>
-            <Link href="/pdf#pdf2jpg" className="sub-item">PDF -> JPG</Link>
-            <Link href="/pdf#docx2pdf" className="sub-item">WORD -> PDF</Link>
-            <Link href="/pdf#pdf2docx" className="sub-item">PDF -> WORD</Link>
+            <Link href="/pdf#jpg2pdf" className="sub-item">JPG -&gt; PDF</Link>
+            <Link href="/pdf#pdf2jpg" className="sub-item">PDF -&gt; JPG</Link>
+            <Link href="/pdf#docx2pdf" className="sub-item">WORD -&gt; PDF</Link>
+            <Link href="/pdf#pdf2docx" className="sub-item">PDF -&gt; WORD</Link>
           </div>
         </div>
       </nav>

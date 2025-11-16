@@ -15,7 +15,7 @@ const tools = [
   },
   {
     id: 'jpg2pdf',
-    title: 'JPG → PDF',
+    title: 'JPG -> PDF',
     description: 'Converti più immagini in un unico documento PDF.',
     Icon: BsFileEarmarkImageFill,
     href: '/pdf#jpg2pdf',
@@ -24,7 +24,7 @@ const tools = [
   },
   {
     id: 'pdf2jpg',
-    title: 'PDF → JPG',
+    title: 'PDF -> JPG',
     description: 'Estrai immagini JPG dai tuoi file PDF.',
     Icon: BsFileEarmarkPdfFill,
     href: '/pdf#pdf2jpg',
@@ -33,7 +33,7 @@ const tools = [
   },
   {
     id: 'docx2pdf',
-    title: 'WORD → PDF',
+    title: 'WORD -> PDF',
     description: 'Trasforma documenti Word in PDF professionali.',
     Icon: BsFileEarmarkWordFill,
     href: '/pdf#docx2pdf',
@@ -42,7 +42,7 @@ const tools = [
   },
   {
     id: 'pdf2docx',
-    title: 'PDF → WORD',
+    title: 'PDF -> WORD',
     description: 'Converti PDF in documenti Word modificabili.',
     Icon: HiDocument,
     href: '/pdf#pdf2docx',

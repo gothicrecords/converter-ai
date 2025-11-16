@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
 const tabs = [
-  { key: 'jpg2pdf', label: 'JPG → PDF' },
-  { key: 'pdf2jpg', label: 'PDF → JPG' },
-  { key: 'docx2pdf', label: 'WORD → PDF' },
-  { key: 'pdf2docx', label: 'PDF → WORD' },
+  { key: 'jpg2pdf', label: 'JPG -> PDF' },
+  { key: 'pdf2jpg', label: 'PDF -> JPG' },
+  { key: 'docx2pdf', label: 'WORD -> PDF' },
+  { key: 'pdf2docx', label: 'PDF -> WORD' },
 ];
 
 export default function Home(){
@@ -56,7 +56,7 @@ export default function Home(){
           <p>{files.length? `${files.length} file selezionati` : 'Trascina qui i file o clicca per selezionare'}</p>
         </div>
         <div className="actions">
-          <button className="primary" onClick={submit} disabled={loading || !files.length}>{loading? 'Converto…':'Converti'}</button>
+          <button className="primary" onClick={submit} disabled={loading || !files.length}>{loading? 'Converto...':'Converti'}</button>
         </div>
         <div className="result">
           <div>{status}</div>
