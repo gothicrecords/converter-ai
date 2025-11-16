@@ -94,7 +94,6 @@ export default function HomePage() {
       <footer className="home-footer">
         <p>Tutti gli strumenti sono gratuiti e rispettano la tua privacy.</p>
       </footer>
-      </div>
 
       <style jsx>{`
         .home-wrap {
@@ -292,29 +291,6 @@ export default function HomePage() {
           }
           .tool-card {
             padding: 28px 24px;
-          }
-        }
-      `}</style>
-          flex: 1;
-        }
-        .tool-arrow {
-          font-size: 24px;
-          font-weight: 700;
-          align-self: flex-end;
-          transition: transform 0.3s;
-        }
-        .tool-card:hover .tool-arrow {
-          transform: translateX(4px);
-        }
-        @media (max-width: 640px) {
-          .home-wrap {
-            padding: 24px 16px;
-          }
-          .hero {
-            margin-bottom: 32px;
-          }
-          .tools-grid {
-            gap: 16px;
           }
         }
       `}</style>
