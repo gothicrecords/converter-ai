@@ -41,17 +41,18 @@ export default async function handler(req, res) {
         const formData = new FormData();
         formData.append('image_file', fs.createReadStream(imageFile.filepath));
         formData.append('size', size);
-        formData.append('type', type);
-        formData.append('channels', 'rgba');
-        formData.append('format', 'png');
-        if (crop === 'true') formData.append('crop', 'true');
-        if (cropMargin && crop === 'true') formData.append('crop_margin', cropMargin);
+        if (type && type !== 'auto') formData.append('type', type);
+        if (crop === 'true') {
+            formData.append('crop', 'true');
+            if (cropMargin) formData.append('crop_margin', cropMargin);
+        }
         if (bgColor) formData.append('bg_color', bgColor);
 
         const response = await fetch('https://api.remove.bg/v1.0/removebg', {
             method: 'POST',
             headers: {
                 'X-Api-Key': removeBgApiKey,
+                ...formData.getHeaders(),
             },
             body: formData,
         });
