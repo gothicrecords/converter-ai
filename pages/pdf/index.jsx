@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { BsFileEarmarkImageFill, BsFileEarmarkPdfFill, BsFileEarmarkWordFill, BsDownload, BsArchive } from 'react-icons/bs';
+import Navbar from '../../components/Navbar';
 
 const tabs = [
   { key: 'jpg2pdf', label: 'JPG -> PDF', icon: BsFileEarmarkImageFill, color: '#f093fb' },
@@ -119,10 +120,12 @@ function PdfSuite(){
   };
 
   return (
-    <div className="pdf-wrap">
-      <Head><title>PDF Converter Suite</title></Head>
-      
-      <div className="page-header">
+    <>
+      <Navbar />
+      <div className="pdf-wrap">
+        <Head><title>PDF Converter Suite</title></Head>
+        
+        <div className="page-header">
         <h1 className="page-title">PDF Converter Suite</h1>
         <p className="page-subtitle">Converti i tuoi file in pochi secondi</p>
       </div>
@@ -268,7 +271,8 @@ function PdfSuite(){
           .panel{padding:20px}
         }
       `}</style>
-    </div>
+      </div>
+    </>
   );
 }
 

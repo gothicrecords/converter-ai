@@ -1,294 +1,319 @@
 import Link from 'next/link';
 import Head from 'next/head';
-import { HiSparkles, HiPhotograph, HiDocumentText, HiDocument, HiArrowRight } from 'react-icons/hi';
-import { BsFileEarmarkPdfFill, BsFileEarmarkImageFill, BsFileEarmarkWordFill } from 'react-icons/bs';
-
-const tools = [
-  {
-    id: 'upscaler',
-    title: 'Upscaler AI',
-    description: 'Migliora le tue immagini con upscaling 2x in 8K. Veloce e naturale.',
-    Icon: HiSparkles,
-    href: '/upscaler',
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    color: '#667eea'
-  },
-  {
-    id: 'jpg2pdf',
-    title: 'JPG -> PDF',
-    description: 'Converti più immagini in un unico documento PDF.',
-    Icon: BsFileEarmarkImageFill,
-    href: '/pdf#jpg2pdf',
-    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    color: '#f093fb'
-  },
-  {
-    id: 'pdf2jpg',
-    title: 'PDF -> JPG',
-    description: 'Estrai immagini JPG dai tuoi file PDF.',
-    Icon: BsFileEarmarkPdfFill,
-    href: '/pdf#pdf2jpg',
-    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    color: '#4facfe'
-  },
-  {
-    id: 'docx2pdf',
-    title: 'WORD -> PDF',
-    description: 'Trasforma documenti Word in PDF professionali.',
-    Icon: BsFileEarmarkWordFill,
-    href: '/pdf#docx2pdf',
-    gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-    color: '#43e97b'
-  },
-  {
-    id: 'pdf2docx',
-    title: 'PDF -> WORD',
-    description: 'Converti PDF in documenti Word modificabili.',
-    Icon: HiDocument,
-    href: '/pdf#pdf2docx',
-    gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-    color: '#fa709a'
-  },
-];
+import { HiArrowRight, HiLightningBolt } from 'react-icons/hi';
+import { tools } from '../lib/tools';
+import Navbar from '../components/Navbar';
 
 export default function HomePage() {
   return (
-    <div className="home-wrap">
+    <div style={styles.homeWrap}>
       <Head>
-        <title>Tool Suite - Upscaler AI & PDF Converter</title>
-        <meta name="description" content="Strumenti professionali per upscaling AI e conversione PDF" />
+        <title>MegaPixelAI - Strumenti AI Professionali</title>
+        <meta name="description" content="Potenzia i tuoi contenuti con l'intelligenza artificiale - Upscaling, conversione, editing e molto altro" />
       </Head>
       
-      <div className="bg-glow"></div>
+      <div style={styles.animatedBg}>
+        <div style={styles.particle1}></div>
+        <div style={styles.particle2}></div>
+        <div style={styles.energyFlow1}></div>
+        <div style={styles.energyFlow2}></div>
+        <div style={styles.energyFlow3}></div>
+        <div style={styles.orb1}></div>
+        <div style={styles.orb2}></div>
+      </div>
       
-      <header className="hero">
-        <div className="hero-badge">
-          <HiSparkles className="badge-icon" />
+      <Navbar />
+
+      <div style={styles.heroSection}>
+        <div style={styles.heroBadge}>
+          <HiLightningBolt style={{ width: 16, height: 16 }} />
           <span>Powered by AI</span>
         </div>
-        <h1 className="hero-title">Strumenti AI & Conversione</h1>
-        <p className="hero-subtitle">Scegli lo strumento di cui hai bisogno. Veloce, professionale e gratuito.</p>
-      </header>
+        <h1 style={styles.heroTitle}>
+          Trasforma i tuoi contenuti<br/>con la potenza dell'AI
+        </h1>
+        <p style={styles.heroSubtitle}>
+          Strumenti professionali per immagini, PDF, video e audio.<br/>Veloce, potente, gratuito.
+        </p>
+      </div>
 
-      <div className="tools-grid">
-        {tools.map(tool => {
-          const IconComponent = tool.Icon;
+      <div style={styles.toolsGrid}>
+        {tools.map((tool, index) => {
+          const IconComponent = tool.icon;
           return (
-            <Link key={tool.id} href={tool.href} className="tool-card">
-              <div className="card-glow" style={{ background: tool.gradient }}></div>
-              <div className="tool-icon-wrap">
-                <div className="icon-bg" style={{ background: tool.gradient }}></div>
-                <IconComponent className="tool-icon" style={{ color: tool.color }} />
-              </div>
-              <h2 className="tool-title">{tool.title}</h2>
-              <p className="tool-desc">{tool.description}</p>
-              <div className="tool-footer">
-                <span className="tool-cta">Inizia ora</span>
-                <HiArrowRight className="tool-arrow" style={{ color: tool.color }} />
-              </div>
-            </Link>
+            <div 
+              key={tool.href} 
+              style={{
+                ...styles.toolCardWrap,
+                animationDelay: `${index * 0.1}s`
+              }}
+            >
+              <Link 
+                href={tool.href} 
+                style={styles.toolCard}
+                className="tool-card"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translate3d(0, -6px, 0)';
+                  e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                  const icon = e.currentTarget.querySelector('.tool-icon-wrap');
+                  if (icon) icon.style.transform = 'scale(1.1) rotate(5deg)';
+                  const arrow = e.currentTarget.querySelector('.tool-arrow');
+                  if (arrow) arrow.style.transform = 'translateX(4px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translate3d(0, 0, 0)';
+                  e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.2)';
+                  const icon = e.currentTarget.querySelector('.tool-icon-wrap');
+                  if (icon) icon.style.transform = 'scale(1) rotate(0deg)';
+                  const arrow = e.currentTarget.querySelector('.tool-arrow');
+                  if (arrow) arrow.style.transform = 'translateX(0)';
+                }}
+              >
+                <div style={styles.toolIconWrap} className="tool-icon-wrap">
+                  <IconComponent style={styles.toolIcon} />
+                </div>
+                <h2 style={styles.toolTitle}>{tool.title}</h2>
+                <p style={styles.toolDesc}>{tool.description}</p>
+                <div style={styles.toolFooter}>
+                  <span style={styles.toolCta}>Inizia ora</span>
+                  <HiArrowRight style={styles.toolArrow} className="tool-arrow" />
+                </div>
+              </Link>
+            </div>
           );
         })}
       </div>
 
-      <footer className="home-footer">
-        <p>Tutti gli strumenti sono gratuiti e rispettano la tua privacy.</p>
+      <footer style={styles.homeFooter}>
+        <p style={{margin: 0}}>Tutti gli strumenti sono gratuiti e rispettano la tua privacy.</p>
       </footer>
-
-      <style jsx>{`
-        .home-wrap {
-          position: relative;
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 60px 24px;
-          min-height: 100vh;
-        }
-        .bg-glow {
-          position: fixed;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: radial-gradient(circle at 30% 20%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
-                      radial-gradient(circle at 70% 60%, rgba(167, 139, 250, 0.08) 0%, transparent 50%);
-          pointer-events: none;
-          z-index: -1;
-        }
-        .hero {
-          text-align: center;
-          margin-bottom: 64px;
-        }
-        .hero-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 16px;
-          background: rgba(102, 126, 234, 0.1);
-          border: 1px solid rgba(102, 126, 234, 0.3);
-          border-radius: 24px;
-          color: #a78bfa;
-          font-size: 14px;
-          font-weight: 600;
-          margin-bottom: 24px;
-          animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.02); }
-        }
-        .badge-icon {
-          width: 18px;
-          height: 18px;
-        }
-        .hero-title {
-          font-size: clamp(36px, 6vw, 56px);
-          font-weight: 800;
-          margin: 0 0 16px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          letter-spacing: -0.02em;
-        }
-        .hero-subtitle {
-          font-size: clamp(16px, 2.5vw, 20px);
-          color: #94a3b8;
-          margin: 0;
-          max-width: 600px;
-          margin: 0 auto;
-          line-height: 1.6;
-        }
-        .tools-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 24px;
-          margin-bottom: 48px;
-        }
-        .tool-card {
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          padding: 32px 28px;
-          background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%);
-          border: 2px solid rgba(148, 163, 184, 0.2);
-          border-radius: 16px;
-          text-decoration: none;
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-          overflow: hidden;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-        .card-glow {
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          opacity: 0;
-          transition: opacity 0.4s;
-          filter: blur(60px);
-        }
-        .tool-card:hover .card-glow {
-            opacity: 0.12; }
-          .tool-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(148, 163, 184, 0.4);
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
-        }
-        .tool-icon-wrap {
-          position: relative;
-          width: 64px;
-          height: 64px;
-          margin-bottom: 20px;
-        }
-        .icon-bg {
-          position: absolute;
-          inset: 0;
-          border-radius: 16px;
-          opacity: 0.15;
-          transition: all 0.4s;
-        }
-        .tool-card:hover .icon-bg {
-          opacity: 0.25;
-          transform: scale(1.1) rotate(5deg);
-        }
-        .tool-icon {
-          position: relative;
-          width: 36px;
-          height: 36px;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          transition: transform 0.4s;
-        }
-        .tool-card:hover .tool-icon {
-          transform: translate(-50%, -50%) scale(1.15) rotate(-5deg);
-        }
-        .tool-title {
-          font-size: 24px;
-          font-weight: 700;
-          color: #f1f5f9;
-          margin: 0 0 12px;
-          position: relative;
-          } 
-          .tool-title { text-decoration: none; }
-        .tool-desc {
-          font-size: 15px;
-          color: #94a3b8;
-          line-height: 1.6;
-          margin: 0 0 20px;
-          flex: 1;
-        }
-        .tool-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding-top: 16px;
-          border-top: 1px solid rgba(148, 163, 184, 0.1);
-        }
-        .tool-cta {
-          font-size: 14px;
-          font-weight: 600;
-          color: #cbd5e1;
-          transition: color 0.3s;
-          } 
-          .tool-cta { text-decoration: none; }
-        .tool-card:hover .tool-cta {
-          color: #f1f5f9;
-        }
-        .tool-arrow {
-          width: 24px;
-          height: 24px;
-          transition: transform 0.4s;
-        }
-        .tool-card:hover .tool-arrow {
-          transform: translateX(6px);
-        }
-        .home-footer {
-          text-align: center;
-          padding: 32px 0;
-          color: #64748b;
-          font-size: 14px;
-          border-top: 1px solid rgba(148, 163, 184, 0.1);
-        }
-        .home-footer p {
-          margin: 0;
-        }
-        @media (max-width: 640px) {
-          .home-wrap {
-            padding: 40px 16px;
-          }
-          .hero {
-            margin-bottom: 48px;
-          }
-          .tools-grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
-          }
-          .tool-card {
-            padding: 28px 24px;
-          }
-        }
-      `}</style>
     </div>
   );
 }
+
+const styles = {
+  homeWrap: {
+    position: 'relative',
+    minHeight: '100vh',
+    overflow: 'hidden'
+  },
+  animatedBg: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: -1,
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+    opacity: 0.08
+  },
+  particle1: {
+    position: 'absolute',
+    width: '300px',
+    height: '300px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%)',
+    top: '10%',
+    left: '10%',
+    animation: 'float 20s ease-in-out infinite',
+    filter: 'blur(60px)',
+    willChange: 'transform'
+  },
+  particle2: {
+    position: 'absolute',
+    width: '350px',
+    height: '350px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(167, 139, 250, 0.25) 0%, transparent 70%)',
+    bottom: '20%',
+    right: '15%',
+    animation: 'float 25s ease-in-out infinite reverse',
+    filter: 'blur(70px)',
+    willChange: 'transform'
+  },
+  energyFlow1: {
+    position: 'absolute',
+    width: '6px',
+    height: '280px',
+    background: 'linear-gradient(180deg, transparent 0%, #667eea 40%, #667eea 60%, transparent 100%)',
+    top: '20%',
+    left: '30%',
+    animation: 'flowDown 3s ease-in-out infinite',
+    boxShadow: '0 0 30px #667eea, 0 0 60px rgba(102, 126, 234, 0.8), 0 0 90px rgba(102, 126, 234, 0.4)',
+    filter: 'blur(0.3px)',
+    willChange: 'transform, opacity'
+  },
+  energyFlow2: {
+    position: 'absolute',
+    width: '6px',
+    height: '300px',
+    background: 'linear-gradient(180deg, transparent 0%, #a78bfa 40%, #a78bfa 60%, transparent 100%)',
+    top: '40%',
+    right: '25%',
+    animation: 'flowDown 4s ease-in-out infinite 1s',
+    boxShadow: '0 0 30px #a78bfa, 0 0 60px rgba(167, 139, 250, 0.8), 0 0 90px rgba(167, 139, 250, 0.4)',
+    filter: 'blur(0.3px)',
+    willChange: 'transform, opacity'
+  },
+  energyFlow3: {
+    position: 'absolute',
+    width: '6px',
+    height: '320px',
+    background: 'linear-gradient(180deg, transparent 0%, #f093fb 40%, #f093fb 60%, transparent 100%)',
+    top: '10%',
+    left: '60%',
+    animation: 'flowDown 5s ease-in-out infinite 2s',
+    boxShadow: '0 0 30px #f093fb, 0 0 60px rgba(240, 147, 251, 0.8), 0 0 90px rgba(240, 147, 251, 0.4)',
+    filter: 'blur(0.3px)',
+    willChange: 'transform, opacity'
+  },
+  orb1: {
+    position: 'absolute',
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    background: 'rgba(102, 126, 234, 1)',
+    top: '15%',
+    left: '15%',
+    animation: 'orbit 20s linear infinite',
+    boxShadow: '0 0 25px rgba(102, 126, 234, 0.9), 0 0 50px rgba(102, 126, 234, 0.5)',
+    willChange: 'transform'
+  },
+  orb2: {
+    position: 'absolute',
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    background: 'rgba(167, 139, 250, 1)',
+    top: '60%',
+    right: '20%',
+    animation: 'orbit 25s linear infinite reverse',
+    boxShadow: '0 0 25px rgba(167, 139, 250, 0.9), 0 0 50px rgba(167, 139, 250, 0.5)',
+    willChange: 'transform'
+  },
+  heroSection: {
+    textAlign: 'center',
+    padding: '80px 24px 60px',
+    maxWidth: '900px',
+    margin: '0 auto',
+    animation: 'fadeInUp 0.8s ease-out'
+  },
+  heroBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 18px',
+    background: 'rgba(102, 126, 234, 0.1)',
+    border: '1px solid rgba(102, 126, 234, 0.3)',
+    borderRadius: '24px',
+    color: '#667eea',
+    fontSize: '13px',
+    fontWeight: '600',
+    marginBottom: '24px',
+    animation: 'glow 2s ease-in-out infinite'
+  },
+  heroTitle: {
+    fontSize: 'clamp(32px, 5vw, 48px)',
+    fontWeight: '800',
+    margin: '0 0 20px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    lineHeight: 1.2,
+    letterSpacing: '-0.02em'
+  },
+  heroSubtitle: {
+    fontSize: '16px',
+    color: '#94a3b8',
+    margin: 0,
+    lineHeight: 1.7
+  },
+  toolsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+    gap: '20px',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '0 24px 60px'
+  },
+  toolCardWrap: {
+    position: 'relative'
+  },
+  toolCard: {
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '24px 20px',
+    background: 'rgba(15, 23, 42, 0.7)',
+    backdropFilter: 'blur(12px)',
+    border: '1px solid rgba(102, 126, 234, 0.2)',
+    borderRadius: '12px',
+    textDecoration: 'none',
+    transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease',
+    overflow: 'hidden',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+    cursor: 'pointer',
+    height: '100%',
+    willChange: 'transform'
+  },
+  toolIconWrap: {
+    position: 'relative',
+    width: '52px',
+    height: '52px',
+    marginBottom: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(102, 126, 234, 0.2)',
+    borderRadius: '12px',
+    transition: 'transform 0.3s ease'
+  },
+  toolIcon: {
+    width: '28px',
+    height: '28px',
+    color: '#a78bfa',
+    transition: 'all 0.3s ease'
+  },
+  toolTitle: {
+    fontSize: '18px',
+    fontWeight: '700',
+    color: '#f1f5f9',
+    margin: '0 0 10px',
+    textDecoration: 'none'
+  },
+  toolDesc: {
+    fontSize: '14px',
+    color: '#94a3b8',
+    lineHeight: 1.6,
+    margin: '0 0 16px',
+    flex: 1
+  },
+  toolFooter: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: '12px',
+    borderTop: '1px solid rgba(102, 126, 234, 0.1)'
+  },
+  toolCta: {
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#a78bfa'
+  },
+  toolArrow: {
+    width: '20px',
+    height: '20px',
+    color: '#a78bfa',
+    transition: 'transform 0.3s ease'
+  },
+  homeFooter: {
+    textAlign: 'center',
+    padding: '32px 24px',
+    color: '#64748b',
+    fontSize: '14px',
+    borderTop: '1px solid rgba(102, 126, 234, 0.2)',
+    maxWidth: '1200px',
+    margin: '0 auto'
+  }
+};

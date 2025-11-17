@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
 import { HiSparkles, HiUpload, HiDownload, HiPhotograph } from 'react-icons/hi';
+import Navbar from '../components/Navbar';
 
 export default function Upscaler() {
   const [originalFile, setOriginalFile] = useState(null);
@@ -121,12 +122,14 @@ export default function Upscaler() {
   }, [upscaledUrl]);
 
   return (
-    <div className="container">
-      <Head>
-        <title>Upscaler AI - 8K Image Enhancement</title>
-      </Head>
+    <>
+      <Navbar />
+      <div className="container">
+        <Head>
+          <title>Upscaler AI - 8K Image Enhancement</title>
+        </Head>
 
-      <div className="page-header">
+        <div className="page-header">
         <div className="header-badge">
           <HiSparkles className="badge-icon" />
           <span>AI Powered</span>
@@ -192,6 +195,7 @@ export default function Upscaler() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

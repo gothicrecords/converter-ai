@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.best-upscaler-ia.com/sitemap.xml
