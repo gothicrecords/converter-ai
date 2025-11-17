@@ -1,11 +1,44 @@
+import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import Link from 'next/link';
 import { HiCheckCircle } from 'react-icons/hi';
 import { useTranslation } from '../lib/i18n';
+import getStripe from '../lib/stripe-client';
 
 export default function PricingPage() {
     const { t } = useTranslation();
+    const [loading, setLoading] = useState(false);
+
+    const handleSubscribe = async (priceId) => {
+        setLoading(true);
+        
+        try {
+            // Crea sessione checkout
+            const response = await fetch('/api/stripe/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    priceId: priceId,
+                    userId: 'user_' + Date.now(), // TODO: Usa vero ID utente dal login
+                    userEmail: 'user@example.com', // TODO: Usa vera email utente
+                }),
+            });
+
+            const { url } = await response.json();
+            
+            // Redirect a Stripe Checkout
+            window.location.href = url;
+        } catch (error) {
+            console.error('Subscription error:', error);
+            alert('Errore durante il pagamento. Riprova.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const plans = [
         {
             name: t('pricing.free'),
@@ -42,7 +75,7 @@ export default function PricingPage() {
                 t('pricing.multipleDownloads')
             ],
             cta: t('pricing.startTrial'),
-            href: '/contact',
+            stripePrice: 'price_1SUaLSAYkkHFHNFuv8Ndicok',
             popular: true
         },
         {
@@ -115,9 +148,23 @@ export default function PricingPage() {
                                 <span style={styles.pricePeriod}>{plan.period}</span>
                             </div>
                             <p style={styles.planDescription}>{plan.description}</p>
-                            <Link href={plan.href} style={{...styles.planCta, ...(plan.popular ? styles.popularCta : {})}}>
-                                {plan.cta}
-                            </Link>
+                            {plan.stripePrice ? (
+                                <button 
+                                    onClick={() => handleSubscribe(plan.stripePrice)}
+                                    disabled={loading}
+                                    style={{
+                                        ...styles.planCta, 
+                                        ...(plan.popular ? styles.popularCta : {}),
+                                        ...(loading ? { opacity: 0.6, cursor: 'not-allowed' } : {})
+                                    }}
+                                >
+                                    {loading ? 'Caricamento...' : plan.cta}
+                                </button>
+                            ) : (
+                                <Link href={plan.href} style={{...styles.planCta, ...(plan.popular ? styles.popularCta : {})}}>
+                                    {plan.cta}
+                                </Link>
+                            )}
                             <ul style={styles.featureList}>
                                 {plan.features.map((feature, j) => (
                                     <li key={j} style={styles.featureItem}>
