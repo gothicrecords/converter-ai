@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import Script from 'next/script';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import ToastContainer from '../components/Toast';
 import * as analytics from '../lib/analytics';
 
@@ -63,6 +64,7 @@ function MyApp({ Component, pageProps }) {
 
       <ToastContainer />
       <Component {...pageProps} />
+      <SpeedInsights />
     </>
   );
 }
