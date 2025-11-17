@@ -8,8 +8,10 @@ import {
 } from 'react-icons/hi';
 import { getCurrentUser, logout, isAuthenticated, getUserStats } from '../lib/auth';
 import { getHistory } from '../lib/history';
+import { useTranslation } from '../lib/i18n';
 
 export default function DashboardPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const [user, setUser] = useState(null);
     const [stats, setStats] = useState(null);

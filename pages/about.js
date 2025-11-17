@@ -1,8 +1,10 @@
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import { HiSparkles, HiLightningBolt, HiUsers, HiHeart } from 'react-icons/hi';
+import { useTranslation } from '../lib/i18n';
 
 export default function AboutPage() {
+    const { t } = useTranslation();
     return (
         <div style={styles.pageWrap}>
             <SEOHead
@@ -15,67 +17,67 @@ export default function AboutPage() {
 
             <section style={styles.hero}>
                 <h1 style={styles.heroTitle}>
-                    Rendiamo l'AI accessibile a <span style={styles.gradient}>tutti</span>
+                    {t('about.hero')} <span style={styles.gradient}>{t('about.everyone')}</span>
                 </h1>
                 <p style={styles.heroSubtitle}>
-                    MegaPixelAI nasce dalla convinzione che strumenti AI professionali non dovrebbero essere un privilegio riservato a pochi, ma un diritto accessibile a tutti i creativi e professionisti.
+                    {t('about.subtitle')}
                 </p>
             </section>
 
             <section style={styles.story}>
                 <div style={styles.storyContent}>
                     <div style={styles.storyText}>
-                        <h2 style={styles.sectionTitle}>La Nostra Storia</h2>
+                        <h2 style={styles.sectionTitle}>{t('about.ourStory')}</h2>
                         <p style={styles.paragraph}>
-                            Tutto è iniziato nel 2023, quando un gruppo di sviluppatori e designer italiani si è reso conto che gli strumenti AI più potenti erano troppo costosi o troppo complessi per la maggior parte delle persone.
+                            {t('about.story1')}
                         </p>
                         <p style={styles.paragraph}>
-                            Volevamo creare una piattaforma dove chiunque - dal fotografo freelance allo studente, dal graphic designer all'agenzia - potesse accedere a tecnologie all'avanguardia senza barriere economiche o tecniche.
+                            {t('about.story2')}
                         </p>
                         <p style={styles.paragraph}>
-                            Dopo mesi di sviluppo intenso, abbiamo lanciato MegaPixelAI con una missione chiara: democratizzare l'accesso all'intelligenza artificiale e permettere a ogni creativo di esprimere il proprio potenziale senza limiti.
+                            {t('about.story3')}
                         </p>
                     </div>
                 </div>
             </section>
 
             <section style={styles.values}>
-                <h2 style={styles.sectionTitle}>I Nostri Valori</h2>
+                <h2 style={styles.sectionTitle}>{t('about.ourValues')}</h2>
                 <div style={styles.valuesGrid}>
                     <div style={styles.valueCard}>
                         <div style={styles.valueIcon}>
                             <HiSparkles style={{ width: 32, height: 32 }} />
                         </div>
-                        <h3 style={styles.valueTitle}>Innovazione</h3>
+                        <h3 style={styles.valueTitle}>{t('about.innovation')}</h3>
                         <p style={styles.valueText}>
-                            Integriamo costantemente le ultime tecnologie AI per offrire sempre il meglio ai nostri utenti.
+                            {t('about.innovationDesc')}
                         </p>
                     </div>
                     <div style={styles.valueCard}>
                         <div style={styles.valueIcon}>
                             <HiLightningBolt style={{ width: 32, height: 32 }} />
                         </div>
-                        <h3 style={styles.valueTitle}>Semplicità</h3>
+                        <h3 style={styles.valueTitle}>{t('about.simplicity')}</h3>
                         <p style={styles.valueText}>
-                            Crediamo che la tecnologia complessa debba essere resa semplice e accessibile a tutti.
+                            {t('about.simplicityDesc')}
                         </p>
                     </div>
                     <div style={styles.valueCard}>
                         <div style={styles.valueIcon}>
                             <HiUsers style={{ width: 32, height: 32 }} />
                         </div>
-                        <h3 style={styles.valueTitle}>Comunità</h3>
+                        <h3 style={styles.valueTitle}>{t('about.community')}</h3>
                         <p style={styles.valueText}>
-                            Costruiamo insieme ai nostri utenti, ascoltando feedback e integrando nuove funzionalità.
+                            {t('about.communityDesc')}
                         </p>
                     </div>
                     <div style={styles.valueCard}>
                         <div style={styles.valueIcon}>
                             <HiHeart style={{ width: 32, height: 32 }} />
                         </div>
-                        <h3 style={styles.valueTitle}>Trasparenza</h3>
+                        <h3 style={styles.valueTitle}>{t('about.transparency')}</h3>
                         <p style={styles.valueText}>
-                            Nessun costo nascosto, nessuna trappola. Prezzi chiari e servizio onesto.
+                            {t('about.transparencyDesc')}
                         </p>
                     </div>
                 </div>

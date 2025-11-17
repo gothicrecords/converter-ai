@@ -2,8 +2,10 @@ import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import Link from 'next/link';
 import { HiCheckCircle } from 'react-icons/hi';
+import { useTranslation } from '../lib/i18n';
 
 export default function PricingPage() {
+    const { t } = useTranslation();
     const plans = [
         {
             name: 'Free',
@@ -102,8 +104,8 @@ export default function PricingPage() {
             <Navbar />
 
             <section style={styles.hero}>
-                <h1 style={styles.heroTitle}>Piani semplici e <span style={styles.gradient}>trasparenti</span></h1>
-                <p style={styles.heroSubtitle}>Scegli il piano perfetto per le tue esigenze. Sempre con garanzia soddisfatti o rimborsati 30 giorni.</p>
+                <h1 style={styles.heroTitle}>{t('pricing.hero')}</h1>
+                <p style={styles.heroSubtitle}>{t('pricing.subtitle')}</p>
             </section>
 
             <section style={styles.pricing}>

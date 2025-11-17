@@ -2,8 +2,10 @@ import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import { useState } from 'react';
 import { HiMail, HiPhone, HiLocationMarker, HiClock } from 'react-icons/hi';
+import { useTranslation } from '../lib/i18n';
 
 export default function ContactPage() {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
     const [status, setStatus] = useState('');
 
@@ -35,20 +37,20 @@ export default function ContactPage() {
 
             <section style={styles.hero}>
                 <h1 style={styles.heroTitle}>
-                    Siamo qui per <span style={styles.gradient}>aiutarti</span>
+                    {t('contact.hero')} <span style={styles.gradient}>{t('contact.help')}</span>
                 </h1>
                 <p style={styles.heroSubtitle}>
-                    Hai domande, suggerimenti o hai bisogno di supporto? Scrivici e ti risponderemo entro 24 ore.
+                    {t('contact.subtitle')}
                 </p>
             </section>
 
             <section style={styles.content}>
                 <div style={styles.grid}>
                     <div style={styles.formSection}>
-                        <h2 style={styles.formTitle}>Inviaci un messaggio</h2>
+                        <h2 style={styles.formTitle}>{t('contact.sendMessage')}</h2>
                         <form onSubmit={handleSubmit} style={styles.form}>
                             <div style={styles.formGroup}>
-                                <label style={styles.label}>Nome Completo</label>
+                                <label style={styles.label}>{t('contact.fullName')}</label>
                                 <input
                                     type="text"
                                     name="name"
@@ -56,11 +58,11 @@ export default function ContactPage() {
                                     onChange={handleChange}
                                     required
                                     style={styles.input}
-                                    placeholder="Mario Rossi"
+                                    placeholder={t('contact.fullName')}
                                 />
                             </div>
                             <div style={styles.formGroup}>
-                                <label style={styles.label}>Email</label>
+                                <label style={styles.label}>{t('contact.email')}</label>
                                 <input
                                     type="email"
                                     name="email"
@@ -68,11 +70,11 @@ export default function ContactPage() {
                                     onChange={handleChange}
                                     required
                                     style={styles.input}
-                                    placeholder="mario@example.com"
+                                    placeholder={t('contact.email')}
                                 />
                             </div>
                             <div style={styles.formGroup}>
-                                <label style={styles.label}>Oggetto</label>
+                                <label style={styles.label}>{t('contact.subject')}</label>
                                 <select
                                     name="subject"
                                     value={formData.subject}
@@ -80,16 +82,16 @@ export default function ContactPage() {
                                     required
                                     style={styles.select}
                                 >
-                                    <option value="">Seleziona un oggetto</option>
-                                    <option value="support">Supporto Tecnico</option>
-                                    <option value="billing">Fatturazione e Pagamenti</option>
-                                    <option value="feature">Richiesta Funzionalità</option>
-                                    <option value="partnership">Partnership</option>
-                                    <option value="other">Altro</option>
+                                    <option value="">{t('contact.subject')}</option>
+                                    <option value="support">{t('contact.subjectSupport')}</option>
+                                    <option value="billing">{t('contact.subjectBilling')}</option>
+                                    <option value="feature">{t('contact.subjectFeature')}</option>
+                                    <option value="partnership">{t('contact.subjectPartnership')}</option>
+                                    <option value="other">{t('contact.subjectOther')}</option>
                                 </select>
                             </div>
                             <div style={styles.formGroup}>
-                                <label style={styles.label}>Messaggio</label>
+                                <label style={styles.label}>{t('contact.message')}</label>
                                 <textarea
                                     name="message"
                                     value={formData.message}
