@@ -10,6 +10,14 @@ const nextConfig = {
   turbopack: {
     root: __dirname,
   },
+  reactStrictMode: true,
+  productionBrowserSourceMaps: false,
+  experimental: {
+    optimizePackageImports: ['react-icons'],
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
 };
 
 export default nextConfig;

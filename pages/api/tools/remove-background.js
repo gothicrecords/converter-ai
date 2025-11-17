@@ -30,9 +30,23 @@ export default async function handler(req, res) {
 
         const imageFile = files.file[0];
 
+        // Opzioni aggiuntive dal client per migliorare il risultato
+        // Supportate da remove.bg: type, size, crop, crop_margin, bg_color, channels, format
+        const type = (fields.type?.[0] || 'auto').toString(); // auto | person | product | car | animal
+        const size = (fields.size?.[0] || 'full').toString(); // preview | small | regular | medium | full | auto
+        const crop = (fields.crop?.[0] || 'false').toString(); // 'true' | 'false'
+        const cropMargin = (fields.crop_margin?.[0] || '0').toString(); // e.g. '10%'
+        const bgColor = (fields.bg_color?.[0] || '').toString(); // e.g. 'ffffff'
+
         const formData = new FormData();
         formData.append('image_file', fs.createReadStream(imageFile.filepath));
-        formData.append('size', 'auto');
+        formData.append('size', size);
+        formData.append('type', type);
+        formData.append('channels', 'rgba');
+        formData.append('format', 'png');
+        if (crop === 'true') formData.append('crop', 'true');
+        if (cropMargin && crop === 'true') formData.append('crop_margin', cropMargin);
+        if (bgColor) formData.append('bg_color', bgColor);
 
         const response = await fetch('https://api.remove.bg/v1.0/removebg', {
             method: 'POST',
@@ -49,10 +63,14 @@ export default async function handler(req, res) {
         }
 
         const imageBlob = await response.blob();
-        
-        res.setHeader('Content-Type', imageBlob.type);
+
+        res.setHeader('Content-Type', imageBlob.type || 'image/png');
+        // Cache busting: risultato dipende dall'immagine, non cache lato client per sicurezza
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         const buffer = await imageBlob.arrayBuffer();
-        res.send(Buffer.from(buffer));
+        res.status(200).send(Buffer.from(buffer));
 
     } catch (error) {
         console.error("Errore durante l'elaborazione dell'immagine:", error);
