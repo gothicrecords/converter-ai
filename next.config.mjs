@@ -11,9 +11,6 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   
-  // Ottimizzazioni critiche per FCP/LCP
-  optimizeFonts: true,
-  
   // Image optimization
   images: {
     formats: ['image/webp'],
