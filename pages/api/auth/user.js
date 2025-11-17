@@ -1,5 +1,4 @@
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { getSession } from '../../../lib/db';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -14,57 +13,25 @@ export default async function handler(req, res) {
     }
 
     // Find session and verify it's not expired
-    const sessionResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/user_sessions?session_token=eq.${sessionToken}&select=user_id,expires_at`,
-      {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`
-        }
-      }
-    );
-
-    const sessions = await sessionResponse.json();
-    if (!sessions || sessions.length === 0) {
+    const session = await getSession(sessionToken);
+    
+    if (!session) {
       return res.status(401).json({ error: 'Invalid or expired session' });
     }
 
-    const session = sessions[0];
-
-    // Check if session is expired
-    if (new Date(session.expires_at) < new Date()) {
-      // Delete expired session
-      await fetch(
-        `${SUPABASE_URL}/rest/v1/user_sessions?session_token=eq.${sessionToken}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`
-          }
-        }
-      );
-
-      return res.status(401).json({ error: 'Session expired' });
-    }
-
-    // Get user data
-    const userResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/users?id=eq.${session.user_id}&select=id,email,name,created_at,images_processed,tools_used,has_discount,plan,updated_at`,
-      {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`
-        }
+    // Return user data from session (already joined with users table)
+    res.status(200).json({
+      success: true,
+      user: {
+        id: session.user_id,
+        email: session.email,
+        name: session.name,
+        images_processed: session.images_processed,
+        tools_used: session.tools_used,
+        has_discount: session.has_discount,
+        plan: session.plan
       }
-    );
-
-    const users = await userResponse.json();
-    if (!users || users.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.status(200).json({ success: true, user: users[0] });
+    });
 
   } catch (error) {
     console.error('Get user error:', error);

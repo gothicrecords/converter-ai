@@ -1,8 +1,8 @@
 -- ============================================
--- Supabase Database Schema for MegaPixel AI
+-- Neon Database Schema for MegaPixel AI
 -- ============================================
--- Run this SQL in your Supabase SQL Editor
--- Dashboard -> SQL Editor -> New Query
+-- Run this SQL in your Neon SQL Editor
+-- Console -> SQL Editor
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -65,38 +65,16 @@ CREATE INDEX IF NOT EXISTS idx_sessions_expires ON user_sessions(expires_at);
 -- ============================================
 -- Row Level Security (RLS) Policies
 -- ============================================
+-- DISABLED: Using custom authentication with service_role key
+-- RLS is not needed since API validates users server-side
 
--- Enable RLS on all tables
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_history ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
+-- Disable RLS on all tables (for custom auth)
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE user_history DISABLE ROW LEVEL SECURITY;
+ALTER TABLE user_sessions DISABLE ROW LEVEL SECURITY;
 
--- Users: Can only read/update their own data
-CREATE POLICY "Users can view their own data" 
-  ON users FOR SELECT 
-  USING (auth.uid()::text = id::text);
-
-CREATE POLICY "Users can update their own data" 
-  ON users FOR UPDATE 
-  USING (auth.uid()::text = id::text);
-
--- User History: Users can only see their own history
-CREATE POLICY "Users can view their own history" 
-  ON user_history FOR SELECT 
-  USING (auth.uid()::text = user_id::text);
-
-CREATE POLICY "Users can insert their own history" 
-  ON user_history FOR INSERT 
-  WITH CHECK (auth.uid()::text = user_id::text);
-
--- Sessions: Users can manage their own sessions
-CREATE POLICY "Users can view their own sessions" 
-  ON user_sessions FOR SELECT 
-  USING (auth.uid()::text = user_id::text);
-
-CREATE POLICY "Users can delete their own sessions" 
-  ON user_sessions FOR DELETE 
-  USING (auth.uid()::text = user_id::text);
+-- Note: In production, consider implementing API-level access controls
+-- instead of database-level RLS when using custom authentication.
 
 -- ============================================
 -- Functions for automatic timestamp updates

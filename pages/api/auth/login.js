@@ -1,7 +1,6 @@
 import bcrypt from 'bcryptjs';
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { getUser, createSession } from '../../../lib/db';
+import crypto from 'crypto';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -16,24 +15,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Find user by email using REST API
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/users?email=eq.${email.toLowerCase()}`,
-      {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    const users = await response.json();
-    if (!users || users.length === 0) {
+    // Find user by email
+    const user = await getUser(email.toLowerCase());
+    if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
-
-    const user = users[0];
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
@@ -43,45 +29,23 @@ export default async function handler(req, res) {
     }
 
     // Create session token
-    const sessionToken = `session_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+    const sessionToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    // Delete old expired sessions
-    await fetch(
-      `${SUPABASE_URL}/rest/v1/user_sessions?user_id=eq.${user.id}&expires_at=lt.${new Date().toISOString()}`,
-      {
-        method: 'DELETE',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`
-        }
-      }
-    );
+    await createSession(user.id, sessionToken, expiresAt);
 
-    // Create new session
-    await fetch(
-      `${SUPABASE_URL}/rest/v1/user_sessions`,
-      {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          session_token: sessionToken,
-          expires_at: expiresAt.toISOString()
-        })
-      }
-    );
-
-    // Return user data without password hash
-    const { password_hash, ...userWithoutPassword } = user;
-
+    // Return user data
     res.status(200).json({
       success: true,
-      user: userWithoutPassword,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        images_processed: user.images_processed,
+        tools_used: user.tools_used,
+        has_discount: user.has_discount,
+        plan: user.plan
+      },
       sessionToken
     });
 

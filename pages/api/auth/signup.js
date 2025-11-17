@@ -1,7 +1,6 @@
 import bcrypt from 'bcryptjs';
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { getUser, createUser, createSession } from '../../../lib/db';
+import crypto from 'crypto';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -26,85 +25,36 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    // Check if user already exists using REST API
-    const checkResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/users?email=eq.${email.toLowerCase()}&select=id`,
-      {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    const existingUsers = await checkResponse.json();
-    if (existingUsers && existingUsers.length > 0) {
+    // Check if user already exists
+    const existingUser = await getUser(email.toLowerCase());
+    if (existingUser) {
       return res.status(409).json({ error: 'Email already registered' });
     }
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user using REST API
-    const insertResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/users`,
-      {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify({
-          name,
-          email: email.toLowerCase(),
-          password_hash: passwordHash,
-          has_discount: true,
-          images_processed: 0,
-          tools_used: [],
-          plan: 'free'
-        })
-      }
-    );
-
-    if (!insertResponse.ok) {
-      const error = await insertResponse.text();
-      console.error('Insert error:', error);
-      return res.status(500).json({ error: 'Failed to create user' });
-    }
-
-    const newUsers = await insertResponse.json();
-    const newUser = newUsers[0];
+    // Create user
+    const newUser = await createUser(email.toLowerCase(), name, passwordHash);
 
     // Create session token
-    const sessionToken = `session_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+    const sessionToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    await fetch(
-      `${SUPABASE_URL}/rest/v1/user_sessions`,
-      {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_id: newUser.id,
-          session_token: sessionToken,
-          expires_at: expiresAt.toISOString()
-        })
-      }
-    );
+    await createSession(newUser.id, sessionToken, expiresAt);
 
-    // Return user data without password hash
-    const { password_hash, ...userWithoutPassword } = newUser;
-
+    // Return user data
     res.status(201).json({
       success: true,
-      user: userWithoutPassword,
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        images_processed: newUser.images_processed,
+        tools_used: newUser.tools_used,
+        has_discount: newUser.has_discount,
+        plan: newUser.plan
+      },
       sessionToken
     });
 
