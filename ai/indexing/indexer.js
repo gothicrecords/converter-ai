@@ -1,5 +1,6 @@
-import { generateEmbedding, generateSummary, generateTags, classifyDocument } from '../../lib/openai.js';
-import { getServiceSupabase } from '../../lib/supabase.js';
+// TODO: Enable when OpenAI is configured
+// import { generateEmbedding, generateSummary, generateTags, classifyDocument } from '../../lib/openai.js';
+// import { getServiceSupabase } from '../../lib/supabase.js';
 
 // Chunk text into smaller pieces for embeddings
 export function chunkText(text, chunkSize = 1000, overlap = 200) {
@@ -22,6 +23,8 @@ export function chunkText(text, chunkSize = 1000, overlap = 200) {
 
 // Index a single file
 export async function indexFile(fileId, extractedText) {
+  throw new Error('File indexing not configured. OpenAI and Supabase setup required.');
+  /* TODO: Enable when dependencies are configured
   try {
     const supabase = getServiceSupabase();
 
@@ -99,10 +102,13 @@ export async function indexFile(fileId, extractedText) {
 
     throw error;
   }
+  */
 }
 
 // Search files using semantic search
 export async function semanticSearch(userId, query, limit = 10) {
+  throw new Error('Semantic search not configured. OpenAI and Supabase setup required.');
+  /* TODO: Enable when dependencies are configured
   try {
     const supabase = getServiceSupabase();
 
@@ -157,6 +163,7 @@ export async function semanticSearch(userId, query, limit = 10) {
     console.error('Semantic search error:', error);
     throw error;
   }
+  */
 }
 
 export default {

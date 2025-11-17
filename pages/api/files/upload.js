@@ -1,5 +1,6 @@
-import { getServiceSupabase, uploadFile } from '../../../lib/supabase';
-import { parseFile } from '../../../services/parser/fileParser';
+// TODO: Enable when Supabase is configured
+// import { getServiceSupabase, uploadFile } from '../../../lib/supabase';
+// import { parseFile } from '../../../services/parser/fileParser';
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
@@ -11,6 +12,11 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+  return res.status(503).json({ 
+    error: 'File upload API not yet configured. Supabase setup required.' 
+  });
+  
+  /* TODO: Enable when Supabase is configured
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -112,4 +118,5 @@ export default async function handler(req, res) {
     console.error('Upload error:', error);
     res.status(500).json({ error: error.message || 'Upload failed' });
   }
+  */
 }

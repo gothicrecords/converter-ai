@@ -1,11 +1,14 @@
-import pdfParse from 'pdf-parse';
-import mammoth from 'mammoth';
-import XLSX from 'xlsx';
-import sharp from 'sharp';
-import { performOCR } from '../ocr/ocr.js';
+// TODO: Install dependencies: npm install pdf-parse mammoth xlsx sharp
+// import pdfParse from 'pdf-parse';
+// import mammoth from 'mammoth';
+// import XLSX from 'xlsx';
+// import sharp from 'sharp';
+// import { performOCR } from '../ocr/ocr.js';
 
 // Parse PDF
 export async function parsePDF(buffer) {
+  throw new Error('PDF parsing not configured. Install pdf-parse to enable.');
+  /* TODO: Enable when dependencies are installed
   try {
     const data = await pdfParse(buffer);
 
@@ -19,10 +22,13 @@ export async function parsePDF(buffer) {
     console.error('PDF parsing error:', error);
     throw new Error(`Failed to parse PDF: ${error.message}`);
   }
+  */
 }
 
 // Parse DOCX
 export async function parseDOCX(buffer) {
+  throw new Error('DOCX parsing not configured. Install mammoth to enable.');
+  /* TODO: Enable when dependencies are installed
   try {
     const result = await mammoth.extractRawText({ buffer });
 
@@ -34,10 +40,13 @@ export async function parseDOCX(buffer) {
     console.error('DOCX parsing error:', error);
     throw new Error(`Failed to parse DOCX: ${error.message}`);
   }
+  */
 }
 
 // Parse Excel/CSV
 export async function parseExcel(buffer) {
+  throw new Error('Excel parsing not configured. Install xlsx to enable.');
+  /* TODO: Enable when dependencies are installed
   try {
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     const sheets = {};
@@ -79,10 +88,13 @@ export async function parseExcel(buffer) {
     console.error('Excel parsing error:', error);
     throw new Error(`Failed to parse Excel: ${error.message}`);
   }
+  */
 }
 
 // Parse image (extract text via OCR + metadata)
 export async function parseImage(buffer) {
+  throw new Error('Image parsing not configured. Install sharp and tesseract.js to enable.');
+  /* TODO: Enable when dependencies are installed
   try {
     // Get image metadata
     const metadata = await sharp(buffer).metadata();
@@ -107,6 +119,7 @@ export async function parseImage(buffer) {
     console.error('Image parsing error:', error);
     throw new Error(`Failed to parse image: ${error.message}`);
   }
+  */
 }
 
 // Parse text file

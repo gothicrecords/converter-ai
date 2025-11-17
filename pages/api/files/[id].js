@@ -1,6 +1,12 @@
-import { getServiceSupabase, deleteFile as deleteFromStorage } from '../../../lib/supabase';
+// TODO: Enable when Supabase is configured
+// import { getServiceSupabase, deleteFile as deleteFromStorage } from '../../../lib/supabase';
 
 export default async function handler(req, res) {
+  return res.status(503).json({ 
+    error: 'File delete API not yet configured. Supabase setup required.' 
+  });
+  
+  /* TODO: Enable when Supabase is configured
   if (req.method !== 'DELETE') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -56,4 +62,5 @@ export default async function handler(req, res) {
     console.error('Delete file error:', error);
     res.status(500).json({ error: error.message || 'Failed to delete file' });
   }
+  */
 }

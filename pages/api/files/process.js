@@ -1,9 +1,15 @@
-import { getServiceSupabase } from '../../../lib/supabase';
-import { parseFile } from '../../../services/parser/fileParser';
-import { indexFile } from '../../../ai/indexing/indexer';
-import sharp from 'sharp';
+// TODO: Enable when Supabase is configured
+// import { getServiceSupabase } from '../../../lib/supabase';
+// import { parseFile } from '../../../services/parser/fileParser';
+// import { indexFile } from '../../../ai/indexing/indexer';
+// import sharp from 'sharp';
 
 export default async function handler(req, res) {
+  return res.status(503).json({ 
+    error: 'File processing API not yet configured. Supabase setup required.' 
+  });
+  
+  /* TODO: Enable when Supabase is configured
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -133,4 +139,5 @@ export default async function handler(req, res) {
 
     res.status(500).json({ error: error.message || 'Processing failed' });
   }
+  */
 }
