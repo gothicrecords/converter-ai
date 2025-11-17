@@ -1,38 +1,41 @@
 import Link from 'next/link';
 import React from 'react';
+import { useTranslation } from '../lib/i18n';
 
 const Footer = () => {
+  const { t } = useTranslation();
+  
   return (
     <footer style={styles.footer}>
       <div style={styles.footerContent}>
         <div style={styles.footerSection}>
           <h4 style={styles.footerTitle}>MegaPixelAI</h4>
-          <p style={styles.footerDesc}>Strumenti AI professionali per creativi e professionisti.</p>
+          <p style={styles.footerDesc}>{t('footer.description')}</p>
         </div>
         <div style={styles.footerSection}>
-          <h4 style={styles.footerTitle}>Prodotto</h4>
-          <Link href="/home" style={styles.footerLink}>Strumenti</Link>
-          <Link href="/#features" style={styles.footerLink}>Features</Link>
-          <Link href="/pricing" style={styles.footerLink}>Pricing</Link>
+          <h4 style={styles.footerTitle}>{t('footer.product')}</h4>
+          <Link href="/home" style={styles.footerLink}>{t('footer.tools')}</Link>
+          <Link href="/#features" style={styles.footerLink}>{t('footer.features')}</Link>
+          <Link href="/pricing" style={styles.footerLink}>{t('footer.pricing')}</Link>
         </div>
         <div style={styles.footerSection}>
-          <h4 style={styles.footerTitle}>Azienda</h4>
-          <Link href="/about" style={styles.footerLink}>Chi siamo</Link>
-          <Link href="/blog" style={styles.footerLink}>Blog</Link>
-          <Link href="/contact" style={styles.footerLink}>Contatti</Link>
+          <h4 style={styles.footerTitle}>{t('footer.company')}</h4>
+          <Link href="/about" style={styles.footerLink}>{t('footer.aboutUs')}</Link>
+          <Link href="/blog" style={styles.footerLink}>{t('footer.blog')}</Link>
+          <Link href="/contact" style={styles.footerLink}>{t('footer.contact')}</Link>
         </div>
         <div style={styles.footerSection}>
-          <h4 style={styles.footerTitle}>Legale</h4>
-          <Link href="/privacy" style={styles.footerLink}>Privacy</Link>
-          <Link href="/terms" style={styles.footerLink}>Termini</Link>
-          <Link href="/cookies" style={styles.footerLink}>Cookie</Link>
+          <h4 style={styles.footerTitle}>{t('footer.legal')}</h4>
+          <Link href="/privacy" style={styles.footerLink}>{t('footer.privacy')}</Link>
+          <Link href="/terms" style={styles.footerLink}>{t('footer.terms')}</Link>
+          <Link href="/cookies" style={styles.footerLink}>{t('footer.cookies')}</Link>
         </div>
       </div>
       <div style={styles.enterpriseFooter}>
-        <p style={{margin: 0, fontSize: '14px', opacity: 0.7}}>Enterprise-grade document analysis with complete privacy protection.</p>
+        <p style={{margin: 0, fontSize: '14px', opacity: 0.7}}>{t('footer.description')}</p>
       </div>
       <div style={styles.footerBottom}>
-        <p style={styles.footerCopyright}>© 2025 MegaPixelAI. Tutti i diritti riservati.</p>
+        <p style={styles.footerCopyright}>© 2025 MegaPixelAI. All rights reserved.</p>
       </div>
     </footer>
   );

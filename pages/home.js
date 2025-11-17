@@ -4,12 +4,14 @@ import {
     HiSparkles, HiLightningBolt, HiShieldCheck, HiTrendingUp, 
     HiUsers, HiCheckCircle, HiArrowRight, HiStar 
 } from 'react-icons/hi';
+import { useTranslation } from '../lib/i18n';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import Footer from '../components/Footer';
 
 export default function LandingPage() {
     const [email, setEmail] = useState('');
+    const { t } = useTranslation();
 
     const features = [
         { icon: HiLightningBolt, title: 'Velocità AI', description: 'Elaborazione in tempo reale con algoritmi di ultima generazione' },

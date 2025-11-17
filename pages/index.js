@@ -2,10 +2,13 @@ import Link from 'next/link';
 import Head from 'next/head';
 import { HiArrowRight, HiLightningBolt } from 'react-icons/hi';
 import { tools } from '../lib/tools';
+import { useTranslation } from '../lib/i18n';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 export default function HomePage() {
+  const { t } = useTranslation();
+  
   return (
     <div style={styles.homeWrap}>
       <Head>
@@ -28,27 +31,27 @@ export default function HomePage() {
       <div style={styles.heroSection}>
         <div style={styles.heroBadge}>
           <HiLightningBolt style={{ width: 16, height: 16 }} />
-          <span>Powered by AI</span>
+          <span>{t('hero.cta')}</span>
         </div>
         <h1 style={styles.heroTitle}>
-          Enterprise AI Document Intelligence<br/>Platform
+          {t('hero.title')}
         </h1>
         <p style={styles.heroSubtitle}>
-          Advanced document analysis powered by GPT-4. Extract insights, perform semantic search,<br/>and unlock the full potential of your data with enterprise-grade AI technology.
+          {t('hero.subtitle')}
         </p>
         <div style={styles.ctaButtons}>
           <Link href="/chat" style={styles.primaryCta}>
-            <span>Start Analysis</span>
+            <span>{t('hero.cta')}</span>
             <HiArrowRight style={{ width: 20, height: 20 }} />
           </Link>
           <Link href="/home" style={styles.secondaryCta}>
-            <span>Explore Tools</span>
+            <span>{t('hero.tryNow')}</span>
           </Link>
         </div>
       </div>
 
       <div style={styles.featuresSection}>
-        <h2 style={styles.featuresTitle}>Enterprise Document Intelligence</h2>
+        <h2 style={styles.featuresTitle}>{t('features.title')}</h2>
         <div style={styles.featuresGrid}>
           <div style={styles.featureCard}>
             <div style={styles.featureIconPro}>
@@ -57,8 +60,8 @@ export default function HomePage() {
                 <polyline points="14 2 14 8 20 8"></polyline>
               </svg>
             </div>
-            <h3 style={styles.featureTitle}>Multi-Format Processing</h3>
-            <p style={styles.featureDesc}>Support for PDF, DOCX, XLSX, images with integrated OCR. Enterprise-grade document parsing and extraction.</p>
+            <h3 style={styles.featureTitle}>{t('features.aiPowered')}</h3>
+            <p style={styles.featureDesc}>{t('features.aiPoweredDesc')}</p>
           </div>
           <div style={styles.featureCard}>
             <div style={styles.featureIconPro}>
@@ -67,8 +70,8 @@ export default function HomePage() {
                 <path d="m21 21-4.35-4.35"></path>
               </svg>
             </div>
-            <h3 style={styles.featureTitle}>Semantic Search</h3>
-            <p style={styles.featureDesc}>AI-powered vector search across your documents. Find relevant information using natural language queries.</p>
+            <h3 style={styles.featureTitle}>{t('features.fastProcessing')}</h3>
+            <p style={styles.featureDesc}>{t('features.fastProcessingDesc')}</p>
           </div>
           <div style={styles.featureCard}>
             <div style={styles.featureIconPro}>
@@ -76,8 +79,8 @@ export default function HomePage() {
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
               </svg>
             </div>
-            <h3 style={styles.featureTitle}>Intelligent Q&A</h3>
-            <p style={styles.featureDesc}>Ask questions about your documents. Get summaries, insights, and detailed analysis powered by GPT-4.</p>
+            <h3 style={styles.featureTitle}>{t('features.cloudBased')}</h3>
+            <p style={styles.featureDesc}>{t('features.cloudBasedDesc')}</p>
           </div>
           <div style={styles.featureCard}>
             <div style={styles.featureIconPro}>
@@ -88,8 +91,8 @@ export default function HomePage() {
                 <rect x="3" y="14" width="7" height="7"></rect>
               </svg>
             </div>
-            <h3 style={styles.featureTitle}>Data Extraction</h3>
-            <p style={styles.featureDesc}>Automatically extract tables, key data points, and structured information from unstructured documents.</p>
+            <h3 style={styles.featureTitle}>{t('features.secure')}</h3>
+            <p style={styles.featureDesc}>{t('features.secureDesc')}</p>
           </div>
         </div>
       </div>
