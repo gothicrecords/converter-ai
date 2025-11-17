@@ -94,7 +94,8 @@
     "error": "Error",
     "success": "Éxito",
     "warning": "Advertencia",
-    "info": "Información"
+    "info": "Información",
+    "and": "y"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -103,12 +104,33 @@
     "email": "Correo electrónico",
     "password": "Contraseña",
     "name": "Nombre completo",
+    "confirmPassword": "Confirmar Contraseña",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "rememberMe": "Recuérdame",
     "noAccount": "¿No tienes una cuenta?",
     "hasAccount": "¿Ya tienes una cuenta?",
-    "createAccount": "Crear Cuenta",
+    "createAccount": "Crea Tu Cuenta",
     "loginHere": "Inicia Sesión Aquí",
-    "signupHere": "Regístrate Aquí"
+    "signupHere": "Regístrate Aquí",
+    "signupFree": "Regístrate Gratis",
+    "termsAgreement": "Al registrarte aceptas nuestros",
+    "benefits": "Lo Que Obtienes",
+    "benefit1Title": "Panel Personal",
+    "benefit1Desc": "Monitorea tu uso y estadísticas en tiempo real",
+    "benefit2Title": "Historial Guardado",
+    "benefit2Desc": "Accede a tus últimos 50 proyectos en cualquier momento",
+    "benefit3Title": "5% de Descuento",
+    "benefit3Desc": "En todos los planes Pro y Enterprise para siempre",
+    "benefit4Title": "Favoritos",
+    "benefit4Desc": "Guarda tus herramientas favoritas para acceso rápido",
+    "benefit5Title": "Notificaciones",
+    "benefit5Desc": "Recibe actualizaciones sobre nuevas funciones",
+    "benefit6Title": "Soporte Prioritario",
+    "benefit6Desc": "Asistencia más rápida para usuarios registrados",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
+    "welcomeBack": "¡Bienvenido de Nuevo!",
+    "loginSubtitle": "Inicia sesión en tu cuenta para continuar",
+    "whyAccount": "¿Por qué crear una cuenta?"
   }
 }

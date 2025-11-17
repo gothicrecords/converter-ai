@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useTranslation } from '../lib/i18n';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import { HiMail, HiLockClosed, HiUser, HiCheckCircle } from 'react-icons/hi';
@@ -9,6 +10,7 @@ import { trackSignup } from '../lib/analytics';
 
 export default function SignupPage() {
     const router = useRouter();
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -24,12 +26,12 @@ export default function SignupPage() {
         setError('');
         
         if (formData.password !== formData.confirmPassword) {
-            setError('Le password non corrispondono');
+            setError(t('auth.passwordMismatch'));
             return;
         }
         
         if (formData.password.length < 6) {
-            setError('La password deve essere almeno 6 caratteri');
+            setError(t('auth.passwordTooShort'));
             return;
         }
         
@@ -63,8 +65,8 @@ export default function SignupPage() {
             <div style={styles.container}>
                 <div style={styles.formCard}>
                     <div style={styles.header}>
-                        <h1 style={styles.title}>Crea il tuo Account</h1>
-                        <p style={styles.subtitle}>Registrati gratis e ottieni subito il 5% di sconto</p>
+                        <h1 style={styles.title}>{t('auth.createAccount')}</h1>
+                        <p style={styles.subtitle}>{t('hero.cta')}</p>
                     </div>
 
                     <div style={styles.benefits}>
@@ -85,7 +87,7 @@ export default function SignupPage() {
                         <div style={styles.inputGroup}>
                             <label style={styles.label}>
                                 <HiUser style={styles.inputIcon} />
-                                Nome Completo
+                                {t('auth.name')}
                             </label>
                             <input
                                 type="text"
@@ -101,7 +103,7 @@ export default function SignupPage() {
                         <div style={styles.inputGroup}>
                             <label style={styles.label}>
                                 <HiMail style={styles.inputIcon} />
-                                Email
+                                {t('auth.email')}
                             </label>
                             <input
                                 type="email"
@@ -117,7 +119,7 @@ export default function SignupPage() {
                         <div style={styles.inputGroup}>
                             <label style={styles.label}>
                                 <HiLockClosed style={styles.inputIcon} />
-                                Password
+                                {t('auth.password')}
                             </label>
                             <input
                                 type="password"
@@ -134,7 +136,7 @@ export default function SignupPage() {
                         <div style={styles.inputGroup}>
                             <label style={styles.label}>
                                 <HiLockClosed style={styles.inputIcon} />
-                                Conferma Password
+                                {t('auth.confirmPassword')}
                             </label>
                             <input
                                 type="password"
@@ -143,7 +145,7 @@ export default function SignupPage() {
                                 onChange={handleChange}
                                 required
                                 minLength="8"
-                                placeholder="Ripeti la password"
+                                placeholder={t('auth.confirmPassword')}
                                 style={styles.input}
                             />
                         </div>
@@ -155,34 +157,34 @@ export default function SignupPage() {
                             disabled={loading}
                             style={{...styles.submitButton, ...(loading ? styles.buttonDisabled : {})}}
                         >
-                            {loading ? 'Creazione account...' : 'Crea Account Gratis'}
+                            {loading ? t('common.processing') : t('auth.signupFree')}
                         </button>
                     </form>
 
                     <div style={styles.footer}>
                         <p style={styles.footerText}>
-                            Hai già un account?{' '}
-                            <Link href="/login" style={styles.link}>Accedi</Link>
+                            {t('auth.hasAccount')}{' '}
+                            <Link href="/login" style={styles.link}>{t('auth.login')}</Link>
                         </p>
                         <p style={styles.terms}>
-                            Registrandoti accetti i nostri{' '}
-                            <Link href="/terms" style={styles.link}>Termini</Link>
-                            {' '}e la{' '}
-                            <Link href="/privacy" style={styles.link}>Privacy Policy</Link>
+                            {t('auth.termsAgreement')}{' '}
+                            <Link href="/terms" style={styles.link}>{t('footer.terms')}</Link>
+                            {' '}{t('common.and')}{' '}
+                            <Link href="/privacy" style={styles.link}>{t('footer.privacy')}</Link>
                         </p>
                     </div>
                 </div>
 
                 <div style={styles.sideCard}>
-                    <h3 style={styles.sideTitle}>Cosa ottieni</h3>
+                    <h3 style={styles.sideTitle}>{t('auth.benefits')}</h3>
                     <div style={styles.featureList}>
                         {[
-                            { title: 'Dashboard Personale', desc: 'Monitora il tuo utilizzo e statistiche in tempo reale' },
-                            { title: 'Cronologia Salvata', desc: 'Accedi ai tuoi ultimi 50 lavori quando vuoi' },
-                            { title: 'Sconto 5%', desc: 'Su tutti i piani Pro ed Enterprise per sempre' },
-                            { title: 'Preferiti', desc: 'Salva i tuoi strumenti preferiti per accesso rapido' },
-                            { title: 'Notifiche', desc: 'Ricevi aggiornamenti su nuove funzionalità' },
-                            { title: 'Supporto Prioritario', desc: 'Assistenza più veloce per utenti registrati' }
+                            { title: t('auth.benefit1Title'), desc: t('auth.benefit1Desc') },
+                            { title: t('auth.benefit2Title'), desc: t('auth.benefit2Desc') },
+                            { title: t('auth.benefit3Title'), desc: t('auth.benefit3Desc') },
+                            { title: t('auth.benefit4Title'), desc: t('auth.benefit4Desc') },
+                            { title: t('auth.benefit5Title'), desc: t('auth.benefit5Desc') },
+                            { title: t('auth.benefit6Title'), desc: t('auth.benefit6Desc') }
                         ].map((feature, i) => (
                             <div key={i} style={styles.featureItem}>
                                 <div style={styles.featureTitle}>{feature.title}</div>

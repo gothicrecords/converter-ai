@@ -94,7 +94,8 @@
     "error": "Erreur",
     "success": "Succès",
     "warning": "Avertissement",
-    "info": "Information"
+    "info": "Information",
+    "and": "et"
   },
   "auth": {
     "login": "Connexion",
@@ -103,12 +104,33 @@
     "email": "Email",
     "password": "Mot de passe",
     "name": "Nom complet",
+    "confirmPassword": "Confirmer le Mot de Passe",
     "forgotPassword": "Mot de passe oublié ?",
     "rememberMe": "Se souvenir de moi",
     "noAccount": "Vous n'avez pas de compte ?",
     "hasAccount": "Vous avez déjà un compte ?",
-    "createAccount": "Créer un Compte",
+    "createAccount": "Créez Votre Compte",
     "loginHere": "Se Connecter Ici",
-    "signupHere": "S'inscrire Ici"
+    "signupHere": "S'inscrire Ici",
+    "signupFree": "Inscription Gratuite",
+    "termsAgreement": "En vous inscrivant, vous acceptez nos",
+    "benefits": "Ce Que Vous Obtenez",
+    "benefit1Title": "Tableau de Bord Personnel",
+    "benefit1Desc": "Surveillez votre utilisation et vos statistiques en temps réel",
+    "benefit2Title": "Historique Enregistré",
+    "benefit2Desc": "Accédez à vos 50 derniers projets à tout moment",
+    "benefit3Title": "5% de Réduction",
+    "benefit3Desc": "Sur tous les plans Pro et Enterprise pour toujours",
+    "benefit4Title": "Favoris",
+    "benefit4Desc": "Enregistrez vos outils préférés pour un accès rapide",
+    "benefit5Title": "Notifications",
+    "benefit5Desc": "Recevez des mises à jour sur les nouvelles fonctionnalités",
+    "benefit6Title": "Support Prioritaire",
+    "benefit6Desc": "Assistance plus rapide pour les utilisateurs enregistrés",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "passwordTooShort": "Le mot de passe doit comporter au moins 6 caractères",
+    "welcomeBack": "Bon Retour!",
+    "loginSubtitle": "Connectez-vous à votre compte pour continuer",
+    "whyAccount": "Pourquoi créer un compte?"
   }
 }

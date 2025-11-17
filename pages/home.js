@@ -14,35 +14,35 @@ export default function LandingPage() {
     const { t } = useTranslation();
 
     const features = [
-        { icon: HiLightningBolt, title: 'Velocità AI', description: 'Elaborazione in tempo reale con algoritmi di ultima generazione' },
-        { icon: HiShieldCheck, title: '100% Sicuro', description: 'I tuoi file sono protetti e cancellati dopo 24 ore' },
-        { icon: HiTrendingUp, title: 'Qualità Premium', description: 'Output 4K con upscaling professionale' },
-        { icon: HiUsers, title: '50K+ Utenti', description: 'Fidati da professionisti in tutto il mondo' }
+        { icon: HiLightningBolt, title: t('features.fastProcessing'), description: t('home.feature1Desc') },
+        { icon: HiShieldCheck, title: t('features.secure'), description: t('home.feature2Desc') },
+        { icon: HiTrendingUp, title: t('home.premiumQuality'), description: t('home.feature3Desc') },
+        { icon: HiUsers, title: t('home.users'), description: t('home.feature4Desc') }
     ];
 
     const tools = [
-        { name: 'Rimozione Sfondo AI', description: 'Rimuovi sfondi in 1 click', href: '/tools/rimozione-sfondo-ai', badge: 'Popolare', icon: '✂️' },
-        { name: 'Generazione Immagini 4K', description: 'Crea immagini da testo', href: '/tools/generazione-immagini-ai', badge: 'Nuovo', icon: '🎨' },
-        { name: 'Upscaler Professionale', description: 'Aumenta risoluzione 4x', href: '/upscaler', badge: null, icon: '📈' },
-        { name: 'OCR Avanzato', description: 'Estrai testo da immagini', href: '/tools/ocr-avanzato-ai', badge: null, icon: '📝' },
-        { name: 'Clean Noise AI', description: 'Pulisci audio perfettamente', href: '/tools/clean-noise-ai', badge: 'Pro', icon: '🎵' },
-        { name: 'PDF Converter', description: 'Converti qualsiasi formato', href: '/pdf', badge: null, icon: '📄' },
-        { name: 'Video Compressor', description: 'Riduci dimensioni video', href: '/tools/compress-video-ai', badge: null, icon: '🎬' },
-        { name: 'Thumbnail Generator', description: 'Crea miniature accattivanti', href: '/tools/thumbnail-generator-ai', badge: null, icon: '🖼️' },
-        { name: 'Transcribe Audio', description: 'Converti audio in testo', href: '/tools/transcribe-audio-ai', badge: null, icon: '🎙️' }
+        { name: t('tools.backgroundRemoval'), description: t('home.tool1Desc'), href: '/tools/rimozione-sfondo-ai', badge: t('home.popular'), icon: '✂️' },
+        { name: t('tools.imageGenerator'), description: t('home.tool2Desc'), href: '/tools/generazione-immagini-ai', badge: t('home.new'), icon: '🎨' },
+        { name: t('tools.imageUpscaler'), description: t('home.tool3Desc'), href: '/upscaler', badge: null, icon: '📈' },
+        { name: t('tools.ocrAdvanced'), description: t('home.tool4Desc'), href: '/tools/ocr-avanzato-ai', badge: null, icon: '📝' },
+        { name: t('home.cleanNoise'), description: t('home.tool5Desc'), href: '/tools/clean-noise-ai', badge: 'Pro', icon: '🎵' },
+        { name: t('tools.pdfConverter'), description: t('home.tool6Desc'), href: '/pdf', badge: null, icon: '📄' },
+        { name: t('home.videoCompressor'), description: t('home.tool7Desc'), href: '/tools/compress-video-ai', badge: null, icon: '🎬' },
+        { name: t('home.thumbnailGen'), description: t('home.tool8Desc'), href: '/tools/thumbnail-generator-ai', badge: null, icon: '🖼️' },
+        { name: t('home.transcribeAudio'), description: t('home.tool9Desc'), href: '/tools/transcribe-audio-ai', badge: null, icon: '🎙️' }
     ];
 
     const testimonials = [
-        { name: 'Marco Rossi', role: 'Graphic Designer', avatar: '👨‍🎨', text: 'Incredibile! Ho risparmiato ore di lavoro. La qualità è superiore a qualsiasi altro tool che ho usato.', rating: 5 },
-        { name: 'Laura Bianchi', role: 'Fotografa', avatar: '👩‍💼', text: 'L\'upscaling 4K è perfetto per i miei clienti. Risultati professionali ogni volta.', rating: 5 },
-        { name: 'Giuseppe Verde', role: 'Content Creator', avatar: '🎬', text: 'La rimozione sfondo AI è magica. Non torno più a Photoshop per questo.', rating: 5 }
+        { name: t('home.testimonial1Name'), role: t('home.testimonial1Role'), avatar: '👨‍🎨', text: t('home.testimonial1Text'), rating: 5 },
+        { name: t('home.testimonial2Name'), role: t('home.testimonial2Role'), avatar: '👩‍💼', text: t('home.testimonial2Text'), rating: 5 },
+        { name: t('home.testimonial3Name'), role: t('home.testimonial3Role'), avatar: '🎬', text: t('home.testimonial3Text'), rating: 5 }
     ];
 
     const stats = [
-        { value: '50K+', label: 'Utenti Attivi' },
-        { value: '2M+', label: 'Immagini Processate' },
-        { value: '99.9%', label: 'Uptime' },
-        { value: '4.9/5', label: 'Rating Medio' }
+        { value: '50K+', label: t('home.activeUsers') },
+        { value: '2M+', label: t('home.imagesProcessed') },
+        { value: '99.9%', label: t('home.uptime') },
+        { value: '4.9/5', label: t('home.avgRating') }
     ];
 
     return (
@@ -59,20 +59,20 @@ export default function LandingPage() {
                 <div style={styles.heroContent}>
                     <div style={styles.heroBadge}>
                         <HiSparkles style={{ width: 16, height: 16 }} />
-                        <span>Powered by AI • 100% Gratis</span>
+                        <span>{t('home.poweredBy')}</span>
                     </div>
                     <h1 style={styles.heroTitle}>
-                        Trasforma i tuoi contenuti con l'<span style={styles.gradient}>Intelligenza Artificiale</span>
+                        {t('home.heroTitle1')} <span style={styles.gradient}>{t('home.heroTitle2')}</span>
                     </h1>
                     <p style={styles.heroSubtitle}>
-                        15+ strumenti professionali per immagini, PDF, audio e video. Nessuna registrazione. Nessun limite. Risultati istantanei.
+                        {t('home.heroSubtitle')}
                     </p>
                     <div style={styles.heroCta}>
                         <Link href="/#tools" style={styles.ctaPrimary}>
-                            Inizia Gratis
+                            {t('hero.cta')}
                             <HiArrowRight style={{ width: 20, height: 20 }} />
                         </Link>
-                        <Link href="/#features" style={styles.ctaSecondary}>Scopri di più</Link>
+                        <Link href="/#features" style={styles.ctaSecondary}>{t('home.learnMore')}</Link>
                     </div>
                     <div style={styles.heroStats}>
                         {stats.map((stat, i) => (

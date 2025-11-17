@@ -6,8 +6,10 @@ import SEOHead from '../components/SEOHead';
 import { HiMail, HiLockClosed } from 'react-icons/hi';
 import { login, isAuthenticated } from '../lib/auth';
 import { trackLogin } from '../lib/analytics';
+import { useTranslation } from '../lib/i18n';
 
 export default function LoginPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
@@ -52,15 +54,15 @@ export default function LoginPage() {
             <div style={styles.container}>
                 <div style={styles.formCard}>
                     <div style={styles.header}>
-                        <h1 style={styles.title}>Bentornato!</h1>
-                        <p style={styles.subtitle}>Accedi al tuo account per continuare</p>
+                        <h1 style={styles.title}>{t('auth.welcomeBack')}</h1>
+                        <p style={styles.subtitle}>{t('auth.loginSubtitle')}</p>
                     </div>
 
                     <form onSubmit={handleSubmit} style={styles.form}>
                         <div style={styles.inputGroup}>
                             <label style={styles.label}>
                                 <HiMail style={styles.inputIcon} />
-                                Email
+                                {t('auth.email')}
                             </label>
                             <input
                                 type="email"
@@ -68,7 +70,7 @@ export default function LoginPage() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                placeholder="mario@example.com"
+                                placeholder={t('auth.email')}
                                 style={styles.input}
                             />
                         </div>
@@ -76,7 +78,7 @@ export default function LoginPage() {
                         <div style={styles.inputGroup}>
                             <label style={styles.label}>
                                 <HiLockClosed style={styles.inputIcon} />
-                                Password
+                                {t('auth.password')}
                             </label>
                             <input
                                 type="password"
@@ -84,7 +86,7 @@ export default function LoginPage() {
                                 value={formData.password}
                                 onChange={handleChange}
                                 required
-                                placeholder="La tua password"
+                                placeholder={t('auth.password')}
                                 style={styles.input}
                             />
                         </div>
@@ -96,30 +98,30 @@ export default function LoginPage() {
                             disabled={loading}
                             style={{...styles.submitButton, ...(loading ? styles.buttonDisabled : {})}}
                         >
-                            {loading ? 'Accesso in corso...' : 'Accedi'}
+                            {loading ? t('common.processing') : t('auth.login')}
                         </button>
                     </form>
 
                     <div style={styles.footer}>
                         <p style={styles.footerText}>
-                            Non hai un account?{' '}
-                            <Link href="/signup" style={styles.link}>Registrati gratis</Link>
+                            {t('auth.noAccount')}{' '}
+                            <Link href="/signup" style={styles.link}>{t('auth.signupFree')}</Link>
                         </p>
                         <p style={styles.footerText}>
-                            <Link href="/contact" style={styles.link}>Password dimenticata?</Link>
+                            <Link href="/contact" style={styles.link}>{t('auth.forgotPassword')}</Link>
                         </p>
                     </div>
                 </div>
 
                 <div style={styles.infoCard}>
-                    <h3 style={styles.infoTitle}>Perché creare un account?</h3>
+                    <h3 style={styles.infoTitle}>{t('auth.whyAccount')}</h3>
                     <ul style={styles.infoList}>
-                        <li style={styles.infoItem}>📊 Dashboard personale con statistiche dettagliate</li>
-                        <li style={styles.infoItem}>💾 Cronologia completa dei tuoi lavori</li>
-                        <li style={styles.infoItem}>💰 5% di sconto permanente su tutti i piani</li>
-                        <li style={styles.infoItem}>⭐ Salva i tuoi strumenti preferiti</li>
-                        <li style={styles.infoItem}>🔔 Notifiche per nuove funzionalità</li>
-                        <li style={styles.infoItem}>🎯 Supporto prioritario</li>
+                        <li style={styles.infoItem}>📊 {t('auth.benefit1Desc')}</li>
+                        <li style={styles.infoItem}>💾 {t('auth.benefit2Desc')}</li>
+                        <li style={styles.infoItem}>💰 {t('auth.benefit3Desc')}</li>
+                        <li style={styles.infoItem}>⭐ {t('auth.benefit4Desc')}</li>
+                        <li style={styles.infoItem}>🔔 {t('auth.benefit5Desc')}</li>
+                        <li style={styles.infoItem}>🎯 {t('auth.benefit6Desc')}</li>
                     </ul>
                 </div>
             </div>
