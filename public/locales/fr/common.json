@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "Accueil",
-    "tools": "Outils",
+    "tools": "Documents IA",
     "pricing": "Tarifs",
     "about": "À propos",
     "contact": "Contact",
@@ -11,8 +11,8 @@
     "logout": "Déconnexion"
   },
   "hero": {
-    "title": "Outils IA Professionnels",
-    "subtitle": "Transformez vos images avec une technologie IA de pointe. Agrandissez, améliorez et éditez avec une qualité professionnelle.",
+    "title": "Documents IA Professionnels",
+    "subtitle": "Téléchargez vos documents et chattez avec l'IA. Analyse automatique de PDF, DOCX, images avec OCR et recherche sémantique.",
     "cta": "Commencer Gratuitement",
     "tryNow": "Essayer Maintenant"
   },

@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "首页",
-    "tools": "工具",
+    "tools": "AI文档",
     "pricing": "价格",
     "about": "关于",
     "contact": "联系",
@@ -11,8 +11,8 @@
     "logout": "退出"
   },
   "hero": {
-    "title": "专业AI工具",
-    "subtitle": "使用尖端AI技术转换您的图像。以专业品质放大、增强和编辑。",
+    "title": "专业AI文档",
+    "subtitle": "上传文档并与AI聊天。自动分析PDF、DOCX、图像，带有OCR和语义搜索。",
     "cta": "免费开始",
     "tryNow": "立即试用"
   },

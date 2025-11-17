@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "Home",
-    "tools": "Strumenti",
+    "tools": "Documenti AI",
     "pricing": "Prezzi",
     "about": "Chi Siamo",
     "contact": "Contatti",
@@ -11,8 +11,8 @@
     "logout": "Esci"
   },
   "hero": {
-    "title": "Strumenti AI Professionali",
-    "subtitle": "Trasforma le tue immagini con tecnologia AI all'avanguardia. Ingrandisci, migliora e modifica con qualità professionale.",
+    "title": "Documenti AI Professionali",
+    "subtitle": "Carica i tuoi documenti e chatta con l'AI. Analisi automatica di PDF, DOCX, immagini con OCR e ricerca semantica.",
     "cta": "Inizia Gratis",
     "tryNow": "Prova Ora"
   },

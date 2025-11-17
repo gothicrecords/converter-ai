@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "Home",
-    "tools": "Tools",
+    "tools": "AI Documents",
     "pricing": "Pricing",
     "about": "About",
     "contact": "Contact",
@@ -11,8 +11,8 @@
     "logout": "Logout"
   },
   "hero": {
-    "title": "Professional AI Tools",
-    "subtitle": "Transform your images with cutting-edge AI technology. Upscale, enhance, and edit with professional quality.",
+    "title": "Professional AI Documents",
+    "subtitle": "Upload your documents and chat with AI. Automatic analysis of PDF, DOCX, images with OCR and semantic search.",
     "cta": "Get Started Free",
     "tryNow": "Try Now"
   },
