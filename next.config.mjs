@@ -18,6 +18,12 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  // Internationalization
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'it', 'es', 'fr', 'de', 'pt', 'ru', 'ja', 'zh', 'ar', 'hi', 'ko'],
+    localeDetection: true,
+  },
   // Optimize route prefetching
   onDemandEntries: {
     // Keep pages in memory longer for instant revisits

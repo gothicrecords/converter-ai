@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { HiSparkles, HiHome } from 'react-icons/hi';
 import { BsChevronDown } from 'react-icons/bs';
 import { tools } from '../lib/tools';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Navbar() {
     const [dropdownOpen, setDropdownOpen] = useState(null);
@@ -304,8 +305,10 @@ export default function Navbar() {
                         onMouseEnter={() => setHoveredItem('signup')}
                         onMouseLeave={() => setHoveredItem(null)}
                     >
-                        Registrati
+                        FAQ
                     </Link>
+                    
+                    <LanguageSwitcher />
                 </div>
             </div>
         </nav>
