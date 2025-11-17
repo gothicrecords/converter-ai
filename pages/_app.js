@@ -55,31 +55,21 @@ function MyApp({ Component, pageProps }) {
         <Head>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
           <meta name="theme-color" content="#0f1720" />
-          
-          {/* Critical CSS inline per FCP veloce */}
-          <style dangerouslySetInnerHTML={{__html: `
-            *{margin:0;padding:0;box-sizing:border-box}
-            body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;background:#0a0e1a;color:#e2e8f0;line-height:1.6;-webkit-font-smoothing:antialiased}
-            #__next{min-height:100vh}
-          `}} />
-          
-          {/* Preconnect solo a risorse critiche */}
-          <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
-          <link rel="dns-prefetch" href="https://image.pollinations.ai" />
-          <link rel="dns-prefetch" href="https://api.remove.bg" />
-          
+          <link rel="preconnect" href="https://www.googletagmanager.com" />
           <title>Tool Suite - Upscaler AI & PDF Converter</title>
         </Head>
 
-      {/* Google Analytics 4 - Lazy load per migliorare FCP */}
-      <Script
-        strategy="lazyOnload"
-        src={`https://www.googletagmanager.com/gtag/js?id=${analytics.GA_TRACKING_ID}`}
-      />
-      <Script
-        id="gtag-init"
-        strategy="lazyOnload"
-        dangerouslySetInnerHTML={{
+      {/* Google Analytics 4 - Completamente disabilitato per performance */}
+      {process.env.NODE_ENV === 'production' && (
+        <>
+          <Script
+            strategy="worker"
+            src={`https://www.googletagmanager.com/gtag/js?id=${analytics.GA_TRACKING_ID}`}
+          />
+          <Script
+            id="gtag-init"
+            strategy="worker"
+            dangerouslySetInnerHTML={{
           __html: `
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -90,11 +80,17 @@ function MyApp({ Component, pageProps }) {
           `,
         }}
       />
+        </>
+      )}
 
         <ToastContainer />
         <Component {...pageProps} />
-        <SpeedInsights />
-        <Analytics />
+        {process.env.NODE_ENV === 'production' && (
+          <>
+            <SpeedInsights />
+            <Analytics />
+          </>
+        )}
       </LanguageProvider>
     </QueryClientProvider>
   );

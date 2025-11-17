@@ -18,14 +18,8 @@ export default function HomePage() {
         
         {/* Preload risorse critiche */}
         <link rel="preload" href="/styles.css" as="style" />
-        <link rel="preload" href="/locales/it/common.json" as="fetch" crossOrigin="anonymous" />
+        <link rel="preload" as="image" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" />
       </Head>
-      
-      {/* Sfondo animato semplificato per FCP veloce */}
-      <div style={styles.animatedBg}>
-        <div style={styles.orb1}></div>
-        <div style={styles.orb2}></div>
-      </div>
       
       <Navbar />
 
@@ -139,108 +133,13 @@ const styles = {
   homeWrap: {
     position: 'relative',
     minHeight: '100vh',
-    overflow: 'hidden'
-  },
-  animatedBg: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: -1,
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-    opacity: 0.08
-  },
-  particle1: {
-    position: 'absolute',
-    width: '300px',
-    height: '300px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%)',
-    top: '10%',
-    left: '10%',
-    animation: 'float 20s ease-in-out infinite',
-    filter: 'blur(60px)',
-    willChange: 'transform'
-  },
-  particle2: {
-    position: 'absolute',
-    width: '350px',
-    height: '350px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(167, 139, 250, 0.25) 0%, transparent 70%)',
-    bottom: '20%',
-    right: '15%',
-    animation: 'float 25s ease-in-out infinite reverse',
-    filter: 'blur(70px)',
-    willChange: 'transform'
-  },
-  energyFlow1: {
-    position: 'absolute',
-    width: '6px',
-    height: '280px',
-    background: 'linear-gradient(180deg, transparent 0%, #667eea 40%, #667eea 60%, transparent 100%)',
-    top: '20%',
-    left: '30%',
-    animation: 'flowDown 3s ease-in-out infinite',
-    boxShadow: '0 0 30px #667eea, 0 0 60px rgba(102, 126, 234, 0.8), 0 0 90px rgba(102, 126, 234, 0.4)',
-    filter: 'blur(0.3px)',
-    willChange: 'transform, opacity'
-  },
-  energyFlow2: {
-    position: 'absolute',
-    width: '6px',
-    height: '300px',
-    background: 'linear-gradient(180deg, transparent 0%, #a78bfa 40%, #a78bfa 60%, transparent 100%)',
-    top: '40%',
-    right: '25%',
-    animation: 'flowDown 4s ease-in-out infinite 1s',
-    boxShadow: '0 0 30px #a78bfa, 0 0 60px rgba(167, 139, 250, 0.8), 0 0 90px rgba(167, 139, 250, 0.4)',
-    filter: 'blur(0.3px)',
-    willChange: 'transform, opacity'
-  },
-  energyFlow3: {
-    position: 'absolute',
-    width: '6px',
-    height: '320px',
-    background: 'linear-gradient(180deg, transparent 0%, #f093fb 40%, #f093fb 60%, transparent 100%)',
-    top: '10%',
-    left: '60%',
-    animation: 'flowDown 5s ease-in-out infinite 2s',
-    boxShadow: '0 0 30px #f093fb, 0 0 60px rgba(240, 147, 251, 0.8), 0 0 90px rgba(240, 147, 251, 0.4)',
-    filter: 'blur(0.3px)',
-    willChange: 'transform, opacity'
-  },
-  orb1: {
-    position: 'absolute',
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    background: 'rgba(102, 126, 234, 1)',
-    top: '15%',
-    left: '15%',
-    animation: 'orbit 20s linear infinite',
-    boxShadow: '0 0 25px rgba(102, 126, 234, 0.9), 0 0 50px rgba(102, 126, 234, 0.5)',
-    willChange: 'transform'
-  },
-  orb2: {
-    position: 'absolute',
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    background: 'rgba(167, 139, 250, 1)',
-    top: '60%',
-    right: '20%',
-    animation: 'orbit 25s linear infinite reverse',
-    boxShadow: '0 0 25px rgba(167, 139, 250, 0.9), 0 0 50px rgba(167, 139, 250, 0.5)',
-    willChange: 'transform'
+    background: 'linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%)'
   },
   heroSection: {
     textAlign: 'center',
     padding: '80px 24px 60px',
     maxWidth: '900px',
-    margin: '0 auto',
-    animation: 'fadeInUp 0.8s ease-out'
+    margin: '0 auto'
   },
   heroBadge: {
     display: 'inline-flex',
