@@ -200,7 +200,49 @@ export default function Navbar() {
         <nav style={styles.navbar} ref={navRef}>
             <div style={styles.navContent}>
                 <Link href="/" style={styles.navLogo}>
-                    <HiSparkles style={{ width: scrolled ? 20 : 24, height: scrolled ? 20 : 24, transition: 'all 0.3s' }} />
+                    <svg width={scrolled ? "28" : "32"} height={scrolled ? "28" : "32"} viewBox="0 0 40 40" fill="none" style={{transition: 'all 0.3s'}}>
+                        {/* Background gradient circle */}
+                        <defs>
+                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: '#667eea', stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: '#764ba2', stopOpacity: 1}} />
+                            </linearGradient>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        
+                        {/* Outer hexagon frame */}
+                        <path d="M20 2 L34 10 L34 26 L20 34 L6 26 L6 10 Z" 
+                              stroke="url(#logoGradient)" 
+                              strokeWidth="1.5" 
+                              fill="none"
+                              opacity="0.6"/>
+                        
+                        {/* Inner pixel grid representing "Mega Pixel" */}
+                        <rect x="14" y="12" width="4" height="4" fill="url(#logoGradient)" opacity="0.9"/>
+                        <rect x="22" y="12" width="4" height="4" fill="url(#logoGradient)" opacity="0.7"/>
+                        <rect x="14" y="18" width="4" height="4" fill="url(#logoGradient)" opacity="0.8"/>
+                        <rect x="22" y="18" width="4" height="4" fill="url(#logoGradient)" opacity="1" filter="url(#glow)"/>
+                        <rect x="14" y="24" width="4" height="4" fill="url(#logoGradient)" opacity="0.7"/>
+                        <rect x="22" y="24" width="4" height="4" fill="url(#logoGradient)" opacity="0.6"/>
+                        
+                        {/* AI neural network nodes */}
+                        <circle cx="10" cy="10" r="1.5" fill="#667eea" opacity="0.8"/>
+                        <circle cx="30" cy="10" r="1.5" fill="#764ba2" opacity="0.8"/>
+                        <circle cx="10" cy="30" r="1.5" fill="#764ba2" opacity="0.8"/>
+                        <circle cx="30" cy="30" r="1.5" fill="#667eea" opacity="0.8"/>
+                        
+                        {/* Connection lines representing AI */}
+                        <line x1="10" y1="10" x2="18" y2="14" stroke="#667eea" strokeWidth="0.5" opacity="0.4"/>
+                        <line x1="30" y1="10" x2="26" y2="14" stroke="#764ba2" strokeWidth="0.5" opacity="0.4"/>
+                        <line x1="10" y1="30" x2="18" y2="26" stroke="#764ba2" strokeWidth="0.5" opacity="0.4"/>
+                        <line x1="30" y1="30" x2="26" y2="26" stroke="#667eea" strokeWidth="0.5" opacity="0.4"/>
+                    </svg>
                     <div style={styles.logoText}>
                         <span style={styles.logoMain}>MegaPixelAI</span>
                         <span style={styles.logoSub}>ToolSuite</span>
