@@ -26,14 +26,18 @@ function MyApp({ Component, pageProps }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Prefetch common tool routes on mount
-    const commonRoutes = [
-      '/tools/rimozione-sfondo-ai',
-      '/tools/generazione-immagini-ai',
-      '/upscaler',
-      '/pdf'
-    ];
-    commonRoutes.forEach(route => router.prefetch(route));
+    // Prefetch solo dopo idle per non bloccare FCP
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        const commonRoutes = [
+          '/tools/rimozione-sfondo-ai',
+          '/tools/generazione-immagini-ai',
+          '/upscaler',
+          '/pdf'
+        ];
+        commonRoutes.forEach(route => router.prefetch(route));
+      });
+    }
 
     // Track pageviews con Google Analytics
     const handleRouteChange = (url) => {
@@ -51,21 +55,30 @@ function MyApp({ Component, pageProps }) {
         <Head>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
           <meta name="theme-color" content="#0f1720" />
-          <link rel="preconnect" href="https://image.pollinations.ai" />
+          
+          {/* Critical CSS inline per FCP veloce */}
+          <style dangerouslySetInnerHTML={{__html: `
+            *{margin:0;padding:0;box-sizing:border-box}
+            body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;background:#0a0e1a;color:#e2e8f0;line-height:1.6;-webkit-font-smoothing:antialiased}
+            #__next{min-height:100vh}
+          `}} />
+          
+          {/* Preconnect solo a risorse critiche */}
+          <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://image.pollinations.ai" />
-          <link rel="preconnect" href="https://api.remove.bg" />
           <link rel="dns-prefetch" href="https://api.remove.bg" />
+          
           <title>Tool Suite - Upscaler AI & PDF Converter</title>
         </Head>
 
-      {/* Google Analytics 4 */}
+      {/* Google Analytics 4 - Lazy load per migliorare FCP */}
       <Script
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         src={`https://www.googletagmanager.com/gtag/js?id=${analytics.GA_TRACKING_ID}`}
       />
       <Script
         id="gtag-init"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         dangerouslySetInnerHTML={{
           __html: `
             window.dataLayer = window.dataLayer || [];

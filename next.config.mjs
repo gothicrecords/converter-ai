@@ -12,19 +12,24 @@ const nextConfig = {
   },
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
-  swcMinify: true,
   compress: true,
   poweredByHeader: false,
+  
+  // Ottimizzazioni critiche per FCP
+  optimizeFonts: true,
   
   // Image optimization
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200],
     minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'inline',
   },
 
   experimental: {
     optimizePackageImports: ['react-icons', 'framer-motion'],
+    optimizeCss: true,
   },
   
   compiler: {
@@ -44,9 +49,18 @@ const nextConfig = {
     pagesBufferLength: 5,
   },
 
-  // Headers for caching
+  // Headers per caching e performance
   async headers() {
     return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
+        ],
+      },
       {
         source: '/locales/:locale/common.json',
         headers: [
@@ -57,7 +71,16 @@ const nextConfig = {
         ],
       },
       {
-        source: '/:all*(svg|jpg|png|webp|avif|gif)',
+        source: '/:all*(svg|jpg|png|webp|avif|gif|woff|woff2)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/styles.css',
         headers: [
           {
             key: 'Cache-Control',

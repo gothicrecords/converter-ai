@@ -15,14 +15,14 @@ export default function HomePage() {
       <Head>
         <title>MegaPixelAI - Analisi Documenti con Intelligenza Artificiale</title>
         <meta name="description" content="Carica i tuoi documenti e chatta con l'AI. Analisi automatica di PDF, DOCX, immagini con OCR e ricerca semantica." />
+        
+        {/* Preload risorse critiche */}
+        <link rel="preload" href="/styles.css" as="style" />
+        <link rel="preload" href="/locales/it/common.json" as="fetch" crossOrigin="anonymous" />
       </Head>
       
+      {/* Sfondo animato semplificato per FCP veloce */}
       <div style={styles.animatedBg}>
-        <div style={styles.particle1}></div>
-        <div style={styles.particle2}></div>
-        <div style={styles.energyFlow1}></div>
-        <div style={styles.energyFlow2}></div>
-        <div style={styles.energyFlow3}></div>
         <div style={styles.orb1}></div>
         <div style={styles.orb2}></div>
       </div>
