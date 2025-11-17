@@ -197,19 +197,6 @@ export default function Navbar() {
                         {t('nav.tools')}
                     </Link>
 
-                    <Link 
-                        href="/home" 
-                        style={{
-                            ...styles.dropdownBtn,
-                            background: hoveredItem === 'home' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
-                            textDecoration: 'none'
-                        }}
-                        onMouseEnter={() => setHoveredItem('home')}
-                        onMouseLeave={() => setHoveredItem(null)}
-                    >
-                        {t('nav.home')}
-                    </Link>
-
                     {Object.keys(categories).map(catName => (
                         <div
                             key={catName}
@@ -275,11 +262,9 @@ export default function Navbar() {
                         href="/faq" 
                         style={{
                             ...styles.dropdownBtn,
-                            background: hoveredItem === 'faq' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
+                            background: 'transparent',
                             textDecoration: 'none'
                         }}
-                        onMouseEnter={() => setHoveredItem('faq')}
-                        onMouseLeave={() => setHoveredItem(null)}
                     >
                         FAQ
                     </Link>
@@ -287,27 +272,14 @@ export default function Navbar() {
                     <Link 
                         href="/login" 
                         style={{
-                            ...styles.dropdownBtn,
-                            background: hoveredItem === 'login' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
+                            ...styles.signupBtn,
+                            background: hoveredItem === 'login' ? 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                             textDecoration: 'none'
                         }}
                         onMouseEnter={() => setHoveredItem('login')}
                         onMouseLeave={() => setHoveredItem(null)}
                     >
                         Accedi
-                    </Link>
-                    
-                    <Link 
-                        href="/signup" 
-                        style={{
-                            ...styles.signupBtn,
-                            background: hoveredItem === 'signup' ? 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                            textDecoration: 'none'
-                        }}
-                        onMouseEnter={() => setHoveredItem('signup')}
-                        onMouseLeave={() => setHoveredItem(null)}
-                    >
-                        FAQ
                     </Link>
                     
                     <LanguageSwitcher />

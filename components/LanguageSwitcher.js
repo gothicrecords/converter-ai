@@ -19,23 +19,26 @@ const languages = [
 const LanguageSwitcher = memo(function LanguageSwitcher() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [hoveredLang, setHoveredLang] = useState(null);
   const currentLang = languages.find(lang => lang.code === router.locale) || languages[0];
 
-  const changeLanguage = (locale) => {
-    router.push(router.pathname, router.asPath, { locale });
+  const changeLanguage = async (locale) => {
     setIsOpen(false);
+    await router.push(router.pathname, router.asPath, { locale, scroll: false });
   };
 
   return (
     <div style={styles.container}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        style={styles.button}
+        style={{
+          ...styles.button,
+          background: isOpen ? 'rgba(102, 126, 234, 0.15)' : 'transparent'
+        }}
         aria-label="Change language"
       >
         <span style={styles.flag}>{currentLang.flag}</span>
-        <span style={styles.langCode}>{currentLang.code.toUpperCase()}</span>
-        <svg style={styles.chevron} width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <svg style={styles.chevron} width="10" height="10" viewBox="0 0 12 12" fill="none">
           <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
@@ -48,9 +51,12 @@ const LanguageSwitcher = memo(function LanguageSwitcher() {
               <button
                 key={lang.code}
                 onClick={() => changeLanguage(lang.code)}
+                onMouseEnter={() => setHoveredLang(lang.code)}
+                onMouseLeave={() => setHoveredLang(null)}
                 style={{
                   ...styles.option,
-                  ...(lang.code === router.locale ? styles.optionActive : {})
+                  ...(lang.code === router.locale ? styles.optionActive : {}),
+                  background: hoveredLang === lang.code ? 'rgba(102, 126, 234, 0.2)' : 'transparent'
                 }}
               >
                 <span style={styles.optionFlag}>{lang.flag}</span>
@@ -77,22 +83,23 @@ const styles = {
   button: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
-    padding: '6px 10px',
-    background: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    gap: '4px',
+    padding: '4px 8px',
+    background: 'transparent',
+    border: 'none',
     borderRadius: '6px',
     color: '#e2e8f0',
-    fontSize: '13px',
+    fontSize: '11px',
     fontWeight: '600',
     cursor: 'pointer',
     transition: 'all 0.2s',
+    position: 'relative',
   },
   flag: {
-    fontSize: '18px',
+    fontSize: '16px',
   },
   langCode: {
-    fontSize: '13px',
+    fontSize: '11px',
     fontWeight: '700',
   },
   chevron: {
@@ -132,7 +139,7 @@ const styles = {
     fontSize: '14px',
     fontWeight: '500',
     cursor: 'pointer',
-    transition: 'all 0.2s',
+    transition: 'all 0.15s',
     textAlign: 'left',
   },
   optionActive: {

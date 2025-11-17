@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { HiArrowRight, HiLightningBolt } from 'react-icons/hi';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
+import { loadTranslationsSSR } from '../lib/i18n-server';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -536,3 +537,13 @@ const styles = {
     margin: '0 auto'
   }
 };
+
+export async function getServerSideProps({ locale }) {
+  const translations = await loadTranslationsSSR(locale || 'en');
+  
+  return {
+    props: {
+      translations
+    }
+  };
+}

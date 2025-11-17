@@ -47,7 +47,7 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
+      <LanguageProvider initialTranslations={pageProps.translations || {}}>
         <Head>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
           <meta name="theme-color" content="#0f1720" />

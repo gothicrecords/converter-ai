@@ -5,6 +5,7 @@ import {
     HiUsers, HiCheckCircle, HiArrowRight, HiStar 
 } from 'react-icons/hi';
 import { useTranslation } from '../lib/i18n';
+import { loadTranslationsSSR } from '../lib/i18n-server';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import Footer from '../components/Footer';
@@ -227,3 +228,13 @@ const styles = {
     ctaText: { fontSize: '18px', color: 'rgba(255,255,255,0.9)', marginBottom: '32px' },
     ctaButton: { display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '16px 40px', background: '#ffffff', color: '#667eea', borderRadius: '12px', fontSize: '18px', fontWeight: '700', textDecoration: 'none', transition: 'transform 0.2s' }
 };
+
+export async function getServerSideProps({ locale }) {
+    const translations = await loadTranslationsSSR(locale || 'en');
+    
+    return {
+        props: {
+            translations
+        }
+    };
+}
