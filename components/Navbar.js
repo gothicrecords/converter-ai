@@ -94,6 +94,27 @@ export default function Navbar() {
             transition: 'all 0.3s ease',
             paddingLeft: '20px'
         },
+        logoText: {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            lineHeight: '1.2'
+        },
+        logoMain: {
+            fontSize: scrolled ? '16px' : '18px',
+            fontWeight: '700',
+            color: '#e2e8f0'
+        },
+        logoSub: {
+            fontSize: scrolled ? '9px' : '10px',
+            fontWeight: '600',
+            color: '#667eea',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            marginTop: '-2px'
+        },
         navMenu: {
             display: 'flex',
             gap: '2px',
@@ -180,7 +201,10 @@ export default function Navbar() {
             <div style={styles.navContent}>
                 <Link href="/" style={styles.navLogo}>
                     <HiSparkles style={{ width: scrolled ? 20 : 24, height: scrolled ? 20 : 24, transition: 'all 0.3s' }} />
-                    <span>MegaPixelAI</span>
+                    <div style={styles.logoText}>
+                        <span style={styles.logoMain}>MegaPixelAI</span>
+                        <span style={styles.logoSub}>ToolSuite</span>
+                    </div>
                 </Link>
 
                 <div style={styles.navMenu}>
