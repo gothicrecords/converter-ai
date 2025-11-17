@@ -6,6 +6,7 @@ import Script from 'next/script';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
 import * as analytics from '../lib/analytics';
 
@@ -46,15 +47,16 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-        <meta name="theme-color" content="#0f1720" />
-        <link rel="preconnect" href="https://image.pollinations.ai" />
-        <link rel="dns-prefetch" href="https://image.pollinations.ai" />
-        <link rel="preconnect" href="https://api.remove.bg" />
-        <link rel="dns-prefetch" href="https://api.remove.bg" />
-        <title>Tool Suite - Upscaler AI & PDF Converter</title>
-      </Head>
+      <LanguageProvider>
+        <Head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+          <meta name="theme-color" content="#0f1720" />
+          <link rel="preconnect" href="https://image.pollinations.ai" />
+          <link rel="dns-prefetch" href="https://image.pollinations.ai" />
+          <link rel="preconnect" href="https://api.remove.bg" />
+          <link rel="dns-prefetch" href="https://api.remove.bg" />
+          <title>Tool Suite - Upscaler AI & PDF Converter</title>
+        </Head>
 
       {/* Google Analytics 4 */}
       <Script
@@ -76,10 +78,11 @@ function MyApp({ Component, pageProps }) {
         }}
       />
 
-      <ToastContainer />
-      <Component {...pageProps} />
-      <SpeedInsights />
-      <Analytics />
+        <ToastContainer />
+        <Component {...pageProps} />
+        <SpeedInsights />
+        <Analytics />
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

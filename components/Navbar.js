@@ -3,9 +3,11 @@ import Link from 'next/link';
 import { HiSparkles, HiHome } from 'react-icons/hi';
 import { BsChevronDown } from 'react-icons/bs';
 import { tools } from '../lib/tools';
+import { useTranslation } from '../lib/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Navbar() {
+    const { t } = useTranslation();
     const [dropdownOpen, setDropdownOpen] = useState(null);
     const [scrolled, setScrolled] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
@@ -192,20 +194,20 @@ export default function Navbar() {
                         onMouseEnter={() => setHoveredItem('chat')}
                         onMouseLeave={() => setHoveredItem(null)}
                     >
-                        AI Documents
+                        {t('nav.tools')}
                     </Link>
 
                     <Link 
                         href="/home" 
                         style={{
                             ...styles.dropdownBtn,
-                            background: hoveredItem === 'tools' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
+                            background: hoveredItem === 'home' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
                             textDecoration: 'none'
                         }}
-                        onMouseEnter={() => setHoveredItem('tools')}
+                        onMouseEnter={() => setHoveredItem('home')}
                         onMouseLeave={() => setHoveredItem(null)}
                     >
-                        Tools
+                        {t('nav.home')}
                     </Link>
 
                     {Object.keys(categories).map(catName => (
@@ -266,7 +268,7 @@ export default function Navbar() {
                         onMouseEnter={() => setHoveredItem('pricing')}
                         onMouseLeave={() => setHoveredItem(null)}
                     >
-                        Pricing
+                        {t('nav.pricing')}
                     </Link>
                     
                     <Link 
