@@ -5,8 +5,21 @@ import { useEffect } from 'react';
 import Script from 'next/script';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ToastContainer from '../components/Toast';
 import * as analytics from '../lib/analytics';
+
+// Create React Query client with optimized settings
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -32,7 +45,7 @@ function MyApp({ Component, pageProps }) {
   }, [router]);
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
         <meta name="theme-color" content="#0f1720" />
@@ -67,7 +80,7 @@ function MyApp({ Component, pageProps }) {
       <Component {...pageProps} />
       <SpeedInsights />
       <Analytics />
-    </>
+    </QueryClientProvider>
   );
 }
 
