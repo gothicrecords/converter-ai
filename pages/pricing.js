@@ -1,20 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import Link from 'next/link';
 import { HiCheckCircle } from 'react-icons/hi';
 import { useTranslation } from '../lib/i18n';
 import getStripe from '../lib/stripe-client';
+import { getCurrentUser } from '../lib/auth';
 
 export default function PricingPage() {
     const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        // Carica utente autenticato
+        const loadUser = async () => {
+            const currentUser = await getCurrentUser();
+            setUser(currentUser);
+        };
+        loadUser();
+    }, []);
 
     const handleSubscribe = async (priceId) => {
+        // Verifica se l'utente è autenticato
+        if (!user) {
+            alert('Devi effettuare il login per abbonarti al piano Pro');
+            window.location.href = '/login?redirect=/pricing';
+            return;
+        }
+
         setLoading(true);
         
         try {
-            // Crea sessione checkout
+            // Crea sessione checkout con dati utente reali
             const response = await fetch('/api/stripe/create-checkout-session', {
                 method: 'POST',
                 headers: {
@@ -22,8 +40,8 @@ export default function PricingPage() {
                 },
                 body: JSON.stringify({
                     priceId: priceId,
-                    userId: 'user_' + Date.now(), // TODO: Usa vero ID utente dal login
-                    userEmail: 'user@example.com', // TODO: Usa vera email utente
+                    userId: user.id,
+                    userEmail: user.email,
                 }),
             });
 

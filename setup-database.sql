@@ -21,12 +21,18 @@ CREATE TABLE IF NOT EXISTS users (
   tools_used JSONB DEFAULT '[]'::jsonb,
   has_discount BOOLEAN DEFAULT true,
   plan TEXT DEFAULT 'free',
+  stripe_customer_id TEXT,
+  stripe_subscription_id TEXT,
+  stripe_subscription_status TEXT,
+  subscription_expires_at TIMESTAMP WITH TIME ZONE,
   CONSTRAINT email_format CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
 
 -- Index for faster email lookups
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
+CREATE INDEX IF NOT EXISTS idx_users_stripe_customer ON users(stripe_customer_id);
+CREATE INDEX IF NOT EXISTS idx_users_stripe_subscription ON users(stripe_subscription_id);
 
 -- ============================================
 -- User History Table

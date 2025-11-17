@@ -1,5 +1,6 @@
 import stripe from '../../../lib/stripe';
 import { buffer } from 'micro';
+import { updateUserStripeCustomer, updateUserSubscription, getUserByStripeCustomerId } from '../../../lib/db';
 
 // Disabilita il body parser di Next.js per ricevere raw body
 export const config = {
@@ -29,42 +30,79 @@ export default async function handler(req, res) {
   // Gestisci gli eventi Stripe
   try {
     switch (event.type) {
-      case 'checkout.session.completed':
+      case 'checkout.session.completed': {
         const session = event.data.object;
-        console.log('Payment successful:', session);
-        
-        // Qui aggiorna il database utente con subscription attiva
         const userId = session.metadata.userId;
+        const customerId = session.customer;
         const subscriptionId = session.subscription;
-        
-        // TODO: Aggiorna database
-        // await updateUserSubscription(userId, subscriptionId, 'active');
-        
-        break;
 
-      case 'customer.subscription.updated':
+        console.log('Payment successful:', { userId, customerId, subscriptionId });
+
+        // Salva customer ID nel database
+        if (userId && customerId) {
+          await updateUserStripeCustomer(userId, customerId);
+        }
+
+        // Se c'è una subscription, aggiorna anche quella
+        if (userId && subscriptionId) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          await updateUserSubscription(
+            userId,
+            subscriptionId,
+            subscription.status,
+            new Date(subscription.current_period_end * 1000)
+          );
+        }
+
+        break;
+      }
+
+      case 'customer.subscription.updated': {
         const subscription = event.data.object;
-        console.log('Subscription updated:', subscription);
-        
-        // TODO: Aggiorna stato subscription nel database
-        
-        break;
+        const customerId = subscription.customer;
 
-      case 'customer.subscription.deleted':
+        // Trova utente dal customer ID
+        const user = await getUserByStripeCustomerId(customerId);
+        if (user) {
+          await updateUserSubscription(
+            user.id,
+            subscription.id,
+            subscription.status,
+            new Date(subscription.current_period_end * 1000)
+          );
+          console.log('Subscription updated:', { userId: user.id, status: subscription.status });
+        }
+
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
         const deletedSubscription = event.data.object;
-        console.log('Subscription canceled:', deletedSubscription);
-        
-        // TODO: Revoca accesso Pro dell'utente
-        
-        break;
+        const customerId = deletedSubscription.customer;
 
-      case 'invoice.payment_failed':
-        const invoice = event.data.object;
-        console.log('Payment failed:', invoice);
-        
-        // TODO: Notifica utente del pagamento fallito
-        
+        // Trova utente e cancella subscription
+        const user = await getUserByStripeCustomerId(customerId);
+        if (user) {
+          await updateUserSubscription(user.id, null, 'canceled', null);
+          console.log('Subscription canceled:', { userId: user.id });
+        }
+
         break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object;
+        const customerId = invoice.customer;
+
+        // Trova utente e notifica del problema
+        const user = await getUserByStripeCustomerId(customerId);
+        if (user) {
+          console.error('Payment failed for user:', user.id);
+          // TODO: Invia email di notifica all'utente
+        }
+
+        break;
+      }
 
       default:
         console.log(`Unhandled event type: ${event.type}`);
