@@ -13,10 +13,16 @@ const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
   experimental: {
-    optimizePackageImports: ['react-icons'],
+    optimizePackageImports: ['react-icons', 'framer-motion'],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
+  },
+  // Optimize route prefetching
+  onDemandEntries: {
+    // Keep pages in memory longer for instant revisits
+    maxInactiveAge: 60 * 1000,
+    pagesBufferLength: 5,
   },
 };
 

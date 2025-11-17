@@ -47,9 +47,17 @@ export default function HomePage() {
                 ...styles.toolCardWrap,
                 animationDelay: `${index * 0.1}s`
               }}
+              onMouseEnter={() => {
+                // Prefetch on hover for instant navigation
+                const link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.href = tool.href;
+                document.head.appendChild(link);
+              }}
             >
               <Link 
                 href={tool.href} 
+                prefetch={true}
                 style={styles.toolCard}
                 className="tool-card"
                 onMouseEnter={(e) => {
