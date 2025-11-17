@@ -210,7 +210,8 @@
     "faq4Q": "Can I upgrade/downgrade my plan?",
     "faq4A": "Yes, you can change your plan anytime. Changes take effect immediately with proportional billing.",
     "faq5Q": "Do you offer discounts for students?",
-    "faq5A": "Yes! Contact us with your .edu email for a 30% discount on the Pro plan."
+    "faq5A": "Yes! Contact us with your .edu email for a 30% discount on the Pro plan.",
+    "mostPopular": "MOST POPULAR"
   },
   "dashboard": {
     "title": "My Dashboard",
@@ -302,5 +303,27 @@
     "emailText": "support@megapixelai.com",
     "hours": "Business Hours",
     "hoursText": "Monday - Friday: 9:00 - 18:00 CET"
+  },
+  "seo": {
+    "homeTitle": "Professional AI Tools for Images, PDF and Audio",
+    "homeDesc": "All-in-one platform with over 15 AI tools: background removal, 4K upscaling, image generation, OCR, PDF conversion and much more. Free and professional.",
+    "pricingTitle": "Pricing - Plans and Prices for Every Need",
+    "pricingDesc": "Choose the perfect plan for you: Free with 10 processes per day, Pro with unlimited processing and 4K quality, or Enterprise with custom solutions.",
+    "aboutTitle": "About Us - The Story of MegaPixelAI",
+    "aboutDesc": "Discover the story of MegaPixelAI: an Italian startup that democratizes access to professional AI tools for creatives and professionals.",
+    "contactTitle": "Contact - Talk to Us",
+    "contactDesc": "Have questions or suggestions? Contact the MegaPixelAI team via email, phone or contact form. We're here to help.",
+    "loginTitle": "Sign In to Your Account - MegaPixelAI",
+    "loginDesc": "Access your personal dashboard on MegaPixelAI. View statistics, history and manage your account.",
+    "signupTitle": "Sign Up Free - Get 5% Discount",
+    "signupDesc": "Create a free account on MegaPixelAI and receive an immediate 5% discount. Access your personal dashboard with statistics and history.",
+    "dashboardTitle": "My Dashboard - MegaPixelAI",
+    "dashboardDesc": "Manage your account, view statistics and history on MegaPixelAI.",
+    "privacyTitle": "Privacy Policy - How We Protect Your Data",
+    "privacyDesc": "MegaPixelAI privacy policy: learn how we collect, use and protect your personal data in compliance with GDPR.",
+    "termsTitle": "Terms and Conditions - Service Usage Rules",
+    "termsDesc": "MegaPixelAI terms and conditions: discover the rules, rights and responsibilities when using our AI tools.",
+    "faqTitle": "FAQ - Frequently Asked Questions about MegaPixelAI",
+    "faqDesc": "Find answers to the most common questions about MegaPixelAI: features, security, plans, payments, technical support and more."
   }
 }

@@ -44,8 +44,8 @@ export default function LoginPage() {
     return (
         <div style={styles.pageWrap}>
             <SEOHead
-                title="Accedi al Tuo Account - MegaPixelAI"
-                description="Accedi alla tua dashboard personale su MegaPixelAI. Visualizza statistiche, cronologia e gestisci il tuo account."
+                title={t('seo.loginTitle')}
+                description={t('seo.loginDesc')}
                 canonical="/login"
                 keywords={['login', 'accedi', 'accesso', 'account']}
             />

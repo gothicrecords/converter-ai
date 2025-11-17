@@ -61,17 +61,17 @@ export default function DashboardPage() {
     }
 
     const tabs = [
-        { id: 'overview', label: 'Panoramica', icon: HiChartBar },
-        { id: 'history', label: 'Cronologia', icon: HiClock },
-        { id: 'favorites', label: 'Preferiti', icon: HiStar },
-        { id: 'settings', label: 'Impostazioni', icon: HiCog }
+        { id: 'overview', label: t('dashboard.overview'), icon: HiChartBar },
+        { id: 'history', label: t('dashboard.history'), icon: HiClock },
+        { id: 'favorites', label: t('dashboard.favorites'), icon: HiStar },
+        { id: 'settings', label: t('dashboard.settings'), icon: HiCog }
     ];
 
     return (
         <div style={styles.pageWrap}>
             <SEOHead
-                title="La Mia Dashboard - MegaPixelAI"
-                description="Gestisci il tuo account, visualizza statistiche e cronologia su MegaPixelAI."
+                title={t('seo.dashboardTitle')}
+                description={t('seo.dashboardDesc')}
                 canonical="/dashboard"
             />
             <Navbar />
@@ -79,7 +79,7 @@ export default function DashboardPage() {
             {showWelcome && (
                 <div style={styles.welcomeBanner}>
                     <HiCheckCircle style={{ width: 24, height: 24 }} />
-                    <span>Benvenuto su MegaPixelAI! Il tuo sconto del 5% è già attivo 🎉</span>
+                    <span>{t('dashboard.welcomeBanner')}</span>
                 </div>
             )}
 

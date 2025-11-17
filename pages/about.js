@@ -8,8 +8,8 @@ export default function AboutPage() {
     return (
         <div style={styles.pageWrap}>
             <SEOHead
-                title="Chi Siamo - La Storia di MegaPixelAI"
-                description="Scopri la storia di MegaPixelAI: una startup italiana che democratizza l'accesso agli strumenti AI professionali per creativi e professionisti."
+                title={t('seo.aboutTitle')}
+                description={t('seo.aboutDesc')}
                 canonical="/about"
                 keywords={['chi siamo', 'about', 'storia', 'team', 'missione', 'startup']}
             />

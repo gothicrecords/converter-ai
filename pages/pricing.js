@@ -8,59 +8,59 @@ export default function PricingPage() {
     const { t } = useTranslation();
     const plans = [
         {
-            name: 'Free',
+            name: t('pricing.free'),
             price: '€0',
-            period: '/mese',
-            description: 'Perfetto per iniziare e testare i nostri strumenti',
+            period: t('pricing.month'),
+            description: t('pricing.freePlanDesc'),
             features: [
-                'Tutti gli strumenti AI disponibili',
-                '10 elaborazioni al giorno',
-                'File fino a 10 MB',
-                'Qualità standard',
-                'Nessuna registrazione richiesta',
-                'Watermark sui risultati'
+                t('pricing.allTools'),
+                `10 ${t('pricing.processPerDay')}`,
+                `${t('pricing.fileSize')} 10 MB`,
+                t('pricing.standardQuality'),
+                t('pricing.noRegistration'),
+                t('pricing.watermark')
             ],
-            cta: 'Inizia Gratis',
+            cta: t('pricing.startFree'),
             href: '/#tools',
             popular: false
         },
         {
-            name: 'Pro',
+            name: t('pricing.pro'),
             price: '€19',
-            period: '/mese',
-            description: 'Per professionisti che richiedono qualità e volume',
+            period: t('pricing.month'),
+            description: t('pricing.proPlanDesc'),
             features: [
-                'Tutti gli strumenti AI disponibili',
-                'Elaborazioni illimitate',
-                'File fino a 100 MB',
-                'Qualità premium 4K',
-                'Nessun watermark',
-                'Priorità nella coda',
-                'Supporto prioritario',
-                'API Access',
-                'Batch processing',
-                'Download multipli'
+                t('pricing.allTools'),
+                t('pricing.unlimited'),
+                `${t('pricing.fileSize')} 100 MB`,
+                t('pricing.premiumQuality'),
+                t('pricing.noWatermark'),
+                t('pricing.priorityQueue'),
+                t('pricing.prioritySupport'),
+                t('pricing.apiAccess'),
+                t('pricing.batchProcessing'),
+                t('pricing.multipleDownloads')
             ],
-            cta: 'Inizia Prova Gratuita',
+            cta: t('pricing.startTrial'),
             href: '/contact',
             popular: true
         },
         {
-            name: 'Enterprise',
+            name: t('pricing.enterprise'),
             price: 'Custom',
             period: '',
-            description: 'Soluzioni personalizzate per team e aziende',
+            description: t('pricing.enterprisePlanDesc'),
             features: [
-                'Tutto di Pro +',
-                'Infrastruttura dedicata',
-                'SLA garantito 99.99%',
-                'White label disponibile',
-                'Account manager dedicato',
-                'Training personalizzato',
-                'Integrazione custom',
-                'Fatturazione su misura'
+                t('pricing.everythingInPro'),
+                t('pricing.dedicatedInfra'),
+                t('pricing.slaGuarantee'),
+                t('pricing.whiteLabel'),
+                t('pricing.accountManager'),
+                t('pricing.customTraining'),
+                t('pricing.customIntegration'),
+                t('pricing.customBilling')
             ],
-            cta: 'Contattaci',
+            cta: t('pricing.contactUs'),
             href: '/contact',
             popular: false
         }
@@ -68,36 +68,32 @@ export default function PricingPage() {
 
     const faqs = [
         {
-            question: 'Posso cancellare in qualsiasi momento?',
-            answer: 'Sì, puoi cancellare il tuo piano Pro in qualsiasi momento dalla dashboard. Non ci sono penali o costi aggiuntivi.'
+            question: t('pricing.faq1Q'),
+            answer: t('pricing.faq1A')
         },
         {
-            question: 'Come funziona la prova gratuita?',
-            answer: 'La prova gratuita di 7 giorni ti dà accesso completo a tutte le funzionalità Pro senza alcun costo. Non è richiesta carta di credito.'
+            question: t('pricing.faq2Q'),
+            answer: t('pricing.faq2A')
         },
         {
-            question: 'Quali metodi di pagamento accettate?',
-            answer: 'Accettiamo tutte le principali carte di credito (Visa, Mastercard, American Express), PayPal e bonifico bancario per piani Enterprise.'
+            question: t('pricing.faq3Q'),
+            answer: t('pricing.faq3A')
         },
         {
-            question: 'I miei dati sono al sicuro?',
-            answer: 'Assolutamente. Tutti i file vengono cancellati dai nostri server dopo 24 ore. Usiamo crittografia SSL e non condividiamo mai i tuoi dati.'
+            question: t('pricing.faq4Q'),
+            answer: t('pricing.faq4A')
         },
         {
-            question: 'Posso fare l\'upgrade o downgrade?',
-            answer: 'Sì, puoi cambiare piano in qualsiasi momento. L\'upgrade è immediato, il downgrade avrà effetto dal prossimo ciclo di fatturazione.'
-        },
-        {
-            question: 'Offrite sconti per studenti o no-profit?',
-            answer: 'Sì! Offriamo sconti del 50% per studenti con email universitaria valida e per organizzazioni no-profit certificate. Contattaci per maggiori dettagli.'
+            question: t('pricing.faq5Q'),
+            answer: t('pricing.faq5A')
         }
     ];
 
     return (
         <div style={styles.pageWrap}>
             <SEOHead
-                title="Pricing - Piani e Prezzi per Ogni Esigenza"
-                description="Scegli il piano perfetto per te: Free con 10 elaborazioni al giorno, Pro con elaborazioni illimitate e qualità 4K, o Enterprise con soluzioni personalizzate."
+                title={t('seo.pricingTitle')}
+                description={t('seo.pricingDesc')}
                 canonical="/pricing"
                 keywords={['pricing', 'prezzi', 'piani', 'abbonamento', 'pro', 'enterprise']}
             />
@@ -112,7 +108,7 @@ export default function PricingPage() {
                 <div style={styles.pricingGrid}>
                     {plans.map((plan, i) => (
                         <div key={i} style={{...styles.pricingCard, ...(plan.popular ? styles.popularCard : {})}}>
-                            {plan.popular && <div style={styles.popularBadge}>PIÙ POPOLARE</div>}
+                            {plan.popular && <div style={styles.popularBadge}>{t('pricing.mostPopular')}</div>}
                             <h3 style={styles.planName}>{plan.name}</h3>
                             <div style={styles.planPrice}>
                                 <span style={styles.priceAmount}>{plan.price}</span>

@@ -55,8 +55,8 @@ export default function SignupPage() {
     return (
         <div style={styles.pageWrap}>
             <SEOHead
-                title="Registrati Gratis - Ottieni 5% di Sconto"
-                description="Crea un account gratuito su MegaPixelAI e ricevi il 5% di sconto immediato. Accedi alla tua dashboard personale con statistiche e cronologia."
+                title={t('seo.signupTitle')}
+                description={t('seo.signupDesc')}
                 canonical="/signup"
                 keywords={['registrazione', 'signup', 'account', 'sconto', 'gratis']}
             />

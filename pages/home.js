@@ -48,8 +48,8 @@ export default function LandingPage() {
     return (
         <div style={styles.pageWrap}>
             <SEOHead
-                title="Strumenti AI Professionali per Immagini, PDF e Audio"
-                description="Piattaforma all-in-one con oltre 15 strumenti AI: rimozione sfondo, upscaling 4K, generazione immagini, OCR, conversione PDF e molto altro. Gratis e professionale."
+                title={t('seo.homeTitle')}
+                description={t('seo.homeDesc')}
                 canonical="/"
                 keywords={['AI tools', 'image upscaler', 'background remover', 'PDF converter', 'OCR', 'strumenti AI']}
             />

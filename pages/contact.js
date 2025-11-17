@@ -28,8 +28,8 @@ export default function ContactPage() {
     return (
         <div style={styles.pageWrap}>
             <SEOHead
-                title="Contatti - Parla con Noi"
-                description="Hai domande o suggerimenti? Contatta il team di MegaPixelAI via email, telefono o modulo di contatto. Siamo qui per aiutarti."
+                title={t('seo.contactTitle')}
+                description={t('seo.contactDesc')}
                 canonical="/contact"
                 keywords={['contatti', 'contact', 'supporto', 'assistenza', 'email']}
             />
