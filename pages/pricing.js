@@ -26,7 +26,7 @@ export default function PricingPage() {
         },
         {
             name: t('pricing.pro'),
-            price: '€19',
+            price: '€2.99',
             period: t('pricing.month'),
             description: t('pricing.proPlanDesc'),
             features: [

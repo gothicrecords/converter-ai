@@ -83,7 +83,7 @@ export default function FAQPage() {
                 },
                 {
                     q: 'Come funziona la fatturazione?',
-                    a: 'Il piano Pro costa €19/mese con rinnovo automatico. Puoi pagare con carta di credito (Visa, Mastercard, American Express) o PayPal. Puoi cancellare in qualsiasi momento e l\'accesso continuerà fino alla fine del periodo pagato.'
+                    a: 'Il piano Pro costa €2.99/mese con rinnovo automatico. Puoi pagare con carta di credito o PayPal. Puoi cancellare in qualsiasi momento e l\'accesso continuerà fino alla fine del periodo pagato.'
                 },
                 {
                     q: 'Offrite rimborsi?',
