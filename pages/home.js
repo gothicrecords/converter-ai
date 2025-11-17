@@ -25,7 +25,7 @@ export default function LandingPage() {
         { name: t('tools.imageGenerator'), description: t('home.tool2Desc'), href: '/tools/generazione-immagini-ai', badge: t('home.new'), icon: '🎨' },
         { name: t('tools.imageUpscaler'), description: t('home.tool3Desc'), href: '/upscaler', badge: null, icon: '📈' },
         { name: t('tools.ocrAdvanced'), description: t('home.tool4Desc'), href: '/tools/ocr-avanzato-ai', badge: null, icon: '📝' },
-        { name: t('home.cleanNoise'), description: t('home.tool5Desc'), href: '/tools/clean-noise-ai', badge: 'Pro', icon: '🎵' },
+        { name: t('home.cleanNoise'), description: t('home.tool5Desc'), href: '/tools/clean-noise-ai', badge: t('home.pro'), icon: '🎵' },
         { name: t('tools.pdfConverter'), description: t('home.tool6Desc'), href: '/pdf', badge: null, icon: '📄' },
         { name: t('home.videoCompressor'), description: t('home.tool7Desc'), href: '/tools/compress-video-ai', badge: null, icon: '🎬' },
         { name: t('home.thumbnailGen'), description: t('home.tool8Desc'), href: '/tools/thumbnail-generator-ai', badge: null, icon: '🖼️' },
@@ -87,8 +87,8 @@ export default function LandingPage() {
 
             <section id="features" style={styles.features}>
                 <div style={styles.sectionHeader}>
-                    <h2 style={styles.sectionTitle}>Perché scegliere MegaPixelAI</h2>
-                    <p style={styles.sectionSubtitle}>Tecnologia all'avanguardia per risultati professionali</p>
+                    <h2 style={styles.sectionTitle}>{t('home.whyChoose')}</h2>
+                    <p style={styles.sectionSubtitle}>{t('home.whyChooseSubtitle')}</p>
                 </div>
                 <div style={styles.featuresGrid}>
                     {features.map((feature, i) => (
@@ -105,14 +105,14 @@ export default function LandingPage() {
 
             <section id="tools" style={styles.toolsSection}>
                 <div style={styles.sectionHeader}>
-                    <h2 style={styles.sectionTitle}>Strumenti Disponibili</h2>
-                    <p style={styles.sectionSubtitle}>Tutto ciò di cui hai bisogno in un unico posto</p>
+                    <h2 style={styles.sectionTitle}>{t('home.availableTools')}</h2>
+                    <p style={styles.sectionSubtitle}>{t('home.availableToolsSubtitle')}</p>
                 </div>
                 <div style={styles.toolsGrid}>
                     {tools.map((tool, i) => (
                         <Link key={i} href={tool.href} style={styles.toolCard}>
                             {tool.badge && (
-                                <span style={{...styles.toolBadge, background: tool.badge === 'Nuovo' ? '#10b981' : tool.badge === 'Pro' ? '#f59e0b' : '#667eea'}}>
+                                <span style={{...styles.toolBadge, background: tool.badge === t('home.new') ? '#10b981' : tool.badge === t('home.pro') ? '#f59e0b' : '#667eea'}}>
                                     {tool.badge}
                                 </span>
                             )}
@@ -139,8 +139,8 @@ export default function LandingPage() {
 
             <section style={styles.testimonials}>
                 <div style={styles.sectionHeader}>
-                    <h2 style={styles.sectionTitle}>Cosa dicono i nostri utenti</h2>
-                    <p style={styles.sectionSubtitle}>Migliaia di professionisti si fidano di noi ogni giorno</p>
+                    <h2 style={styles.sectionTitle}>{t('home.testimonials')}</h2>
+                    <p style={styles.sectionSubtitle}>{t('home.testimonialsSubtitle')}</p>
                 </div>
                 <div style={styles.testimonialsGrid}>
                     {testimonials.map((testimonial, i) => (
@@ -165,10 +165,10 @@ export default function LandingPage() {
 
             <section style={styles.ctaSection}>
                 <div style={styles.ctaContent}>
-                    <h2 style={styles.ctaTitle}>Pronto a iniziare?</h2>
-                    <p style={styles.ctaText}>Unisciti a migliaia di professionisti che usano MegaPixelAI ogni giorno</p>
+                    <h2 style={styles.ctaTitle}>{t('home.ctaTitle')}</h2>
+                    <p style={styles.ctaText}>{t('home.ctaText')}</p>
                     <Link href="/#tools" style={styles.ctaButton}>
-                        Inizia Gratis Ora
+                        {t('home.ctaButton')}
                         <HiArrowRight style={{ width: 20, height: 20 }} />
                     </Link>
                 </div>

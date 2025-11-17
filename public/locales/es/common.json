@@ -45,7 +45,21 @@
     "cloudBased": "Almacenamiento en la Nube",
     "cloudBasedDesc": "Accede a tus archivos desde cualquier lugar",
     "secure": "100% Seguro",
-    "secureDesc": "Tus datos estÃ¡n cifrados y protegidos"
+    "secureDesc": "Tus datos están cifrados y protegidos"
+  },
+  "howItWorks": {
+    "title": "Cómo Funciona",
+    "step1Title": "Subir Documentos",
+    "step1Desc": "Arrastra y suelta o selecciona tus archivos. Soporte para PDF, Word, Excel, imágenes y más con detección automática de formato.",
+    "step2Title": "Procesamiento IA",
+    "step2Desc": "La IA avanzada analiza el contenido, realiza OCR si es necesario y crea un índice semántico para búsqueda inteligente.",
+    "step3Title": "Consultar y Descubrir",
+    "step3Desc": "Haz preguntas, obtén resúmenes, busca información específica en todos tus documentos con lenguaje natural."
+  },
+  "additionalTools": {
+    "title": "Herramientas IA Adicionales",
+    "description": "Más allá de la inteligencia documental, accede a 9 herramientas profesionales para procesamiento de imágenes, PDFs, video y audio.",
+    "explore": "Explorar todas las herramientas"
   },
   "pricing": {
     "title": "Precios Simples",
@@ -160,6 +174,7 @@
     "transcribeAudio": "Transcribir Audio",
     "popular": "Popular",
     "new": "Nuevo",
+    "pro": "Pro",
     "testimonial1Name": "Marco García",
     "testimonial1Role": "Diseñador Gráfico",
     "testimonial1Text": "Increíble! Ahorré horas de trabajo. La calidad es superior a cualquier otra herramienta que haya usado.",
@@ -172,7 +187,16 @@
     "activeUsers": "Usuarios Activos",
     "imagesProcessed": "Imágenes Procesadas",
     "uptime": "Tiempo Activo",
-    "avgRating": "Calificación Promedio"
+    "avgRating": "Calificación Promedio",
+    "whyChoose": "Por Qué Elegir MegaPixelAI",
+    "whyChooseSubtitle": "Tecnología de vanguardia para resultados profesionales",
+    "availableTools": "Herramientas Disponibles",
+    "availableToolsSubtitle": "Todo lo que necesitas en un solo lugar",
+    "testimonials": "Lo Que Dicen Nuestros Usuarios",
+    "testimonialsSubtitle": "Miles de profesionales confían en nosotros cada día",
+    "ctaTitle": "¿Listo para Comenzar?",
+    "ctaText": "Únete a miles de profesionales que usan MegaPixelAI cada día",
+    "ctaButton": "Empieza Gratis Ahora"
   }
 }
 

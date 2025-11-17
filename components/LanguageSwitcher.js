@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -16,7 +16,7 @@ const languages = [
   { code: 'ko', name: '한국어', flag: '🇰🇷' },
 ];
 
-export default function LanguageSwitcher() {
+const LanguageSwitcher = memo(function LanguageSwitcher() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const currentLang = languages.find(lang => lang.code === router.locale) || languages[0];
@@ -67,7 +67,7 @@ export default function LanguageSwitcher() {
       )}
     </div>
   );
-}
+});
 
 const styles = {
   container: {
@@ -77,13 +77,13 @@ const styles = {
   button: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    padding: '8px 12px',
+    gap: '6px',
+    padding: '6px 10px',
     background: 'rgba(255, 255, 255, 0.05)',
     border: '1px solid rgba(255, 255, 255, 0.1)',
-    borderRadius: '8px',
+    borderRadius: '6px',
     color: '#e2e8f0',
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: '600',
     cursor: 'pointer',
     transition: 'all 0.2s',
@@ -149,3 +149,5 @@ const styles = {
     flexShrink: 0,
   },
 };
+
+export default LanguageSwitcher;

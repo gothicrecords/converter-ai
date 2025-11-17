@@ -47,6 +47,20 @@
     "secure": "100% Secure",
     "secureDesc": "Your data is encrypted and protected"
   },
+  "howItWorks": {
+    "title": "How It Works",
+    "step1Title": "Upload Documents",
+    "step1Desc": "Drag and drop or select your files. Support for PDF, Word, Excel, images, and more with automatic format detection.",
+    "step2Title": "AI Processing",
+    "step2Desc": "Advanced AI analyzes content, performs OCR if needed, and creates a semantic index for intelligent search.",
+    "step3Title": "Query & Discover",
+    "step3Desc": "Ask questions, get summaries, search for specific information across all your documents with natural language."
+  },
+  "additionalTools": {
+    "title": "Additional AI-Powered Tools",
+    "description": "Beyond document intelligence, access 9 professional tools for images, PDFs, video, and audio processing.",
+    "explore": "Explore all tools"
+  },
   "footer": {
     "product": "Product",
     "company": "Company",
@@ -151,6 +165,7 @@
     "transcribeAudio": "Transcribe Audio",
     "popular": "Popular",
     "new": "New",
+    "pro": "Pro",
     "testimonial1Name": "Mark Johnson",
     "testimonial1Role": "Graphic Designer",
     "testimonial1Text": "Amazing! I saved hours of work. The quality is superior to any other tool I've used.",
@@ -163,7 +178,16 @@
     "activeUsers": "Active Users",
     "imagesProcessed": "Images Processed",
     "uptime": "Uptime",
-    "avgRating": "Avg Rating"
+    "avgRating": "Avg Rating",
+    "whyChoose": "Why Choose MegaPixelAI",
+    "whyChooseSubtitle": "Cutting-edge technology for professional results",
+    "availableTools": "Available Tools",
+    "availableToolsSubtitle": "Everything you need in one place",
+    "testimonials": "What Our Users Say",
+    "testimonialsSubtitle": "Thousands of professionals trust us every day",
+    "ctaTitle": "Ready to Get Started?",
+    "ctaText": "Join thousands of professionals using MegaPixelAI every day",
+    "ctaButton": "Start Free Now"
   },
   "pricing": {
     "hero": "Simple and Transparent Pricing",

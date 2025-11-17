@@ -98,33 +98,33 @@ export default function HomePage() {
       </div>
 
       <div style={styles.howItWorksSection}>
-        <h2 style={styles.howItWorksTitle}>How It Works</h2>
+        <h2 style={styles.howItWorksTitle}>{t('howItWorks.title')}</h2>
         <div style={styles.stepsGrid}>
           <div style={styles.stepCard}>
             <div style={styles.stepNumber}>1</div>
-            <h3 style={styles.stepTitle}>Upload Documents</h3>
-            <p style={styles.stepDesc}>Drag and drop or select your files. Support for PDF, Word, Excel, images, and more with automatic format detection.</p>
+            <h3 style={styles.stepTitle}>{t('howItWorks.step1Title')}</h3>
+            <p style={styles.stepDesc}>{t('howItWorks.step1Desc')}</p>
           </div>
           <div style={styles.stepCard}>
             <div style={styles.stepNumber}>2</div>
-            <h3 style={styles.stepTitle}>AI Processing</h3>
-            <p style={styles.stepDesc}>Advanced AI analyzes content, performs OCR if needed, and creates a semantic index for intelligent search.</p>
+            <h3 style={styles.stepTitle}>{t('howItWorks.step2Title')}</h3>
+            <p style={styles.stepDesc}>{t('howItWorks.step2Desc')}</p>
           </div>
           <div style={styles.stepCard}>
             <div style={styles.stepNumber}>3</div>
-            <h3 style={styles.stepTitle}>Query & Discover</h3>
-            <p style={styles.stepDesc}>Ask questions, get summaries, search for specific information across all your documents with natural language.</p>
+            <h3 style={styles.stepTitle}>{t('howItWorks.step3Title')}</h3>
+            <p style={styles.stepDesc}>{t('howItWorks.step3Desc')}</p>
           </div>
         </div>
       </div>
 
       <div style={styles.toolsPreview}>
-        <h2 style={styles.toolsPreviewTitle}>Additional AI-Powered Tools</h2>
+        <h2 style={styles.toolsPreviewTitle}>{t('additionalTools.title')}</h2>
         <p style={styles.toolsPreviewDesc}>
-          Beyond document intelligence, access 9 professional tools for images, PDFs, video, and audio processing.
+          {t('additionalTools.description')}
         </p>
         <Link href="/home" style={styles.toolsPreviewCta}>
-          Explore all tools
+          {t('additionalTools.explore')}
           <HiArrowRight style={{ width: 18, height: 18 }} />
         </Link>
       </div>
