@@ -59,7 +59,7 @@ export default function Navbar() {
         }
         closeTimeoutRef.current = setTimeout(() => {
             setDropdownOpen(null);
-        }, 1500); // 1.5 secondi di ritardo prima di chiudere
+        }, 300); // 0.3 secondi di ritardo prima di chiudere
     };
 
     const styles = {

@@ -11,7 +11,7 @@
     "logout": "退出"
   },
   "hero": {
-    "title": "专业AI文档",
+    "title": "AI文档",
     "subtitle": "上传文档并与AI聊天。自动分析PDF、DOCX、图像，带有OCR和语义搜索。",
     "cta": "免费开始",
     "tryNow": "立即试用"
