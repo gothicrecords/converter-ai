@@ -1,40 +1,39 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { HiOutlineUpload, HiX, HiDownload } from 'react-icons/hi';
+import { HiDownload, HiRefresh } from 'react-icons/hi';
 import { motion, AnimatePresence } from 'framer-motion';
+import EnhancedDropzone from '../EnhancedDropzone';
+import ExportModal from '../ExportModal';
+import { LoadingOverlay, ProgressBar } from '../Loading';
+import { showToast } from '../Toast';
+import { saveToHistory } from '../../utils/history';
+
+const PRESETS = {
+    portrait: { type: 'person', quality: 90, crop: true, cropMargin: 5, name: 'Ritratto' },
+    product: { type: 'product', quality: 85, crop: true, cropMargin: 10, name: 'Prodotto' },
+    car: { type: 'car', quality: 85, crop: true, cropMargin: 8, name: 'Auto' },
+    document: { type: 'auto', quality: 70, crop: false, cropMargin: 0, name: 'Documento' }
+};
 
 const BackgroundRemover = () => {
     const [files, setFiles] = useState([]);
     const [processedImage, setProcessedImage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [progress, setProgress] = useState(0);
     const [error, setError] = useState(null);
     const [subjectType, setSubjectType] = useState('auto');
-    const [quality, setQuality] = useState(90); // maps to remove.bg size levels
+    const [quality, setQuality] = useState(90);
     const [crop, setCrop] = useState(true);
-    const [cropMargin, setCropMargin] = useState(8); // %
-    const [bgPreview, setBgPreview] = useState('checker'); // checker | transparent | white | black
+    const [cropMargin, setCropMargin] = useState(8);
+    const [bgPreview, setBgPreview] = useState('checker');
     const [autoProcess, setAutoProcess] = useState(true);
-    const [compare, setCompare] = useState(50); // before/after slider percentage
+    const [compare, setCompare] = useState(50);
+    const [showExportModal, setShowExportModal] = useState(false);
 
-    const onDrop = useCallback(acceptedFiles => {
+    const onFilesAccepted = useCallback((acceptedFiles) => {
         setProcessedImage(null);
         setError(null);
-        setFiles(acceptedFiles.map(file => Object.assign(file, {
-            preview: URL.createObjectURL(file)
-        })));
+        setFiles(acceptedFiles);
     }, []);
-
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        onDrop,
-        accept: 'image/jpeg, image/png',
-        maxFiles: 1,
-    });
-
-    const handleRemoveFile = () => {
-        setFiles([]);
-        setProcessedImage(null);
-        URL.revokeObjectURL(files[0].preview);
-    };
 
     const mappedSize = useMemo(() => {
         if (quality >= 85) return 'full';
@@ -45,11 +44,15 @@ const BackgroundRemover = () => {
     }, [quality]);
 
     const handleProcessImage = async () => {
-        if (files.length === 0) return;
+        if (files.length === 0) {
+            showToast('Carica prima un\'immagine', 'error');
+            return;
+        }
 
         setIsLoading(true);
         setError(null);
         setProcessedImage(null);
+        setProgress(0);
 
         const formData = new FormData();
         formData.append('file', files[0]);
@@ -58,11 +61,19 @@ const BackgroundRemover = () => {
         formData.append('crop', crop ? 'true' : 'false');
         if (crop) formData.append('crop_margin', `${cropMargin}%`);
 
+        // Simulate progress
+        const progressInterval = setInterval(() => {
+            setProgress(prev => Math.min(prev + 10, 90));
+        }, 200);
+
         try {
             const response = await fetch('/api/tools/remove-background', {
                 method: 'POST',
                 body: formData,
             });
+
+            clearInterval(progressInterval);
+            setProgress(95);
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -70,13 +81,42 @@ const BackgroundRemover = () => {
             }
 
             const blob = await response.blob();
-            setProcessedImage(URL.createObjectURL(blob));
+            const imageUrl = URL.createObjectURL(blob);
+            setProcessedImage(imageUrl);
+            setProgress(100);
+
+            // Save to history
+            const reader = new FileReader();
+            reader.onload = () => {
+                saveToHistory({
+                    tool: 'Rimozione Sfondo AI',
+                    filename: files[0].name,
+                    thumbnail: reader.result,
+                    params: { subjectType, quality: mappedSize, crop, cropMargin },
+                    result: imageUrl
+                });
+            };
+            reader.readAsDataURL(blob);
+
+            showToast('Sfondo rimosso con successo!', 'success');
 
         } catch (err) {
             setError(err.message);
+            showToast(err.message, 'error');
+            clearInterval(progressInterval);
         } finally {
             setIsLoading(false);
+            setTimeout(() => setProgress(0), 1000);
         }
+    };
+
+    const applyPreset = (presetKey) => {
+        const preset = PRESETS[presetKey];
+        setSubjectType(preset.type);
+        setQuality(preset.quality);
+        setCrop(preset.crop);
+        setCropMargin(preset.cropMargin);
+        showToast(`Preset "${preset.name}" applicato`, 'info');
     };
 
     // Auto-process when file or main controls change
@@ -90,21 +130,18 @@ const BackgroundRemover = () => {
 
     return (
         <div style={styles.container}>
-            <div {...getRootProps()} style={{...styles.dropzone, ...(isDragActive ? styles.dropzoneActive : {})}}>
-                <input {...getInputProps()} />
-                <HiOutlineUpload style={styles.uploadIcon} />
-                {isDragActive ? (
-                    <p style={styles.dropTextActive}>Rilascia l'immagine qui</p>
-                ) : (
-                    <>
-                        <p style={styles.dropText}>Trascina un'immagine o clicca per selezionarla</p>
-                        <p style={styles.dropHint}>File supportati: JPG, PNG (max 1 file)</p>
-                    </>
-                )}
-            </div>
+            {isLoading && (
+                <LoadingOverlay message={`Rimozione sfondo in corso... ${progress}%`} />
+            )}
 
-            {/* Controls */}
-            <div style={styles.controlsGrid}>
+            <EnhancedDropzone 
+                onFilesAccepted={onFilesAccepted}
+                category="image"
+                multiple={false}
+                maxFiles={1}
+            />
+
+            <div style={styles.presetsRow}>
                 <div style={styles.controlBox}>
                     <label style={styles.label}>Tipo soggetto</label>
                     <select value={subjectType} onChange={(e)=>setSubjectType(e.target.value)} style={styles.select}>

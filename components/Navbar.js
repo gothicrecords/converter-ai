@@ -9,6 +9,7 @@ export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
     const navRef = useRef(null);
+    const closeTimeoutRef = useRef(null);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -27,6 +28,9 @@ export default function Navbar() {
         return () => {
             window.removeEventListener('scroll', handleScroll);
             document.removeEventListener('mousedown', handleClickOutside);
+            if (closeTimeoutRef.current) {
+                clearTimeout(closeTimeoutRef.current);
+            }
         };
     }, []);
 
@@ -36,6 +40,23 @@ export default function Navbar() {
         'Testo': tools.filter(t => t.category === 'Testo'),
         'Video': tools.filter(t => t.category === 'Video'),
         'Audio': tools.filter(t => t.category === 'Audio')
+    };
+
+    const handleDropdownEnter = (catName) => {
+        if (closeTimeoutRef.current) {
+            clearTimeout(closeTimeoutRef.current);
+            closeTimeoutRef.current = null;
+        }
+        setDropdownOpen(catName);
+    };
+
+    const handleDropdownLeave = () => {
+        if (closeTimeoutRef.current) {
+            clearTimeout(closeTimeoutRef.current);
+        }
+        closeTimeoutRef.current = setTimeout(() => {
+            setDropdownOpen(null);
+        }, 1500); // 1.5 secondi di ritardo prima di chiudere
     };
 
     const styles = {
@@ -135,6 +156,19 @@ export default function Navbar() {
             fontSize: '14px',
             fontWeight: '500',
             transition: 'background 0.2s'
+        },
+        signupBtn: {
+            display: 'flex',
+            alignItems: 'center',
+            padding: '8px 18px',
+            border: 'none',
+            fontSize: '14px',
+            fontWeight: '700',
+            color: '#ffffff',
+            cursor: 'pointer',
+            borderRadius: '8px',
+            transition: 'all 0.2s',
+            boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)'
         }
     };
 
@@ -146,26 +180,39 @@ export default function Navbar() {
                     <span>MegaPixelAI</span>
                 </Link>
 
-                <Link 
-                    href="/" 
-                    style={{
-                        ...styles.homeBtn,
-                        background: hoveredItem === 'home' ? 'rgba(102, 126, 234, 0.15)' : 'transparent'
-                    }}
-                    onMouseEnter={() => setHoveredItem('home')}
-                    onMouseLeave={() => setHoveredItem(null)}
-                >
-                    <HiHome style={{ width: 16, height: 16 }} />
-                    <span>Home</span>
-                </Link>
-
                 <div style={styles.navMenu}>
+                    <Link 
+                        href="/chat" 
+                        style={{
+                            ...styles.dropdownBtn,
+                            background: hoveredItem === 'chat' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
+                            textDecoration: 'none'
+                        }}
+                        onMouseEnter={() => setHoveredItem('chat')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        AI Documents
+                    </Link>
+
+                    <Link 
+                        href="/home" 
+                        style={{
+                            ...styles.dropdownBtn,
+                            background: hoveredItem === 'tools' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
+                            textDecoration: 'none'
+                        }}
+                        onMouseEnter={() => setHoveredItem('tools')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        Tools
+                    </Link>
+
                     {Object.keys(categories).map(catName => (
                         <div
                             key={catName}
                             style={styles.dropdown}
-                            onMouseEnter={() => setDropdownOpen(catName)}
-                            onMouseLeave={() => setDropdownOpen(null)}
+                            onMouseEnter={() => handleDropdownEnter(catName)}
+                            onMouseLeave={handleDropdownLeave}
                         >
                             <button
                                 style={{
@@ -190,6 +237,9 @@ export default function Navbar() {
                                                 background: hoveredItem === `item-${tool.href}` ? 'rgba(102, 126, 234, 0.2)' : 'transparent'
                                             }}
                                             onClick={() => {
+                                                if (closeTimeoutRef.current) {
+                                                    clearTimeout(closeTimeoutRef.current);
+                                                }
                                                 setDropdownOpen(null);
                                                 setHoveredItem(null);
                                             }}
@@ -204,6 +254,58 @@ export default function Navbar() {
                             )}
                         </div>
                     ))}
+                    
+                    <Link 
+                        href="/pricing" 
+                        style={{
+                            ...styles.dropdownBtn,
+                            background: hoveredItem === 'pricing' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
+                            textDecoration: 'none'
+                        }}
+                        onMouseEnter={() => setHoveredItem('pricing')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        Pricing
+                    </Link>
+                    
+                    <Link 
+                        href="/faq" 
+                        style={{
+                            ...styles.dropdownBtn,
+                            background: hoveredItem === 'faq' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
+                            textDecoration: 'none'
+                        }}
+                        onMouseEnter={() => setHoveredItem('faq')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        FAQ
+                    </Link>
+                    
+                    <Link 
+                        href="/login" 
+                        style={{
+                            ...styles.dropdownBtn,
+                            background: hoveredItem === 'login' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
+                            textDecoration: 'none'
+                        }}
+                        onMouseEnter={() => setHoveredItem('login')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        Accedi
+                    </Link>
+                    
+                    <Link 
+                        href="/signup" 
+                        style={{
+                            ...styles.signupBtn,
+                            background: hoveredItem === 'signup' ? 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            textDecoration: 'none'
+                        }}
+                        onMouseEnter={() => setHoveredItem('signup')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        Registrati
+                    </Link>
                 </div>
             </div>
         </nav>

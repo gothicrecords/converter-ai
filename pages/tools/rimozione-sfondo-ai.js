@@ -1,14 +1,18 @@
-import Head from 'next/head';
 import Navbar from '../../components/Navbar';
 import BackgroundRemover from '../../components/tools/BackgroundRemover';
+import SEOHead from '../../components/SEOHead';
 
 export default function RimozioneSfondoAIPage() {
   return (
     <div style={styles.pageWrap}>
-      <Head>
-        <title>Rimozione Sfondo AI | MegaPixelAI</title>
-        <meta name="description" content="Rimuovi lo sfondo da qualsiasi immagine con un click. Soggetto rilevato in modo intelligente, qualità elevata e ritaglio preciso." />
-      </Head>
+      <SEOHead
+        title="Rimozione Sfondo AI"
+        description="Rimuovi lo sfondo da qualsiasi immagine con un click. Soggetto rilevato in modo intelligente, qualità elevata e ritaglio preciso. Gratis e senza registrazione."
+        canonical="/tools/rimozione-sfondo-ai"
+        toolName="Rimozione Sfondo AI"
+        toolCategory="ImageApplication"
+        keywords={['rimozione sfondo', 'remove background', 'AI sfondo', 'trasparente', 'foto editing']}
+      />
       <Navbar />
       <main style={styles.mainContent}>
         <header style={styles.header}>

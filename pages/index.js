@@ -3,13 +3,14 @@ import Head from 'next/head';
 import { HiArrowRight, HiLightningBolt } from 'react-icons/hi';
 import { tools } from '../lib/tools';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 export default function HomePage() {
   return (
     <div style={styles.homeWrap}>
       <Head>
-        <title>MegaPixelAI - Strumenti AI Professionali</title>
-        <meta name="description" content="Potenzia i tuoi contenuti con l'intelligenza artificiale - Upscaling, conversione, editing e molto altro" />
+        <title>MegaPixelAI - Analisi Documenti con Intelligenza Artificiale</title>
+        <meta name="description" content="Carica i tuoi documenti e chatta con l'AI. Analisi automatica di PDF, DOCX, immagini con OCR e ricerca semantica." />
       </Head>
       
       <div style={styles.animatedBg}>
@@ -30,71 +31,102 @@ export default function HomePage() {
           <span>Powered by AI</span>
         </div>
         <h1 style={styles.heroTitle}>
-          Trasforma i tuoi contenuti<br/>con la potenza dell'AI
+          Enterprise AI Document Intelligence<br/>Platform
         </h1>
         <p style={styles.heroSubtitle}>
-          Strumenti professionali per immagini, PDF, video e audio.<br/>Veloce, potente, gratuito.
+          Advanced document analysis powered by GPT-4. Extract insights, perform semantic search,<br/>and unlock the full potential of your data with enterprise-grade AI technology.
         </p>
+        <div style={styles.ctaButtons}>
+          <Link href="/chat" style={styles.primaryCta}>
+            <span>Start Analysis</span>
+            <HiArrowRight style={{ width: 20, height: 20 }} />
+          </Link>
+          <Link href="/home" style={styles.secondaryCta}>
+            <span>Explore Tools</span>
+          </Link>
+        </div>
       </div>
 
-      <div style={styles.toolsGrid}>
-        {tools.map((tool, index) => {
-          const IconComponent = tool.icon;
-          return (
-            <div 
-              key={tool.href} 
-              style={{
-                ...styles.toolCardWrap,
-                animationDelay: `${index * 0.1}s`
-              }}
-              onMouseEnter={() => {
-                // Prefetch on hover for instant navigation
-                const link = document.createElement('link');
-                link.rel = 'prefetch';
-                link.href = tool.href;
-                document.head.appendChild(link);
-              }}
-            >
-              <Link 
-                href={tool.href} 
-                prefetch={true}
-                style={styles.toolCard}
-                className="tool-card"
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translate3d(0, -6px, 0)';
-                  e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
-                  const icon = e.currentTarget.querySelector('.tool-icon-wrap');
-                  if (icon) icon.style.transform = 'scale(1.1) rotate(5deg)';
-                  const arrow = e.currentTarget.querySelector('.tool-arrow');
-                  if (arrow) arrow.style.transform = 'translateX(4px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translate3d(0, 0, 0)';
-                  e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.2)';
-                  const icon = e.currentTarget.querySelector('.tool-icon-wrap');
-                  if (icon) icon.style.transform = 'scale(1) rotate(0deg)';
-                  const arrow = e.currentTarget.querySelector('.tool-arrow');
-                  if (arrow) arrow.style.transform = 'translateX(0)';
-                }}
-              >
-                <div style={styles.toolIconWrap} className="tool-icon-wrap">
-                  <IconComponent style={styles.toolIcon} />
-                </div>
-                <h2 style={styles.toolTitle}>{tool.title}</h2>
-                <p style={styles.toolDesc}>{tool.description}</p>
-                <div style={styles.toolFooter}>
-                  <span style={styles.toolCta}>Inizia ora</span>
-                  <HiArrowRight style={styles.toolArrow} className="tool-arrow" />
-                </div>
-              </Link>
+      <div style={styles.featuresSection}>
+        <h2 style={styles.featuresTitle}>Enterprise Document Intelligence</h2>
+        <div style={styles.featuresGrid}>
+          <div style={styles.featureCard}>
+            <div style={styles.featureIconPro}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
             </div>
-          );
-        })}
+            <h3 style={styles.featureTitle}>Multi-Format Processing</h3>
+            <p style={styles.featureDesc}>Support for PDF, DOCX, XLSX, images with integrated OCR. Enterprise-grade document parsing and extraction.</p>
+          </div>
+          <div style={styles.featureCard}>
+            <div style={styles.featureIconPro}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </div>
+            <h3 style={styles.featureTitle}>Semantic Search</h3>
+            <p style={styles.featureDesc}>AI-powered vector search across your documents. Find relevant information using natural language queries.</p>
+          </div>
+          <div style={styles.featureCard}>
+            <div style={styles.featureIconPro}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            <h3 style={styles.featureTitle}>Intelligent Q&A</h3>
+            <p style={styles.featureDesc}>Ask questions about your documents. Get summaries, insights, and detailed analysis powered by GPT-4.</p>
+          </div>
+          <div style={styles.featureCard}>
+            <div style={styles.featureIconPro}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+            </div>
+            <h3 style={styles.featureTitle}>Data Extraction</h3>
+            <p style={styles.featureDesc}>Automatically extract tables, key data points, and structured information from unstructured documents.</p>
+          </div>
+        </div>
       </div>
 
-      <footer style={styles.homeFooter}>
-        <p style={{margin: 0}}>Tutti gli strumenti sono gratuiti e rispettano la tua privacy.</p>
-      </footer>
+      <div style={styles.howItWorksSection}>
+        <h2 style={styles.howItWorksTitle}>How It Works</h2>
+        <div style={styles.stepsGrid}>
+          <div style={styles.stepCard}>
+            <div style={styles.stepNumber}>1</div>
+            <h3 style={styles.stepTitle}>Upload Documents</h3>
+            <p style={styles.stepDesc}>Drag and drop or select your files. Support for PDF, Word, Excel, images, and more with automatic format detection.</p>
+          </div>
+          <div style={styles.stepCard}>
+            <div style={styles.stepNumber}>2</div>
+            <h3 style={styles.stepTitle}>AI Processing</h3>
+            <p style={styles.stepDesc}>Advanced AI analyzes content, performs OCR if needed, and creates a semantic index for intelligent search.</p>
+          </div>
+          <div style={styles.stepCard}>
+            <div style={styles.stepNumber}>3</div>
+            <h3 style={styles.stepTitle}>Query & Discover</h3>
+            <p style={styles.stepDesc}>Ask questions, get summaries, search for specific information across all your documents with natural language.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style={styles.toolsPreview}>
+        <h2 style={styles.toolsPreviewTitle}>Additional AI-Powered Tools</h2>
+        <p style={styles.toolsPreviewDesc}>
+          Beyond document intelligence, access 9 professional tools for images, PDFs, video, and audio processing.
+        </p>
+        <Link href="/home" style={styles.toolsPreviewCta}>
+          Explore all tools
+          <HiArrowRight style={{ width: 18, height: 18 }} />
+        </Link>
+      </div>
+
+      <Footer />
     </div>
   );
 }
@@ -234,8 +266,184 @@ const styles = {
   heroSubtitle: {
     fontSize: '16px',
     color: '#94a3b8',
-    margin: 0,
+    margin: '0 0 32px',
     lineHeight: 1.7
+  },
+  ctaButtons: {
+    display: 'flex',
+    gap: '16px',
+    justifyContent: 'center',
+    flexWrap: 'wrap'
+  },
+  primaryCta: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '16px 32px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    border: 'none',
+    borderRadius: '12px',
+    color: '#fff',
+    fontSize: '16px',
+    fontWeight: '600',
+    textDecoration: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+  },
+  secondaryCta: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '16px 32px',
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: '1px solid rgba(102, 126, 234, 0.3)',
+    borderRadius: '12px',
+    color: '#f1f5f9',
+    fontSize: '16px',
+    fontWeight: '600',
+    textDecoration: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+  },
+  featuresSection: {
+    padding: '60px 24px',
+    maxWidth: '1200px',
+    margin: '0 auto'
+  },
+  featuresTitle: {
+    fontSize: '32px',
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: '48px',
+    color: '#f1f5f9'
+  },
+  featuresGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '24px'
+  },
+  featureCard: {
+    padding: '32px 24px',
+    background: 'rgba(255, 255, 255, 0.03)',
+    border: '1px solid rgba(102, 126, 234, 0.2)',
+    borderRadius: '16px',
+    textAlign: 'center',
+    transition: 'all 0.3s'
+  },
+  featureIcon: {
+    fontSize: '48px',
+    marginBottom: '16px'
+  },
+  featureIconPro: {
+    width: '80px',
+    height: '80px',
+    margin: '0 auto 24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+    border: '1px solid rgba(102, 126, 234, 0.2)',
+    borderRadius: '16px',
+    color: '#667eea'
+  },
+  featureTitle: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#f1f5f9',
+    marginBottom: '12px'
+  },
+  featureDesc: {
+    fontSize: '14px',
+    color: '#94a3b8',
+    lineHeight: 1.6,
+    margin: 0
+  },
+  toolsPreview: {
+    textAlign: 'center',
+    padding: '60px 24px 60px',
+    maxWidth: '700px',
+    margin: '0 auto',
+    background: 'rgba(102, 126, 234, 0.05)',
+    borderRadius: '24px',
+    border: '1px solid rgba(102, 126, 234, 0.2)'
+  },
+  toolsPreviewTitle: {
+    fontSize: '28px',
+    fontWeight: '700',
+    color: '#f1f5f9',
+    marginBottom: '16px'
+  },
+  toolsPreviewDesc: {
+    fontSize: '15px',
+    color: '#94a3b8',
+    marginBottom: '24px',
+    lineHeight: 1.6
+  },
+  toolsPreviewCta: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '14px 28px',
+    background: 'rgba(102, 126, 234, 0.15)',
+    border: '1px solid rgba(102, 126, 234, 0.4)',
+    borderRadius: '10px',
+    color: '#667eea',
+    fontSize: '15px',
+    fontWeight: '600',
+    textDecoration: 'none',
+    transition: 'all 0.3s'
+  },
+  howItWorksSection: {
+    padding: '60px 24px',
+    maxWidth: '1200px',
+    margin: '0 auto'
+  },
+  howItWorksTitle: {
+    fontSize: '32px',
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: '48px',
+    color: '#f1f5f9'
+  },
+  stepsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '32px'
+  },
+  stepCard: {
+    padding: '32px 24px',
+    background: 'rgba(255, 255, 255, 0.03)',
+    border: '1px solid rgba(102, 126, 234, 0.2)',
+    borderRadius: '16px',
+    textAlign: 'center',
+    transition: 'all 0.3s'
+  },
+  stepNumber: {
+    width: '64px',
+    height: '64px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '28px',
+    fontWeight: '700',
+    color: '#fff',
+    margin: '0 auto 20px',
+    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.3)'
+  },
+  stepTitle: {
+    fontSize: '20px',
+    fontWeight: '600',
+    color: '#f1f5f9',
+    marginBottom: '12px'
+  },
+  stepDesc: {
+    fontSize: '14px',
+    color: '#94a3b8',
+    lineHeight: 1.6,
+    margin: 0
   },
   toolsGrid: {
     display: 'grid',

@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { HiSparkles, HiDownload, HiLightningBolt } from 'react-icons/hi';
+import ExportModal from '../ExportModal';
+import { LoadingOverlay, ProgressBar } from '../Loading';
+import { showToast } from '../Toast';
+import { saveToHistory } from '../../utils/history';
 
 export default function ImageGenerator() {
     const [prompt, setPrompt] = useState('');
@@ -9,16 +13,23 @@ export default function ImageGenerator() {
     const [aspect, setAspect] = useState('1:1');
     const [detail, setDetail] = useState(1);
     const [realism, setRealism] = useState(true);
+    const [progress, setProgress] = useState(0);
+    const [showExportModal, setShowExportModal] = useState(false);
 
     const handleGenerate = async () => {
         if (!prompt.trim()) {
-            setError('Inserisci una descrizione');
+            showToast('Inserisci una descrizione', 'error');
             return;
         }
 
         setLoading(true);
         setError(null);
         setResult(null);
+        setProgress(0);
+
+        const progressInterval = setInterval(() => {
+            setProgress(prev => Math.min(prev + 5, 90));
+        }, 300);
 
         try {
             const response = await fetch('/api/tools/generate-image', {
@@ -26,6 +37,9 @@ export default function ImageGenerator() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt, aspect, detail, realism }),
             });
+
+            clearInterval(progressInterval);
+            setProgress(95);
 
             if (!response.ok) {
                 const contentType = response.headers.get('content-type');
@@ -45,22 +59,32 @@ export default function ImageGenerator() {
             
             const url = URL.createObjectURL(blob);
             setResult(url);
+            setProgress(100);
+
+            // Save to history
+            saveToHistory({
+                tool: 'Generazione Immagini AI',
+                filename: `generated_${Date.now()}_4k.jpg`,
+                thumbnail: url,
+                params: { prompt, aspect, detail, realism },
+                result: url
+            });
+
+            showToast('Immagine generata con successo!', 'success');
         } catch (err) {
             console.error('Generation error:', err);
             setError(err.message);
+            showToast(err.message, 'error');
+            clearInterval(progressInterval);
         } finally {
             setLoading(false);
+            setTimeout(() => setProgress(0), 1000);
         }
     };
 
     const handleDownload = () => {
         if (!result) return;
-        const a = document.createElement('a');
-        a.href = result;
-        a.download = `generated_${Date.now()}_4k.jpg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        setShowExportModal(true);
     };
 
     const handleKeyPress = (e) => {
@@ -71,6 +95,18 @@ export default function ImageGenerator() {
 
     return (
         <div style={styles.container}>
+            {loading && (
+                <LoadingOverlay message={`Generazione in corso... ${Math.round(progress)}%`} />
+            )}
+
+            {showExportModal && result && (
+                <ExportModal
+                    imageData={result}
+                    filename={`generated_${Date.now()}_4k`}
+                    onClose={() => setShowExportModal(false)}
+                />
+            )}
+
             <div style={styles.header}>
                 <div style={styles.badge}>
                     <HiLightningBolt style={{ width: 18, height: 18 }} />
