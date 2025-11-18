@@ -182,6 +182,12 @@ export default function HomePage() {
             transform: translateY(-3px) translateZ(0);
           }
           
+          /* PDF tool link hover effects */
+          .pdf-tool-link:hover {
+            background: rgba(96, 165, 250, 0.2) !important;
+            transform: scale(1.05);
+          }
+          
           /* AI Documents feature hover effects */
           .ai-feature-hover {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -408,7 +414,6 @@ export default function HomePage() {
             <div style={styles.toolHighlightTitle}>Immagini</div>
             <div style={styles.toolHighlightCount}>4 strumenti</div>
           </div>
-          <Link href="/pdf/jpg2pdf" style={{ textDecoration: 'none' }}>
           <div style={styles.toolHighlight} className="animate-slide-up tool-highlight-hover" data-delay="1">
             <div style={styles.toolHighlightIcon}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -420,14 +425,15 @@ export default function HomePage() {
               </svg>
             </div>
             <div style={styles.toolHighlightTitle}>PDF</div>
-            <div style={styles.toolHighlightCount}>2 strumenti</div>
+            <div style={styles.toolHighlightCount}>4 strumenti</div>
             {/* Sub-links for SEO and quick access */}
-            <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8' }}>
-              <a href="/pdf/jpg2pdf" style={{ color: '#60a5fa', textDecoration: 'none', marginRight: 8 }}>JPG→PDF</a>
-              <a href="/pdf/pdf2jpg" style={{ color: '#60a5fa', textDecoration: 'none' }}>PDF→JPG</a>
+            <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <Link href="/pdf/jpg2pdf" style={{ color: '#60a5fa', textDecoration: 'none', fontSize: 11, padding: '4px 8px', background: 'rgba(96, 165, 250, 0.1)', borderRadius: '6px', transition: 'all 0.2s', fontWeight: 500 }} className="pdf-tool-link">JPG→PDF</Link>
+              <Link href="/pdf/pdf2jpg" style={{ color: '#60a5fa', textDecoration: 'none', fontSize: 11, padding: '4px 8px', background: 'rgba(96, 165, 250, 0.1)', borderRadius: '6px', transition: 'all 0.2s', fontWeight: 500 }} className="pdf-tool-link">PDF→JPG</Link>
+              <Link href="/pdf/docx2pdf" style={{ color: '#60a5fa', textDecoration: 'none', fontSize: 11, padding: '4px 8px', background: 'rgba(96, 165, 250, 0.1)', borderRadius: '6px', transition: 'all 0.2s', fontWeight: 500 }} className="pdf-tool-link">DOCX→PDF</Link>
+              <Link href="/pdf/pdf2docx" style={{ color: '#60a5fa', textDecoration: 'none', fontSize: 11, padding: '4px 8px', background: 'rgba(96, 165, 250, 0.1)', borderRadius: '6px', transition: 'all 0.2s', fontWeight: 500 }} className="pdf-tool-link">PDF→DOCX</Link>
             </div>
           </div>
-          </Link>
           <div style={styles.toolHighlight} className="animate-slide-up tool-highlight-hover" data-delay="2">
             <div style={styles.toolHighlightIcon}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
