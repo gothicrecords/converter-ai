@@ -361,33 +361,8 @@ export default function ChatPage() {
                         Analizza Documenti
                       </h2>
                       <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '20px', textAlign: 'center', lineHeight: '1.5', maxWidth: '280px' }}>
-                        Carica file e inizia a chattare con l'AI
+                        Usa il pulsante + in basso per caricare file
                       </p>
-                      <button
-                        onClick={() => setShowUpload(true)}
-                        style={{
-                          padding: '12px 32px',
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          border: 'none',
-                          borderRadius: '12px',
-                          color: '#fff',
-                          fontSize: '15px',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          marginBottom: '28px',
-                          boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
-                        }}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                          <polyline points="17 8 12 3 7 8"></polyline>
-                          <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        Carica Documenti
-                      </button>
                       <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
                         <div style={{ textAlign: 'center', width: '70px' }}>
                           <div style={{

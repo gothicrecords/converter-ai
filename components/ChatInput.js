@@ -5,6 +5,7 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -51,6 +52,18 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
 
   const removeFile = (fileId) => {
     setAttachedFiles(attachedFiles.filter(f => f.id !== fileId));
+  };
+
+  const handleFileUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    // TODO: Handle file upload logic
+    console.log('Files selected:', files);
   };
 
   return (
@@ -153,7 +166,46 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
       )}
 
       {/* Input Form */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+      <form onSubmit={handleSubmit} style={{ 
+        display: 'flex', 
+        alignItems: 'center',
+        gap: isMobile ? '8px' : '12px'
+      }}>
+        {/* File Upload Button (Mobile only) */}
+        {isMobile && (
+          <button
+            type="button"
+            onClick={handleFileUploadClick}
+            style={{
+              background: 'rgba(102, 126, 234, 0.15)',
+              border: '1px solid rgba(102, 126, 234, 0.3)',
+              borderRadius: '10px',
+              padding: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              minWidth: '40px',
+              height: '40px'
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#667eea" strokeWidth="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        )}
+        
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept=".pdf,.doc,.docx,.txt"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+        
         <div style={{ flex: 1, position: 'relative' }}>
           <textarea
             ref={textareaRef}
@@ -168,15 +220,17 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
               padding: isMobile ? '10px 12px' : '14px 16px',
               background: 'rgba(255, 255, 255, 0.05)',
               border: '1px solid rgba(102, 126, 234, 0.3)',
-              borderRadius: isMobile ? '10px' : '12px',
+              borderRadius: isMobile ? '20px' : '12px',
               color: '#f1f5f9',
               fontSize: isMobile ? '14px' : '15px',
-              lineHeight: '1.5',
+              lineHeight: isMobile ? '20px' : '1.5',
               resize: 'none',
-              maxHeight: isMobile ? '120px' : '200px',
-              overflow: 'auto',
+              maxHeight: isMobile ? '40px' : '200px',
+              minHeight: isMobile ? '40px' : 'auto',
+              overflow: isMobile ? 'hidden' : 'auto',
               fontFamily: 'inherit',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s',
+              whiteSpace: isMobile ? 'nowrap' : 'pre-wrap'
             }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
@@ -209,8 +263,8 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
           style={{
             background: disabled ? '#4b5563' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: 'white',
-            padding: isMobile ? '12px' : '14px 20px',
-            borderRadius: isMobile ? '10px' : '12px',
+            padding: isMobile ? '10px' : '14px 20px',
+            borderRadius: isMobile ? '50%' : '12px',
             border: 'none',
             fontWeight: '600',
             fontSize: isMobile ? '14px' : '15px',
@@ -222,7 +276,9 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
             transition: 'all 0.3s',
             boxShadow: disabled ? 'none' : '0 4px 20px rgba(102, 126, 234, 0.4)',
             opacity: disabled ? 0.5 : 1,
-            minWidth: isMobile ? '44px' : 'auto'
+            minWidth: isMobile ? '40px' : 'auto',
+            width: isMobile ? '40px' : 'auto',
+            height: isMobile ? '40px' : 'auto'
           }}
           onMouseEnter={(e) => {
             if (!disabled) {
@@ -252,7 +308,7 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
           ) : (
             <>
               {!isMobile && <span>Send</span>}
-              <svg width={isMobile ? "20" : "18"} height={isMobile ? "20" : "18"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width={isMobile ? "18" : "18"} height={isMobile ? "18" : "18"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <line x1="22" y1="2" x2="11" y2="13"></line>
                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
               </svg>
