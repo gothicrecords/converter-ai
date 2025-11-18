@@ -16,6 +16,8 @@ import ffmpegStatic from 'ffmpeg-static';
 import ffmpeg from 'fluent-ffmpeg';
 import mammoth from 'mammoth';
 import { marked } from 'marked';
+import Epub from 'epub-gen';
+import ttf2eotConv from 'ttf2eot';
 
 export const config = { api: { bodyParser: false } };
 
@@ -245,6 +247,12 @@ export default async function handler(req, res) {
           mime = 'font/woff2';
         }
       }
+      // FONT: TTF -> EOT
+      if (!outputBuffer && lowerTarget === 'eot' && inputExt === 'ttf') {
+        const eot = ttf2eotConv(new Uint8Array(inputBuffer)).buffer;
+        outputBuffer = Buffer.from(eot);
+        mime = 'application/vnd.ms-fontobject';
+      }
 
       // AUDIO/VIDEO via ffmpeg (best effort)
       const audioTargets = ['mp3','wav','m4a','flac','ogg','weba','aac'];
@@ -291,6 +299,53 @@ export default async function handler(req, res) {
       if (!outputBuffer && (lowerTarget === 'png') && inputExt === 'svg') {
         outputBuffer = await sharp(inputBuffer).png().toBuffer();
         mime = 'image/png';
+      }
+
+      // SVGZ -> SVG
+      if (!outputBuffer && lowerTarget === 'svg' && inputExt === 'svgz') {
+        outputBuffer = zlib.gunzipSync(inputBuffer);
+        mime = 'image/svg+xml';
+      }
+
+      // CBZ from image or HTMLZ/TXTZ from text/html
+      if (!outputBuffer && (lowerTarget === 'cbz' || lowerTarget === 'htmlz' || lowerTarget === 'txtz')) {
+        const zip = new JSZip();
+        if (lowerTarget === 'cbz') {
+          // Pack single image as page01
+          zip.file('page01' + (path.extname(originalName) || '.jpg'), inputBuffer);
+        } else if (lowerTarget === 'htmlz') {
+          const html = inputExt === 'md' ? marked.parse(inputBuffer.toString('utf8')) : inputBuffer.toString('utf8');
+          zip.file('index.html', html);
+        } else if (lowerTarget === 'txtz') {
+          const txt = inputBuffer.toString('utf8');
+          zip.file('index.txt', txt);
+        }
+        outputBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+        mime = 'application/zip';
+      }
+
+      // JAR (zip with .jar extension)
+      if (!outputBuffer && lowerTarget === 'jar') {
+        const zip = new JSZip();
+        zip.file(originalName, inputBuffer);
+        outputBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+        mime = 'application/java-archive';
+      }
+
+      // EPUB from HTML/MD/TXT (single chapter)
+      if (!outputBuffer && lowerTarget === 'epub' && ['html','htm','md','txt'].includes(inputExt)) {
+        const html = inputExt === 'md' ? marked.parse(inputBuffer.toString('utf8'))
+                    : inputExt === 'txt' ? `<pre>${inputBuffer.toString('utf8')}</pre>`
+                    : inputBuffer.toString('utf8');
+        const tmpOut = path.join(path.dirname(inputPath), `out_${Date.now()}.epub`);
+        await new Epub({
+          title: path.basename(originalName, path.extname(originalName)),
+          author: 'MegaPixelAI',
+          content: [{ title: 'Chapter 1', data: html }]
+        }, tmpOut).promise;
+        outputBuffer = fs.readFileSync(tmpOut);
+        try { fs.unlinkSync(tmpOut); } catch {}
+        mime = 'application/epub+zip';
       }
 
       // If still not handled, return original buffer but with forced extension
