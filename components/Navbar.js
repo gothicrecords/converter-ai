@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { HiSparkles, HiHome, HiMenu, HiX, HiDotsVertical } from 'react-icons/hi';
 import { BsChevronDown, BsChevronRight } from 'react-icons/bs';
 import { tools } from '../lib/tools';
@@ -10,6 +11,7 @@ import { useIsMobile } from '../lib/useMediaQuery';
 
 export default function Navbar() {
     const { t } = useTranslation();
+    const router = useRouter();
     const isMobile = useIsMobile();
     const [dropdownOpen, setDropdownOpen] = useState(null);
     const [scrolled, setScrolled] = useState(false);
@@ -473,6 +475,10 @@ export default function Navbar() {
                         }}
                         onMouseEnter={() => setHoveredItem('tools')}
                         onMouseLeave={() => setHoveredItem(null)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            router.push('/tools');
+                        }}
                     >
                         Tutti i Tool
                     </Link>
@@ -636,7 +642,11 @@ export default function Navbar() {
                     <Link 
                         href="/tools" 
                         style={styles.mobileMenuItem}
-                        onClick={() => setMobileMenuOpen(false)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setMobileMenuOpen(false);
+                            router.push('/tools');
+                        }}
                     >
                         Tutti i Tool
                     </Link>
