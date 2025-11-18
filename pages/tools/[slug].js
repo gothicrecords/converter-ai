@@ -162,8 +162,15 @@ export async function getStaticPaths() {
         const aiSlugs = tools.map(t => t.href.replace('/tools/', '')).filter(Boolean);
         const convSlugs = listConversionSlugs().filter(Boolean);
         const slugs = Array.from(new Set([...aiSlugs, ...convSlugs])).filter(Boolean);
-        const paths = slugs.map(slug => ({ params: { slug: String(slug) } }));
-        return { paths, fallback: 'blocking' };
+        
+        // Limita il numero di pagine pre-generate per evitare timeout
+        // Le altre verranno generate on-demand con fallback: 'blocking'
+        const paths = slugs.slice(0, 200).map(slug => ({ params: { slug: String(slug) } }));
+        
+        return { 
+            paths, 
+            fallback: 'blocking' // Genera le altre pagine on-demand
+        };
     } catch (error) {
         console.error('Error in getStaticPaths:', error);
         return { paths: [], fallback: 'blocking' };
