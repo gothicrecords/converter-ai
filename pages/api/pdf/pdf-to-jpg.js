@@ -35,7 +35,7 @@ export default async function handler(req, res) {
       const data = await r.json();
       const file = (data?.Files || data?.files || [])[0];
       if (!file?.Url) throw new Error('ConvertAPI response invalid');
-      results.push({ name: f.originalFilename || 'file.pdf', url: file.Url, type: 'image/jpeg' });
+      results.push({ name: f.originalFilename?.replace(/\.pdf$/i, '.jpg') || 'converted.jpg', url: file.Url, type: 'image/jpeg' });
     }
 
     if (results.length === 1) return res.status(200).json({ url: results[0].url });

@@ -34,7 +34,7 @@ export default async function handler(req, res) {
       const data = await r.json();
       const file = (data?.Files || data?.files || [])[0];
       if (!file?.Url) throw new Error('ConvertAPI response invalid');
-      results.push({ name: f.originalFilename || 'file.docx', url: file.Url, type: 'application/pdf' });
+      results.push({ name: f.originalFilename?.replace(/\.(docx?)$/i, '.pdf') || 'converted.pdf', url: file.Url, type: 'application/pdf' });
     }
 
     if (results.length === 1) return res.status(200).json({ url: results[0].url });
