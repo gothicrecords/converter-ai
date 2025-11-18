@@ -1,18 +1,14 @@
-# Upscaler AI - Full Project Scaffold
+# Upscaler AI & Offline Converters
 
-## Changelog (2025-11-16)
-- Migrated upscaling to local Sharp (libvips) processing: no external HF API.
-- Quality/speed heuristics: fast single-pass for large images, two-pass detail for small ones.
-- Output JPEG tuned (mozjpeg) with correct `image/jpeg` data URL MIME.
-- Desktop viewing improved: larger container and slider for clearer differences.
-- Slider labels added (Originale / Upscalata 2x) to avoid confusion.
-- Mobile UX refined: responsive layout, touch-friendly controls, viewport meta.
+## What’s new (2025-11-18)
+- Added a unified, offline Convert API supporting images, documents, spreadsheets, archives, fonts, vectors, ebooks, and media without external services.
+- Introduced a Generic Converter UI and SEO-friendly tool pages generated from a registry.
+- PDF: supports AI→PDF embedded extraction and PDF→PNG/JPG with `page` selection (0-based).
+- Archives: multi-format extraction via 7-Zip with RAR WebAssembly fallback; repack to ZIP/TGZ.
 
-Current stack: Next.js (API routes) + Sharp; optional Cloudinary hosting fallback.
+Current stack: Next.js (API routes) + Sharp + XLSX + pdfkit + html-pdf-node + mammoth + marked + JSZip + tar-stream + zlib + ttf2woff/ttf2woff2/ttf2eot + svg-to-pdfkit + epub-gen + ffmpeg-static + fluent-ffmpeg + 7zip-bin + node-unrar-js.
 ## What this is
-A minimal web app (Next.js frontend + API route) that accepts image uploads and
-performs fast, high-quality 2x upscaling locally via Sharp (libvips), then returns
-the upscaled image to the user (optionally hosted on Cloudinary).
+A Next.js app offering local upscaling and a broad, offline file conversion suite (no SaaS APIs).
 
 This scaffold is intentionally simple and production-ready enough to deploy on
 Vercel, Render, Hostinger, or any similar host.
@@ -27,41 +23,36 @@ Vercel, Render, Hostinger, or any similar host.
 
 ## Quick local run (development)
 1. Install Node.js (16+ recommended)
-2. (Optional) Configure Cloudinary env vars if you want hosted URLs:
-   - `CLOUDINARY_CLOUD_NAME`
-   - `CLOUDINARY_API_KEY`
-   - `CLOUDINARY_API_SECRET`
-3. Install dependencies:
+2. Install dependencies:
    ```
    npm install
    ```
-4. Run:
+3. Run:
    ```
    npm run dev
    ```
-5. Open http://localhost:3000
+4. Open http://localhost:3000
+
+Converters quick test:
+- Visit `/tools/png-converter` (or any tool page from the navbar/registry), upload a file, choose output format, and download.
+- For PDF→image, set “Pagina (PDF)” to pick a specific page (0-based).
 
 ## Environment variables
-- Cloudinary (optional): see above
-- CloudConvert API (required for PDF conversions):
-  - `CLOUDCONVERT_API_KEY` - Get from https://cloudconvert.com/dashboard/api/v2/keys
-  - Free tier: 25 conversions/day (perfect for testing and small production)
+- None required for the converters; everything runs offline.
+- Optional: you may add your own services (analytics, auth, storage) as needed.
 - `PORT` (optional): dev server port (default 3000)
 
 ## How it works (summary)
-- The frontend sends the image file via POST `/api/upscale`.
-- The Next.js API route parses upload, processes locally with Sharp (2x upscale),
-  and returns either a Cloudinary URL or a `data:image/jpeg;base64,...` URL.
-- The client displays a before/after slider with labels and provides download/full-res link.
+- Upscale: POST `/api/upscale` processes locally with Sharp and returns a data URL.
+- Converters: POST `/api/convert/[target]` with `file` form field and optional params (e.g., `width`, `height`, `quality`, `page`, `vwidth`, `vheight`, `vbitrate`, `abitrate`). Returns `{ name, dataUrl }`.
 
 ## Deployment notes
-- Vercel: import repo, ensure Sharp works on default Node runtime. Add Cloudinary env vars if needed.
-- Other hosts: run `npm run dev` for development or configure a production build as desired.
+- Vercel/Render/Hostinger: import the repo; no external conversion services are required.
+- Ensure the Node runtime supports Sharp; other libraries are pure JS or ship their binaries (ffmpeg-static, 7zip-bin).
 
 ## Notes, limitations and tips
-- Local Sharp upscaling is fast and reliable; quality tuned for natural look.
-- Limit upload size and validate image MIME types.
-- For scaling: add storage (S3), CDN, queuing if you add heavier processing.
+- All conversions run offline. Some formats (EPS/PS/AI robust, DJVU/XPS, multi-page PDF raster) may require optional local binaries (Ghostscript/Poppler/djvulibre) if you choose to extend further.
+- Limit upload size and validate input types. For heavy workflows consider queues and storage.
 
 ## Security
 - Validate MIME types and file size.
@@ -76,4 +67,4 @@ Vercel, Render, Hostinger, or any similar host.
 - Dockerfile for container deployment
 - CI/CD script for Hostinger/GitHub Actions
 
-Reply in chat which extras you want and I'll extend the project.
+More details in `DEVELOPMENT_NOTES.md`. For history, see `CHANGELOG.md`.
