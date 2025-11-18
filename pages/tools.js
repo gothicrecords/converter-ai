@@ -53,46 +53,73 @@ export default function ToolsPage() {
             {/* Filtri per categoria */}
             <section style={styles.filterSection}>
                 <div style={styles.filterContainer}>
-                    <div style={isMobile ? styles.filterBarMobile : styles.filterBar}>
-                        <button
-                            onClick={() => setSelectedCategory('Tutti')}
-                            style={{
-                                ...styles.filterButtonCenter,
-                                ...(selectedCategory === 'Tutti' ? styles.filterButtonActive : {})
-                            }}
-                        >
-                            Tutti
-                        </button>
-                        {isMobile && (
-                            <button
-                                style={styles.filterMenuButton}
-                                onClick={() => setFiltersExpanded(prev => !prev)}
-                            >
-                                Filtri
-                                {filtersExpanded ? (
-                                    <BsChevronUp style={styles.filterMenuIcon} />
-                                ) : (
-                                    <BsChevronDown style={styles.filterMenuIcon} />
-                                )}
-                            </button>
-                        )}
-                    </div>
-
-                    {(!isMobile || filtersExpanded) && (
-                        <div style={styles.filterGrid}>
-                            {categories.filter(cat => cat !== 'Tutti').map((category) => (
+                    {isMobile ? (
+                        <>
+                            <div style={styles.filterBarMobile}>
                                 <button
-                                    key={category}
-                                    onClick={() => setSelectedCategory(category)}
+                                    onClick={() => setSelectedCategory('Tutti')}
                                     style={{
-                                        ...styles.filterButton,
-                                        ...(selectedCategory === category ? styles.filterButtonActive : {})
+                                        ...styles.filterButtonCenter,
+                                        ...(selectedCategory === 'Tutti' ? styles.filterButtonActive : {})
                                     }}
                                 >
-                                    {category}
+                                    Tutti
                                 </button>
-                            ))}
-                        </div>
+                                <button
+                                    style={styles.filterMenuButton}
+                                    onClick={() => setFiltersExpanded(prev => !prev)}
+                                >
+                                    Filtri
+                                    {filtersExpanded ? (
+                                        <BsChevronUp style={styles.filterMenuIcon} />
+                                    ) : (
+                                        <BsChevronDown style={styles.filterMenuIcon} />
+                                    )}
+                                </button>
+                            </div>
+                            {filtersExpanded && (
+                                <div style={styles.filterGrid}>
+                                    {categories.filter(cat => cat !== 'Tutti').map((category) => (
+                                        <button
+                                            key={category}
+                                            onClick={() => setSelectedCategory(category)}
+                                            style={{
+                                                ...styles.filterButton,
+                                                ...(selectedCategory === category ? styles.filterButtonActive : {})
+                                            }}
+                                        >
+                                            {category}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                onClick={() => setSelectedCategory('Tutti')}
+                                style={{
+                                    ...styles.filterButtonCenterDesktop,
+                                    ...(selectedCategory === 'Tutti' ? styles.filterButtonActive : {})
+                                }}
+                            >
+                                Tutti
+                            </button>
+                            <div style={styles.filterGrid}>
+                                {categories.filter(cat => cat !== 'Tutti').map((category) => (
+                                    <button
+                                        key={category}
+                                        onClick={() => setSelectedCategory(category)}
+                                        style={{
+                                            ...styles.filterButton,
+                                            ...(selectedCategory === category ? styles.filterButtonActive : {})
+                                        }}
+                                    >
+                                        {category}
+                                    </button>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </div>
             </section>            <section style={styles.toolsSection}>
@@ -256,12 +283,6 @@ const styles = {
         alignItems: 'center',
         gap: '16px'
     },
-    filterBar: {
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '100%'
-    },
     filterBarMobile: {
         display: 'flex',
         justifyContent: 'center',
@@ -273,6 +294,19 @@ const styles = {
         border: '1px solid rgba(102, 126, 234, 0.2)',
         borderRadius: '24px',
         position: 'relative'
+    },
+    filterButtonCenterDesktop: {
+        padding: '12px 32px',
+        background: 'rgba(30, 41, 59, 0.5)',
+        border: '1px solid rgba(102, 126, 234, 0.2)',
+        borderRadius: '24px',
+        color: '#94a3b8',
+        fontSize: '15px',
+        fontWeight: '700',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        outline: 'none',
+        minWidth: '120px'
     },
     filterButtonCenter: {
         padding: '10px 28px',
