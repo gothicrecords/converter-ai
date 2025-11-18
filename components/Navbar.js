@@ -18,6 +18,14 @@ export default function Navbar() {
     const [expandedCategory, setExpandedCategory] = useState(null);
     const navRef = useRef(null);
     const closeTimeoutRef = useRef(null);
+    
+    useEffect(() => {
+        if (!isMobile) {
+            setMobileMenuOpen(false);
+            setMobileSecondaryMenuOpen(false);
+            setExpandedCategory(null);
+        }
+    }, [isMobile]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -245,7 +253,8 @@ export default function Navbar() {
             padding: '20px',
             zIndex: 1002,
             transition: 'right 0.3s ease',
-            boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)'
+            boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)',
+            display: isMobile ? 'block' : 'none'
         },
         mobileSecondaryMenu: {
             position: 'fixed',
@@ -260,7 +269,8 @@ export default function Navbar() {
             padding: '20px',
             zIndex: 1002,
             transition: 'right 0.3s ease',
-            boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)'
+            boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)',
+            display: isMobile ? 'block' : 'none'
         },
         mobileOverlay: {
             position: 'fixed',
@@ -523,7 +533,7 @@ export default function Navbar() {
             </div>
 
             {/* Overlay per chiudere menu mobile */}
-            {(mobileMenuOpen || mobileSecondaryMenuOpen) && (
+            {isMobile && (mobileMenuOpen || mobileSecondaryMenuOpen) && (
                 <div 
                     style={styles.mobileOverlay}
                     onClick={() => {
@@ -534,103 +544,107 @@ export default function Navbar() {
             )}
 
             {/* Mobile menu principale (categorie e strumenti) */}
-            <div style={styles.mobileMenu}>
-                <div style={styles.mobileMenuHeader}>
-                    <h3 style={styles.mobileMenuTitle}>Menu</h3>
-                    <button 
-                        style={styles.closeBtn}
+            {isMobile && (
+                <div style={styles.mobileMenu}>
+                    <div style={styles.mobileMenuHeader}>
+                        <h3 style={styles.mobileMenuTitle}>Menu</h3>
+                        <button 
+                            style={styles.closeBtn}
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            <HiX />
+                        </button>
+                    </div>
+
+                    <Link 
+                        href="/chat" 
+                        style={styles.mobileMenuItem}
                         onClick={() => setMobileMenuOpen(false)}
                     >
-                        <HiX />
-                    </button>
-                </div>
+                        {t('nav.tools')}
+                    </Link>
 
-                <Link 
-                    href="/chat" 
-                    style={styles.mobileMenuItem}
-                    onClick={() => setMobileMenuOpen(false)}
-                >
-                    {t('nav.tools')}
-                </Link>
-
-                {Object.keys(categories).map(catName => (
-                    <div key={catName}>
-                        <div 
-                            style={styles.mobileCategoryHeader}
-                            onClick={() => setExpandedCategory(expandedCategory === catName ? null : catName)}
-                        >
-                            <span>{catName}</span>
-                            <BsChevronRight 
-                                style={{ 
-                                    width: 16, 
-                                    height: 16,
-                                    transform: expandedCategory === catName ? 'rotate(90deg)' : 'rotate(0deg)',
-                                    transition: 'transform 0.3s ease'
-                                }} 
-                            />
-                        </div>
-                        {expandedCategory === catName && categories[catName].map(tool => (
-                            <Link
-                                key={tool.href}
-                                href={tool.href}
-                                style={styles.mobileDropdownItem}
-                                onClick={() => setMobileMenuOpen(false)}
+                    {Object.keys(categories).map(catName => (
+                        <div key={catName}>
+                            <div 
+                                style={styles.mobileCategoryHeader}
+                                onClick={() => setExpandedCategory(expandedCategory === catName ? null : catName)}
                             >
-                                <tool.icon style={{ width: 18, height: 18 }} />
-                                <span>{tool.title}</span>
-                            </Link>
-                        ))}
-                    </div>
-                ))}
-            </div>
+                                <span>{catName}</span>
+                                <BsChevronRight 
+                                    style={{ 
+                                        width: 16, 
+                                        height: 16,
+                                        transform: expandedCategory === catName ? 'rotate(90deg)' : 'rotate(0deg)',
+                                        transition: 'transform 0.3s ease'
+                                    }} 
+                                />
+                            </div>
+                            {expandedCategory === catName && categories[catName].map(tool => (
+                                <Link
+                                    key={tool.href}
+                                    href={tool.href}
+                                    style={styles.mobileDropdownItem}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <tool.icon style={{ width: 18, height: 18 }} />
+                                    <span>{tool.title}</span>
+                                </Link>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Mobile menu secondario (login, pricing, faq, lingua) */}
-            <div style={styles.mobileSecondaryMenu}>
-                <div style={styles.mobileMenuHeader}>
-                    <h3 style={styles.mobileMenuTitle}>Account</h3>
-                    <button 
-                        style={styles.closeBtn}
+            {isMobile && (
+                <div style={styles.mobileSecondaryMenu}>
+                    <div style={styles.mobileMenuHeader}>
+                        <h3 style={styles.mobileMenuTitle}>Account</h3>
+                        <button 
+                            style={styles.closeBtn}
+                            onClick={() => setMobileSecondaryMenuOpen(false)}
+                        >
+                            <HiX />
+                        </button>
+                    </div>
+
+                    <Link 
+                        href="/login" 
+                        style={{
+                            ...styles.mobileMenuItem,
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: '#fff'
+                        }}
                         onClick={() => setMobileSecondaryMenuOpen(false)}
                     >
-                        <HiX />
-                    </button>
-                </div>
+                        Accedi
+                    </Link>
+                    
+                    <Link 
+                        href="/pricing" 
+                        style={styles.mobileMenuItem}
+                        onClick={() => setMobileSecondaryMenuOpen(false)}
+                    >
+                        {t('nav.pricing')}
+                    </Link>
+                    
+                    <Link 
+                        href="/faq" 
+                        style={styles.mobileMenuItem}
+                        onClick={() => setMobileSecondaryMenuOpen(false)}
+                    >
+                        FAQ
+                    </Link>
 
-                <Link 
-                    href="/login" 
-                    style={{
-                        ...styles.mobileMenuItem,
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        color: '#fff'
-                    }}
-                    onClick={() => setMobileSecondaryMenuOpen(false)}
-                >
-                    Accedi
-                </Link>
-                
-                <Link 
-                    href="/pricing" 
-                    style={styles.mobileMenuItem}
-                    onClick={() => setMobileSecondaryMenuOpen(false)}
-                >
-                    {t('nav.pricing')}
-                </Link>
-                
-                <Link 
-                    href="/faq" 
-                    style={styles.mobileMenuItem}
-                    onClick={() => setMobileSecondaryMenuOpen(false)}
-                >
-                    FAQ
-                </Link>
-
-                <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(102, 126, 234, 0.2)' }}>
-                    <div style={{ marginBottom: '12px', fontSize: '13px', color: '#667eea', fontWeight: '600' }}>
-                        Lingua
+                    <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(102, 126, 234, 0.2)' }}>
+                        <div style={{ marginBottom: '12px', fontSize: '13px', color: '#667eea', fontWeight: '600' }}>
+                            Lingua
+                        </div>
+                        <LanguageSwitcher />
                     </div>
-                    <LanguageSwitcher />
                 </div>
-            </div>
+            )}
         </nav>
     );
 }
