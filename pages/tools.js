@@ -2,8 +2,6 @@ import Link from 'next/link';
 import { useState, useMemo, memo, useCallback } from 'react';
 import { HiArrowRight } from 'react-icons/hi';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
-import { useTranslation } from '../lib/i18n';
-import { loadTranslationsSSR } from '../lib/i18n-server';
 import dynamic from 'next/dynamic';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
@@ -93,7 +91,6 @@ const ToolCard = memo(({ tool, isMobile, getCardPadding, getIconSize, getIconInn
 ToolCard.displayName = 'ToolCard';
 
 export default function ToolsPage() {
-    const { t } = useTranslation();
     const [selectedCategory, setSelectedCategory] = useState('Tutti');
     const [filtersExpanded, setFiltersExpanded] = useState(false);
     const isMobile = useIsMobile();
@@ -177,10 +174,10 @@ export default function ToolsPage() {
             <section style={styles.hero}>
                 <div style={styles.heroContent}>
                     <h1 style={styles.heroTitle}>
-                        {t('home.availableTools')}
+                        Tutti gli Strumenti AI
                     </h1>
                     <p style={styles.heroSubtitle}>
-                        {t('home.availableToolsSubtitle')}
+                        Esplora la nostra suite completa di strumenti AI e convertitori professionali
                     </p>
                 </div>
             </section>
@@ -693,12 +690,8 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     }
 }
 
-export async function getServerSideProps({ locale }) {
-    const translations = await loadTranslationsSSR(locale || 'en');
-    
+export async function getServerSideProps() {
     return {
-        props: {
-            translations
-        }
+        props: {}
     };
 }
