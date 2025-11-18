@@ -1,6 +1,8 @@
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { tools } from '../../lib/tools';
+import { getConversionTool } from '../../lib/conversionRegistry';
+import GenericConverter from '../../components/GenericConverter';
 import { HiArrowRight } from 'react-icons/hi';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
@@ -28,7 +30,14 @@ const ToolPage = () => {
     const router = useRouter();
     const { slug } = router.query;
 
-    const tool = tools.find(t => t.href === `/tools/${slug}`);
+    // First try AI tools list, then conversion registry.
+    const aiTool = tools.find(t => t.href === `/tools/${slug}`);
+    const conversionTool = getConversionTool(slug);
+    const tool = aiTool || (conversionTool && {
+        title: conversionTool.title,
+        description: conversionTool.description,
+        icon: aiTool?.icon || HiArrowRight // fallback icon
+    });
     const otherTools = tools.filter(t => t.href !== `/tools/${slug}`).slice(0, 6);
 
     if (!tool) {
@@ -44,6 +53,9 @@ const ToolPage = () => {
     }
 
     const renderToolComponent = () => {
+        if (conversionTool) {
+            return <GenericConverter tool={conversionTool} />;
+        }
         switch (slug) {
             case 'rimozione-sfondo-ai':
                 return <BackgroundRemover />;
