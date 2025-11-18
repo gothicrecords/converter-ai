@@ -28,10 +28,6 @@ const nextConfig = {
     optimizeCss: true,
   },
   
-  // Turbopack configuration (Next.js 16+)
-  // Turbopack gestisce automaticamente code splitting ottimizzato
-  turbopack: {},
-  
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { 
       exclude: ['error', 'warn'] 
