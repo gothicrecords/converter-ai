@@ -163,13 +163,12 @@ export async function getStaticPaths() {
         const convSlugs = listConversionSlugs().filter(Boolean);
         const slugs = Array.from(new Set([...aiSlugs, ...convSlugs])).filter(Boolean);
         
-        // Limita il numero di pagine pre-generate per evitare timeout
-        // Le altre verranno generate on-demand con fallback: 'blocking'
-        const paths = slugs.slice(0, 200).map(slug => ({ params: { slug: String(slug) } }));
+        // Limit to 50 for faster Vercel builds; rest generated on-demand
+        const paths = slugs.slice(0, 50).map(slug => ({ params: { slug: String(slug) } }));
         
         return { 
             paths, 
-            fallback: 'blocking' // Genera le altre pagine on-demand
+            fallback: 'blocking'
         };
     } catch (error) {
         console.error('Error in getStaticPaths:', error);
