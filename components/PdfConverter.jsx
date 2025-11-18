@@ -5,10 +5,18 @@ import dynamic from 'next/dynamic';
 import Navbar from './Navbar';
 
 const tabs = [
-  { key: 'jpg2pdf', label: 'JPG -> PDF', color: '#f093fb' },
-  { key: 'pdf2jpg', label: 'PDF -> JPG', color: '#4facfe' },
-  { key: 'docx2pdf', label: 'WORD -> PDF', color: '#43e97b' },
-  { key: 'pdf2docx', label: 'PDF -> WORD', color: '#fa709a' },
+  // Verso PDF
+  { key: 'jpg2pdf', label: 'JPG → PDF', color: '#f093fb' },
+  { key: 'docx2pdf', label: 'Word → PDF', color: '#43e97b' },
+  { key: 'ppt2pdf', label: 'PowerPoint → PDF', color: '#ff9f43' },
+  { key: 'xls2pdf', label: 'Excel → PDF', color: '#10b981' },
+  { key: 'html2pdf', label: 'HTML → PDF', color: '#60a5fa' },
+  // Da PDF
+  { key: 'pdf2jpg', label: 'PDF → JPG', color: '#4facfe' },
+  { key: 'pdf2docx', label: 'PDF → Word', color: '#fa709a' },
+  { key: 'pdf2pptx', label: 'PDF → PowerPoint', color: '#f97316' },
+  { key: 'pdf2xlsx', label: 'PDF → Excel', color: '#22c55e' },
+  { key: 'pdf2pdfa', label: 'PDF → PDF/A', color: '#a78bfa' },
 ];
 
 export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }){
@@ -43,13 +51,23 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
     if (active === 'jpg2pdf') {
       files.forEach(f=>fd.append('images', f));
     } else {
-      const multi = (active === 'pdf2jpg' || active === 'pdf2docx' || active === 'docx2pdf');
+      const multi = (
+        active === 'pdf2jpg' || active === 'pdf2docx' || active === 'docx2pdf' ||
+        active === 'ppt2pdf' || active === 'xls2pdf' || active === 'html2pdf' ||
+        active === 'pdf2pptx' || active === 'pdf2xlsx' || active === 'pdf2pdfa'
+      );
       if (multi) files.forEach(f=>fd.append('file', f)); else fd.append('file', files[0]);
     }
 
     const route = active === 'jpg2pdf' ? '/api/pdf/jpg-to-pdf'
       : active === 'pdf2jpg' ? '/api/pdf/pdf-to-jpg'
       : active === 'docx2pdf' ? '/api/pdf/docx-to-pdf'
+      : active === 'ppt2pdf' ? '/api/pdf/ppt-to-pdf'
+      : active === 'xls2pdf' ? '/api/pdf/xls-to-pdf'
+      : active === 'html2pdf' ? '/api/pdf/html-to-pdf'
+      : active === 'pdf2pptx' ? '/api/pdf/pdf-to-pptx'
+      : active === 'pdf2xlsx' ? '/api/pdf/pdf-to-xlsx'
+      : active === 'pdf2pdfa' ? '/api/pdf/pdf-to-pdfa'
       : '/api/pdf/pdf-to-docx';
 
     try{
@@ -151,8 +169,17 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
           <div className="drop">
             <input
               type="file"
-              multiple={active==='jpg2pdf' || active==='pdf2jpg' || active==='pdf2docx' || active==='docx2pdf'}
-              accept={active==='jpg2pdf'? 'image/*' : (active==='docx2pdf'? '.doc,.docx' : '.pdf')}
+              multiple={[
+                'jpg2pdf','pdf2jpg','pdf2docx','docx2pdf','ppt2pdf','xls2pdf','html2pdf','pdf2pptx','pdf2xlsx','pdf2pdfa'
+              ].includes(active)}
+              accept={
+                active==='jpg2pdf' ? 'image/*' :
+                active==='docx2pdf' ? '.doc,.docx' :
+                active==='ppt2pdf' ? '.ppt,.pptx' :
+                active==='xls2pdf' ? '.xls,.xlsx' :
+                active==='html2pdf' ? '.html,.htm' :
+                '.pdf'
+              }
               onChange={onPick}
             />
             <p>{files.length? `${files.length} file selezionati` : 'Trascina qui i file o clicca per selezionare'}</p>
@@ -234,7 +261,7 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
           .pdf-wrap{max-width:1000px;margin:0 auto;padding:40px 24px}
           .page-header{text-align:center;margin-bottom:40px}
           .page-title{font-size:clamp(28px,5vw,40px);font-weight:800;margin:0 0 12px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-          .page-subtitle{font-size:16px;color:#94a3b8;margin:0}
+          .page-subtitle{font-size:16px;color:#94a3b8;margin:0 auto;max-width:900px;line-height:1.7;text-align:center}
           .tabs{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:32px}
           .tab{display:flex;align-items:center;gap:4px;background:#0f172a;color:#cfe0ff;border:2px solid rgba(148,163,184,0.24);border-radius:12px;padding:12px 18px;cursor:pointer;transition:all 0.3s;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 6px 14px rgba(0,0,0,0.25);text-decoration:none}
           .tab:hover{transform:translateY(-2px);border-color:rgba(148,163,184,0.36)}

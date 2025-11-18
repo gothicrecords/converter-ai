@@ -43,6 +43,9 @@ Vercel, Render, Hostinger, or any similar host.
 
 ## Environment variables
 - Cloudinary (optional): see above
+- CloudConvert API (required for PDF conversions):
+  - `CLOUDCONVERT_API_KEY` - Get from https://cloudconvert.com/dashboard/api/v2/keys
+  - Free tier: 25 conversions/day (perfect for testing and small production)
 - `PORT` (optional): dev server port (default 3000)
 
 ## How it works (summary)

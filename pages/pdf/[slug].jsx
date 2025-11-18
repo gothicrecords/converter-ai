@@ -7,19 +7,43 @@ const PdfConverter = dynamic(() => import('../../components/PdfConverter'), { ss
 const TOOL_META = {
   jpg2pdf: {
     title: 'JPG to PDF - Converti JPG in PDF | Best Upscaler IA',
-    description: 'Converti immagini JPG in PDF ad alta qualità. Supporto batch, download e ZIP. Perfetto per archiviazione e condivisione.'
+    description: 'Converti immagini JPG in PDF ad alta qualità. Supporto batch e ZIP.'
   },
   pdf2jpg: {
     title: 'PDF to JPG - Estrai immagini da PDF | Best Upscaler IA',
-    description: 'Estrai immagini JPG dai tuoi PDF in pochi secondi, con conversione fedele e controllo della risoluzione.'
+    description: 'Converti PDF in immagini JPG in pochi secondi, con qualità controllata.'
   },
   docx2pdf: {
     title: 'Word to PDF - Converti DOCX in PDF | Best Upscaler IA',
-    description: 'Converti documenti Word (DOC/DOCX) in PDF mantenendo layout e formattazione.'
+    description: 'Converti i documenti in PDF mantenendo layout e formattazione.'
+  },
+  ppt2pdf: {
+    title: 'PowerPoint to PDF - Converti PPT/PPTX in PDF | Best Upscaler IA',
+    description: 'Converti presentazioni PowerPoint (PPT/PPTX) in PDF preservando layout e grafica.'
+  },
+  xls2pdf: {
+    title: 'Excel to PDF - Converti XLS/XLSX in PDF | Best Upscaler IA',
+    description: 'Converti fogli Excel (XLS/XLSX) in PDF ottimizzando tabelle e grafici.'
+  },
+  html2pdf: {
+    title: 'HTML to PDF - Converti HTML/URL in PDF | Best Upscaler IA',
+    description: 'Trasforma file HTML o URL in PDF con rendering accurato.'
+  },
+  pdf2pptx: {
+    title: 'PDF to PowerPoint - Converti PDF in PPTX | Best Upscaler IA',
+    description: 'Converti PDF in presentazioni PowerPoint modificabili (PPTX).'
+  },
+  pdf2xlsx: {
+    title: 'PDF to Excel - Converti PDF in XLSX | Best Upscaler IA',
+    description: "Estrai tabelle dai PDF in fogli Excel (XLSX) pronti all'analisi."
+  },
+  pdf2pdfa: {
+    title: 'PDF to PDF/A - Conformità archiviazione | Best Upscaler IA',
+    description: "Converti PDF in PDF/A conforme per l'archiviazione a lungo termine."
   },
   pdf2docx: {
     title: 'PDF to Word - Converti PDF in DOCX | Best Upscaler IA',
-    description: 'Trasforma i tuoi PDF in documenti Word modificabili con l’estrazione intelligente del testo.'
+    description: 'Converti PDF in documenti Word modificabili (DOCX).'
   }
 }
 

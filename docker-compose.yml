@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    command:
+      - "gotenberg"
+      - "--api-timeout=30s"
+      - "--api-port=3000"
+    environment:
+      - LOG_LEVEL=INFO

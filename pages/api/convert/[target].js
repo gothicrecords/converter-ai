@@ -61,11 +61,19 @@ export default async function handler(req, res) {
       const vheight = fields.vheight ? parseInt(String(fields.vheight)) : undefined;
       const vbitrate = fields.vbitrate ? String(fields.vbitrate) : undefined;
       const abitrate = fields.abitrate ? String(fields.abitrate) : undefined;
+      const page = fields.page ? parseInt(String(fields.page)) : 0;
 
       // IMAGE CONVERSIONS via sharp
       const imageTargets = ['png','jpg','jpeg','webp','tiff','bmp','avif','heif','gif'];
       if (imageTargets.includes(lowerTarget)) {
-        let pipeline = sharp(inputBuffer, { failOn: 'none' });
+        let pipeline;
+        if (inputExt === 'pdf') {
+          // Render a specific page from PDF if provided (default first page)
+          const p = Number.isFinite(page) && page >= 0 ? page : 0;
+          pipeline = sharp(inputBuffer, { density: 150, page: p });
+        } else {
+          pipeline = sharp(inputBuffer, { failOn: 'none' });
+        }
         if (width || height) pipeline = pipeline.resize({ width, height, fit: 'inside' });
         if (lowerTarget === 'jpg' || lowerTarget === 'jpeg') {
           outputBuffer = await pipeline.jpeg({ quality }).toBuffer();
@@ -485,10 +493,11 @@ export default async function handler(req, res) {
         outputBuffer = await sharp(inputBuffer).png().toBuffer();
         mime = 'image/png';
       }
-      // PDF -> PNG/JPG (first page) via sharp if supported
+      // PDF -> PNG/JPG (specific page) via sharp if supported
       if (!outputBuffer && (lowerTarget === 'png' || lowerTarget === 'jpg' || lowerTarget === 'jpeg') && inputExt === 'pdf') {
         try {
-          const raster = sharp(inputBuffer, { density: 150 });
+          const p = Number.isFinite(page) && page >= 0 ? page : 0;
+          const raster = sharp(inputBuffer, { density: 150, page: p });
           if (lowerTarget === 'png') {
             outputBuffer = await raster.png().toBuffer();
             mime = 'image/png';

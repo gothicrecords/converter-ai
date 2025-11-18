@@ -38,10 +38,18 @@ function MyApp({ Component, pageProps }) {
           '/tools/generazione-immagini-ai',
           '/upscaler',
           '/pdf',
+          // Verso PDF
           '/pdf/jpg2pdf',
-          '/pdf/pdf2jpg',
           '/pdf/docx2pdf',
-          '/pdf/pdf2docx'
+          '/pdf/ppt2pdf',
+          '/pdf/xls2pdf',
+          '/pdf/html2pdf',
+          // Da PDF
+          '/pdf/pdf2jpg',
+          '/pdf/pdf2docx',
+          '/pdf/pdf2pptx',
+          '/pdf/pdf2xlsx',
+          '/pdf/pdf2pdfa'
         ];
         commonRoutes.forEach(route => router.prefetch(route));
       });

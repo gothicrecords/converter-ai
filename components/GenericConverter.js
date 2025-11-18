@@ -15,6 +15,7 @@ export default function GenericConverter({ tool }) {
   const [vHeight, setVHeight] = useState('');
   const [vBitrate, setVBitrate] = useState('2500k');
   const [aBitrate, setABitrate] = useState('192k');
+  const [page, setPage] = useState('0');
 
   const availableOutputs = [tool.targetFormat, 'pdf', 'txt', 'jpg', 'png']; // initial generic options
 
@@ -32,6 +33,7 @@ export default function GenericConverter({ tool }) {
       if (vHeight) form.append('vheight', vHeight);
       if (vBitrate) form.append('vbitrate', vBitrate);
       if (aBitrate) form.append('abitrate', aBitrate);
+      if (page) form.append('page', page);
       const res = await fetch(`/api/convert/${outputFormat}`, { method: 'POST', body: form });
       if (!res.ok) throw new Error('Conversion failed');
       const data = await res.json();
@@ -71,6 +73,10 @@ export default function GenericConverter({ tool }) {
             <div style={styles.optionField}>
               <label style={styles.label}>Qualità</label>
               <input value={quality} onChange={e => setQuality(e.target.value)} placeholder="1-100" style={styles.input} />
+            </div>
+            <div style={styles.optionField}>
+              <label style={styles.label}>Pagina (PDF)</label>
+              <input value={page} onChange={e => setPage(e.target.value)} placeholder="0 = prima pagina" style={styles.input} />
             </div>
           </div>
         )}
