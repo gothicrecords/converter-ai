@@ -163,8 +163,8 @@ export async function getStaticPaths() {
         const convSlugs = listConversionSlugs().filter(Boolean);
         const slugs = Array.from(new Set([...aiSlugs, ...convSlugs])).filter(Boolean);
         
-        // Limit to 50 for faster Vercel builds; rest generated on-demand
-        const paths = slugs.slice(0, 50).map(slug => ({ params: { slug: String(slug) } }));
+        // Limit to 20 for faster Vercel builds; rest generated on-demand
+        const paths = slugs.slice(0, 20).map(slug => ({ params: { slug: String(slug) } }));
         
         return { 
             paths, 

@@ -68,7 +68,7 @@ export default function PdfToolPage({ initialActive }){
 export function getStaticPaths(){
   const slugs = Object.keys(TOOL_META);
   const paths = slugs.map(s => ({ params: { slug: s } }));
-  return { paths, fallback: false };
+  return { paths, fallback: 'blocking' };
 }
 
 export function getStaticProps({ params }){
