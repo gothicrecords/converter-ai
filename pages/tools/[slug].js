@@ -25,6 +25,8 @@ const TextSummarizer = dynamic(() => import('../../components/tools/TextSummariz
 const GrammarChecker = dynamic(() => import('../../components/tools/GrammarChecker'), { ssr: false });
 const ThumbnailGenerator = dynamic(() => import('../../components/tools/ThumbnailGenerator'), { ssr: false });
 const CombineSplitPDF = dynamic(() => import('../../components/tools/CombineSplitPDF'), { ssr: false });
+const VideoCompressor = dynamic(() => import('../../components/tools/VideoCompressor'), { ssr: false });
+const DocumentTranslator = dynamic(() => import('../../components/tools/DocumentTranslator'), { ssr: false });
 
 const ToolPage = ({ initialSlug, meta }) => {
     const router = useRouter();
@@ -76,6 +78,10 @@ const ToolPage = ({ initialSlug, meta }) => {
                 return <ThumbnailGenerator />;
             case 'combina-splitta-pdf':
                 return <CombineSplitPDF />;
+            case 'compressione-video':
+                return <VideoCompressor />;
+            case 'traduzione-documenti-ai':
+                return <DocumentTranslator />;
             default:
                 return (
                     <div style={styles.comingSoon}>

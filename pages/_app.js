@@ -30,29 +30,29 @@ function MyApp({ Component, pageProps }) {
     document.body.style.overflowX = 'hidden';
     document.documentElement.style.overflowX = 'hidden';
     
-    // Prefetch solo dopo idle per non bloccare FCP
+    // Prefetch ottimizzato solo dopo idle per non bloccare FCP
     if ('requestIdleCallback' in window) {
       requestIdleCallback(() => {
+        // Prefetch solo le route più comuni
         const commonRoutes = [
           '/tools/rimozione-sfondo-ai',
           '/tools/generazione-immagini-ai',
           '/upscaler',
           '/pdf',
-          // Verso PDF
-          '/pdf/jpg2pdf',
-          '/pdf/docx2pdf',
-          '/pdf/ppt2pdf',
-          '/pdf/xls2pdf',
-          '/pdf/html2pdf',
-          // Da PDF
-          '/pdf/pdf2jpg',
-          '/pdf/pdf2docx',
-          '/pdf/pdf2pptx',
-          '/pdf/pdf2xlsx',
-          '/pdf/pdf2pdfa'
+          '/tools'
         ];
-        commonRoutes.forEach(route => router.prefetch(route));
-      });
+        // Prefetch con delay per non sovraccaricare
+        commonRoutes.forEach((route, index) => {
+          setTimeout(() => {
+            router.prefetch(route).catch(() => {}); // Ignora errori
+          }, index * 100);
+        });
+      }, { timeout: 2000 });
+    } else {
+      // Fallback per browser senza requestIdleCallback
+      setTimeout(() => {
+        router.prefetch('/tools').catch(() => {});
+      }, 2000);
     }
 
     // Track pageviews con Google Analytics
@@ -81,6 +81,23 @@ function MyApp({ Component, pageProps }) {
             }
             * {
               max-width: 100%;
+            }
+            /* Ottimizzazioni performance */
+            * {
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+            }
+            /* GPU acceleration per animazioni */
+            [style*="transform"], [style*="opacity"] {
+              will-change: transform, opacity;
+            }
+            /* Smooth scrolling */
+            html {
+              scroll-behavior: smooth;
+            }
+            /* Ottimizzazione rendering */
+            img, video {
+              content-visibility: auto;
             }
           `}</style>
         </Head>

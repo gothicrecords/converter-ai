@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { HiSparkles, HiHome, HiMenu, HiX, HiDotsVertical } from 'react-icons/hi';
 import { BsChevronDown, BsChevronRight } from 'react-icons/bs';
 import { tools } from '../lib/tools';
+import { getAllCategories, getToolsByCategory } from '../lib/conversionRegistry';
 import { useTranslation } from '../lib/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useIsMobile } from '../lib/useMediaQuery';
@@ -52,13 +53,71 @@ export default function Navbar() {
         };
     }, []);
 
-    const categories = {
-        'Immagini': tools.filter(t => t.category === 'Immagini'),
-        'PDF': tools.filter(t => t.category === 'PDF'),
-        'Testo': tools.filter(t => t.category === 'Testo'),
-        'Video': tools.filter(t => t.category === 'Video'),
-        'Audio': tools.filter(t => t.category === 'Audio')
+    // Combine AI tools and conversion tools - categorizzazione migliorata
+    const conversionToolsByCat = getToolsByCategory();
+    
+    // Categorizzazione più chiara e logica
+    const allCategories = {
+        'Immagini': [
+            ...tools.filter(t => t.category === 'Immagini'),
+            ...(conversionToolsByCat['Image'] || [])
+        ],
+        'Video': [
+            ...tools.filter(t => t.category === 'Video'),
+            ...(conversionToolsByCat['Video'] || [])
+        ],
+        'Audio': [
+            ...tools.filter(t => t.category === 'Audio'),
+            ...(conversionToolsByCat['Audio'] || [])
+        ],
+        'PDF': [
+            ...tools.filter(t => t.category === 'PDF'),
+            ...(conversionToolsByCat['Document'] || []).filter(t => 
+                t.targetFormat === 'pdf' || 
+                t.href.includes('pdf') || 
+                t.href.includes('pdf-to') ||
+                t.href.includes('to-pdf')
+            )
+        ],
+        'Documenti': [
+            ...tools.filter(t => t.category === 'Testo'),
+            ...(conversionToolsByCat['Document'] || []).filter(t => 
+                t.targetFormat !== 'pdf' && 
+                !t.href.includes('pdf') &&
+                !t.href.includes('pdf-to') &&
+                !t.href.includes('to-pdf')
+            )
+        ],
+        'Presentazioni': conversionToolsByCat['Presentation'] || [],
+        'Fogli di Calcolo': conversionToolsByCat['Spreadsheet'] || [],
+        'Vettoriali': conversionToolsByCat['Vector'] || [],
+        'Archivi': conversionToolsByCat['Archive'] || [],
+        'Ebook': conversionToolsByCat['Ebook'] || [],
+        'Font': conversionToolsByCat['Font'] || []
     };
+    
+    // Ordina categorie per importanza e filtra quelle vuote
+    const categoryOrder = [
+        'Immagini',
+        'Video',
+        'Audio',
+        'PDF',
+        'Documenti',
+        'Presentazioni',
+        'Fogli di Calcolo',
+        'Vettoriali',
+        'Archivi',
+        'Ebook',
+        'Font'
+    ];
+    
+    const sortedCategories = categoryOrder.filter(cat => 
+        allCategories[cat] && allCategories[cat].length > 0
+    );
+    
+    const categories = Object.fromEntries(
+        sortedCategories.map(cat => [cat, allCategories[cat]])
+    );
 
     const handleDropdownEnter = (catName) => {
         if (closeTimeoutRef.current) {
@@ -406,16 +465,16 @@ export default function Navbar() {
 
                 <div style={styles.navMenu}>
                     <Link 
-                        href="/chat" 
+                        href="/tools" 
                         style={{
                             ...styles.dropdownBtn,
-                            background: hoveredItem === 'chat' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
+                            background: hoveredItem === 'tools' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
                             textDecoration: 'none'
                         }}
-                        onMouseEnter={() => setHoveredItem('chat')}
+                        onMouseEnter={() => setHoveredItem('tools')}
                         onMouseLeave={() => setHoveredItem(null)}
                     >
-                        {t('nav.tools')}
+                        Tutti i Tool
                     </Link>
 
                     {Object.keys(categories).map(catName => (
@@ -438,7 +497,7 @@ export default function Navbar() {
                             </button>
                             {dropdownOpen === catName && (
                                 <div style={styles.dropdownMenu}>
-                                    {categories[catName].map(tool => (
+                                    {categories[catName].slice(0, 10).map(tool => (
                                         <Link
                                             key={tool.href}
                                             href={tool.href}
@@ -456,10 +515,29 @@ export default function Navbar() {
                                             onMouseEnter={() => setHoveredItem(`item-${tool.href}`)}
                                             onMouseLeave={() => setHoveredItem(null)}
                                         >
-                                            <tool.icon style={{ width: 18, height: 18 }} />
+                                            {tool.icon && <tool.icon style={{ width: 18, height: 18 }} />}
                                             <span>{tool.title}</span>
                                         </Link>
                                     ))}
+                                    {categories[catName].length > 10 && (
+                                        <Link
+                                            href="/tools"
+                                            style={{
+                                                ...styles.dropdownItem,
+                                                background: 'rgba(102, 126, 234, 0.1)',
+                                                fontWeight: '600',
+                                                justifyContent: 'center'
+                                            }}
+                                            onClick={() => {
+                                                if (closeTimeoutRef.current) {
+                                                    clearTimeout(closeTimeoutRef.current);
+                                                }
+                                                setDropdownOpen(null);
+                                            }}
+                                        >
+                                            <span>Vedi tutti ({categories[catName].length})</span>
+                                        </Link>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -556,11 +634,11 @@ export default function Navbar() {
                     </div>
 
                     <Link 
-                        href="/chat" 
+                        href="/tools" 
                         style={styles.mobileMenuItem}
                         onClick={() => setMobileMenuOpen(false)}
                     >
-                        {t('nav.tools')}
+                        Tutti i Tool
                     </Link>
 
                     {Object.keys(categories).map(catName => (
@@ -579,17 +657,31 @@ export default function Navbar() {
                                     }} 
                                 />
                             </div>
-                            {expandedCategory === catName && categories[catName].map(tool => (
+                            {expandedCategory === catName && categories[catName].slice(0, 15).map(tool => (
                                 <Link
                                     key={tool.href}
                                     href={tool.href}
                                     style={styles.mobileDropdownItem}
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
-                                    <tool.icon style={{ width: 18, height: 18 }} />
+                                    {tool.icon && <tool.icon style={{ width: 18, height: 18 }} />}
                                     <span>{tool.title}</span>
                                 </Link>
                             ))}
+                            {expandedCategory === catName && categories[catName].length > 15 && (
+                                <Link
+                                    href="/tools"
+                                    style={{
+                                        ...styles.mobileDropdownItem,
+                                        background: 'rgba(102, 126, 234, 0.1)',
+                                        fontWeight: '600',
+                                        justifyContent: 'center'
+                                    }}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <span>Vedi tutti ({categories[catName].length})</span>
+                                </Link>
+                            )}
                         </div>
                     ))}
                 </div>
