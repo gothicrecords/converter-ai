@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Head from 'next/head';
-import { HiArrowRight, HiLightningBolt } from 'react-icons/hi';
+import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
 import { loadTranslationsSSR } from '../lib/i18n-server';
@@ -23,6 +23,50 @@ export default function HomePage() {
       
       <Navbar />
 
+      {/* Nuova sezione hero principale */}
+      <div style={styles.mainHero}>
+        <div style={styles.mainHeroContent}>
+          <div style={styles.mainHeroBadge}>
+            <HiSparkles style={{ width: 16, height: 16 }} />
+            <span>Powered by AI</span>
+          </div>
+          <h1 style={styles.mainHeroTitle}>
+            Trasforma i tuoi contenuti con l'<span style={styles.gradient}>Intelligenza Artificiale</span>
+          </h1>
+          <p style={styles.mainHeroSubtitle}>
+            15+ strumenti professionali per immagini, PDF, audio e video. Nessuna registrazione. Nessun limite. Risultati istantanei.
+          </p>
+          <div style={styles.mainHeroCta}>
+            <Link href="/tools" style={styles.mainPrimaryCta}>
+              <span>Inizia Gratis</span>
+              <HiArrowRight style={{ width: 20, height: 20 }} />
+            </Link>
+            <Link href="/home" style={styles.mainSecondaryCta}>
+              <span>Scopri di più</span>
+            </Link>
+          </div>
+          <div style={styles.statsGrid}>
+            <div style={styles.statItem}>
+              <div style={styles.statValue}>50K+</div>
+              <div style={styles.statLabel}>Utenti Attivi</div>
+            </div>
+            <div style={styles.statItem}>
+              <div style={styles.statValue}>2M+</div>
+              <div style={styles.statLabel}>Immagini Processate</div>
+            </div>
+            <div style={styles.statItem}>
+              <div style={styles.statValue}>99.9%</div>
+              <div style={styles.statLabel}>Uptime</div>
+            </div>
+            <div style={styles.statItem}>
+              <div style={styles.statValue}>4.9/5</div>
+              <div style={styles.statLabel}>Rating Medio</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sezione Documenti AI */}
       <div style={styles.heroSection}>
         <div style={styles.heroBadge}>
           <HiLightningBolt style={{ width: 16, height: 16 }} />
@@ -36,11 +80,8 @@ export default function HomePage() {
         </p>
         <div style={styles.ctaButtons}>
           <Link href="/chat" style={styles.primaryCta}>
-            <span>{t('hero.cta')}</span>
+            <span>Prova Ora</span>
             <HiArrowRight style={{ width: 20, height: 20 }} />
-          </Link>
-          <Link href="/home" style={styles.secondaryCta}>
-            <span>{t('hero.tryNow')}</span>
           </Link>
         </div>
       </div>
@@ -118,7 +159,7 @@ export default function HomePage() {
         <p style={styles.toolsPreviewDesc}>
           {t('additionalTools.description')}
         </p>
-        <Link href="/home" style={styles.toolsPreviewCta}>
+        <Link href="/tools" style={styles.toolsPreviewCta}>
           {t('additionalTools.explore')}
           <HiArrowRight style={{ width: 18, height: 18 }} />
         </Link>
@@ -263,6 +304,12 @@ const styles = {
     margin: 0
   },
   toolsPreview: {
+    padding: '80px 24px',
+    textAlign: 'center',
+    background: 'rgba(30, 41, 59, 0.3)',
+    borderRadius: '24px',
+    maxWidth: '800px',
+    margin: '0 auto 60px',
     textAlign: 'center',
     padding: '60px 24px 60px',
     maxWidth: '700px',
@@ -434,6 +481,112 @@ const styles = {
     borderTop: '1px solid rgba(102, 126, 234, 0.2)',
     maxWidth: '1200px',
     margin: '0 auto'
+  },
+  // Nuovi stili per sezione hero principale
+  mainHero: {
+    textAlign: 'center',
+    padding: '100px 24px 80px',
+    maxWidth: '1100px',
+    margin: '0 auto',
+    borderBottom: '1px solid rgba(148, 163, 184, 0.1)'
+  },
+  mainHeroContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px',
+    alignItems: 'center'
+  },
+  mainHeroBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 16px',
+    background: 'rgba(102, 126, 234, 0.15)',
+    border: '1px solid rgba(102, 126, 234, 0.3)',
+    borderRadius: '24px',
+    color: '#667eea',
+    fontSize: '14px',
+    fontWeight: '600'
+  },
+  mainHeroTitle: {
+    fontSize: 'clamp(36px, 6vw, 56px)',
+    fontWeight: '900',
+    lineHeight: '1.1',
+    margin: 0,
+    letterSpacing: '-0.02em',
+    maxWidth: '900px',
+    color: '#e2e8f0'
+  },
+  gradient: {
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text'
+  },
+  mainHeroSubtitle: {
+    fontSize: '18px',
+    color: '#94a3b8',
+    lineHeight: '1.6',
+    margin: 0,
+    maxWidth: '700px'
+  },
+  mainHeroCta: {
+    display: 'flex',
+    gap: '16px',
+    marginTop: '16px',
+    flexWrap: 'wrap',
+    justifyContent: 'center'
+  },
+  mainPrimaryCta: {
+    padding: '14px 32px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    border: 'none',
+    borderRadius: '12px',
+    color: '#ffffff',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    textDecoration: 'none',
+    transition: 'transform 0.2s'
+  },
+  mainSecondaryCta: {
+    padding: '14px 32px',
+    background: 'rgba(102, 126, 234, 0.1)',
+    border: '1px solid rgba(102, 126, 234, 0.3)',
+    borderRadius: '12px',
+    color: '#cbd5e1',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    textDecoration: 'none',
+    transition: 'all 0.2s'
+  },
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+    gap: '24px',
+    marginTop: '40px',
+    paddingTop: '32px',
+    borderTop: '1px solid rgba(148, 163, 184, 0.2)',
+    maxWidth: '800px',
+    width: '100%'
+  },
+  statItem: {
+    textAlign: 'center'
+  },
+  statValue: {
+    fontSize: '28px',
+    fontWeight: '800',
+    color: '#667eea',
+    marginBottom: '4px'
+  },
+  statLabel: {
+    fontSize: '13px',
+    color: '#94a3b8',
+    fontWeight: '500'
   }
 };
 

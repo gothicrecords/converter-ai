@@ -9,6 +9,7 @@ import { loadTranslationsSSR } from '../lib/i18n-server';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import Footer from '../components/Footer';
+import { tools as allTools } from '../lib/tools';
 
 export default function LandingPage() {
     const [email, setEmail] = useState('');
@@ -19,18 +20,6 @@ export default function LandingPage() {
         { icon: HiShieldCheck, title: t('features.secure'), description: t('home.feature2Desc') },
         { icon: HiTrendingUp, title: t('home.premiumQuality'), description: t('home.feature3Desc') },
         { icon: HiUsers, title: t('home.users'), description: t('home.feature4Desc') }
-    ];
-
-    const tools = [
-        { name: t('tools.backgroundRemoval'), description: t('home.tool1Desc'), href: '/tools/rimozione-sfondo-ai', badge: t('home.popular'), icon: '✂️' },
-        { name: t('tools.imageGenerator'), description: t('home.tool2Desc'), href: '/tools/generazione-immagini-ai', badge: t('home.new'), icon: '🎨' },
-        { name: t('tools.imageUpscaler'), description: t('home.tool3Desc'), href: '/upscaler', badge: null, icon: '📈' },
-        { name: t('tools.ocrAdvanced'), description: t('home.tool4Desc'), href: '/tools/ocr-avanzato-ai', badge: null, icon: '📝' },
-        { name: t('home.cleanNoise'), description: t('home.tool5Desc'), href: '/tools/clean-noise-ai', badge: t('home.pro'), icon: '🎵' },
-        { name: t('tools.pdfConverter'), description: t('home.tool6Desc'), href: '/pdf', badge: null, icon: '📄' },
-        { name: t('home.videoCompressor'), description: t('home.tool7Desc'), href: '/tools/compress-video-ai', badge: null, icon: '🎬' },
-        { name: t('home.thumbnailGen'), description: t('home.tool8Desc'), href: '/tools/thumbnail-generator-ai', badge: null, icon: '🖼️' },
-        { name: t('home.transcribeAudio'), description: t('home.tool9Desc'), href: '/tools/transcribe-audio-ai', badge: null, icon: '🎙️' }
     ];
 
     const testimonials = [
@@ -69,7 +58,7 @@ export default function LandingPage() {
                         {t('home.heroSubtitle')}
                     </p>
                     <div style={styles.heroCta}>
-                        <Link href="/#tools" style={styles.ctaPrimary}>
+                        <Link href="/tools" style={styles.ctaPrimary}>
                             {t('hero.cta')}
                             <HiArrowRight style={{ width: 20, height: 20 }} />
                         </Link>
@@ -100,40 +89,6 @@ export default function LandingPage() {
                             <h3 style={styles.featureTitle}>{feature.title}</h3>
                             <p style={styles.featureDesc}>{feature.description}</p>
                         </div>
-                    ))}
-                </div>
-            </section>
-
-            <section id="tools" style={styles.toolsSection}>
-                <div style={styles.sectionHeader}>
-                    <h2 style={styles.sectionTitle}>{t('home.availableTools')}</h2>
-                    <p style={styles.sectionSubtitle}>{t('home.availableToolsSubtitle')}</p>
-                </div>
-                <div style={styles.toolsGrid}>
-                    {tools.map((tool, i) => (
-                        <Link key={i} href={tool.href} style={styles.toolCard}>
-                            {tool.badge && (
-                                <span style={{...styles.toolBadge, background: tool.badge === t('home.new') ? '#10b981' : tool.badge === t('home.pro') ? '#f59e0b' : '#667eea'}}>
-                                    {tool.badge}
-                                </span>
-                            )}
-                            <div style={styles.toolIconBox}>
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{color: '#667eea'}}>
-                                    {i === 0 && <><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"></path></>}
-                                    {i === 1 && <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></>}
-                                    {i === 2 && <><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></>}
-                                    {i === 3 && <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></>}
-                                    {i === 4 && <><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></>}
-                                    {i === 5 && <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></>}
-                                    {i === 6 && <><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></>}
-                                    {i === 7 && <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></>}
-                                    {i === 8 && <><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></>}
-                                </svg>
-                            </div>
-                            <h3 style={styles.toolName}>{tool.name}</h3>
-                            <p style={styles.toolDesc}>{tool.description}</p>
-                            <div style={styles.toolArrow}><HiArrowRight style={{ width: 18, height: 18 }} /></div>
-                        </Link>
                     ))}
                 </div>
             </section>
@@ -205,13 +160,71 @@ const styles = {
     featureTitle: { fontSize: '20px', fontWeight: '700', margin: '0 0 12px', color: '#e2e8f0' },
     featureDesc: { fontSize: '15px', color: '#94a3b8', lineHeight: '1.6', margin: 0 },
     toolsSection: { maxWidth: '1200px', margin: '0 auto', padding: '80px 24px' },
-    toolsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' },
-    toolCard: { position: 'relative', padding: '24px', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(102, 126, 234, 0.2)', borderRadius: '16px', textDecoration: 'none', transition: 'all 0.3s', cursor: 'pointer' },
-    toolBadge: { position: 'absolute', top: '12px', right: '12px', padding: '4px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', color: '#ffffff' },
-    toolIconBox: { width: '56px', height: '56px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)', border: '1px solid rgba(102, 126, 234, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' },
-    toolName: { fontSize: '18px', fontWeight: '700', margin: '0 0 8px', color: '#e2e8f0' },
-    toolDesc: { fontSize: '14px', color: '#94a3b8', margin: '0 0 16px' },
-    toolArrow: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#667eea' },
+    toolsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' },
+    toolCard: { 
+        position: 'relative', 
+        padding: '24px', 
+        background: 'rgba(30, 41, 59, 0.5)', 
+        border: '1px solid rgba(102, 126, 234, 0.2)', 
+        borderRadius: '12px', 
+        textDecoration: 'none', 
+        transition: 'all 0.3s ease',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        cursor: 'pointer'
+    },
+    proBadge: {
+        position: 'absolute',
+        top: '12px',
+        right: '12px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: '#fff',
+        fontSize: '11px',
+        fontWeight: '700',
+        padding: '4px 10px',
+        borderRadius: '12px',
+        letterSpacing: '0.5px'
+    },
+    toolIconWrapper: {
+        width: '48px',
+        height: '48px',
+        borderRadius: '12px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '16px'
+    },
+    toolIcon: {
+        width: '24px',
+        height: '24px',
+        color: '#fff'
+    },
+    toolTitle: {
+        fontSize: '18px',
+        fontWeight: '600',
+        color: '#e2e8f0',
+        marginBottom: '8px',
+        textAlign: 'left',
+        margin: '0 0 8px 0'
+    },
+    toolDescription: {
+        fontSize: '14px',
+        color: '#94a3b8',
+        lineHeight: '1.6',
+        margin: '0 0 16px 0',
+        textAlign: 'left',
+        flex: 1
+    },
+    toolArrow: { 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'flex-end',
+        width: '100%',
+        color: '#667eea',
+        marginTop: 'auto'
+    },
     enterpriseFooter: { textAlign: 'center', padding: '32px 24px', background: 'rgba(15, 23, 42, 0.5)', borderTop: '1px solid rgba(255, 255, 255, 0.05)', color: '#cbd5e1' },
     testimonials: { maxWidth: '1200px', margin: '0 auto', padding: '80px 24px' },
     testimonialsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' },

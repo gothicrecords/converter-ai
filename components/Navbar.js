@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { HiSparkles, HiHome } from 'react-icons/hi';
+import { HiSparkles, HiHome, HiMenu, HiX } from 'react-icons/hi';
 import { BsChevronDown } from 'react-icons/bs';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
@@ -11,6 +11,7 @@ export default function Navbar() {
     const [dropdownOpen, setDropdownOpen] = useState(null);
     const [scrolled, setScrolled] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const navRef = useRef(null);
     const closeTimeoutRef = useRef(null);
 
@@ -22,6 +23,7 @@ export default function Navbar() {
         const handleClickOutside = (event) => {
             if (navRef.current && !navRef.current.contains(event.target)) {
                 setDropdownOpen(null);
+                setMobileMenuOpen(false);
             }
         };
 
@@ -193,8 +195,79 @@ export default function Navbar() {
             borderRadius: '8px',
             transition: 'all 0.2s',
             boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)'
+        },
+        hamburgerBtn: {
+            display: 'none',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '8px',
+            background: 'transparent',
+            border: 'none',
+            color: '#cbd5e1',
+            cursor: 'pointer',
+            fontSize: '24px',
+            marginRight: '12px'
+        },
+        mobileMenu: {
+            position: 'fixed',
+            top: scrolled ? '52px' : '60px',
+            left: 0,
+            right: 0,
+            background: 'rgba(10, 14, 26, 0.98)',
+            backdropFilter: 'blur(16px)',
+            borderBottom: '1px solid rgba(102, 126, 234, 0.2)',
+            maxHeight: 'calc(100vh - 60px)',
+            overflowY: 'auto',
+            padding: '16px',
+            zIndex: 999,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px'
+        },
+        mobileMenuItem: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            color: '#cbd5e1',
+            textDecoration: 'none',
+            borderRadius: '8px',
+            fontSize: '15px',
+            fontWeight: '600',
+            background: 'rgba(30, 41, 59, 0.5)',
+            border: '1px solid rgba(102, 126, 234, 0.2)'
+        },
+        mobileCategoryHeader: {
+            padding: '12px 16px',
+            color: '#667eea',
+            fontSize: '13px',
+            fontWeight: '700',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            marginTop: '8px'
+        },
+        mobileDropdownItem: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '10px 16px 10px 32px',
+            color: '#cbd5e1',
+            textDecoration: 'none',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500',
+            background: 'rgba(15, 23, 42, 0.7)'
         }
     };
+
+    // Media query per nascondere menu desktop e mostrare hamburger su mobile
+    if (typeof window !== 'undefined') {
+        const mediaQuery = window.matchMedia('(max-width: 768px)');
+        if (mediaQuery.matches) {
+            styles.navMenu.display = 'none';
+            styles.hamburgerBtn.display = 'flex';
+        }
+    }
 
     return (
         <nav style={styles.navbar} ref={navRef}>
@@ -350,7 +423,73 @@ export default function Navbar() {
                     
                     <LanguageSwitcher />
                 </div>
+
+                {/* Hamburger menu button per mobile */}
+                <button 
+                    style={styles.hamburgerBtn}
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                    {mobileMenuOpen ? <HiX /> : <HiMenu />}
+                </button>
             </div>
+
+            {/* Mobile menu */}
+            {mobileMenuOpen && (
+                <div style={styles.mobileMenu}>
+                    <Link 
+                        href="/chat" 
+                        style={styles.mobileMenuItem}
+                        onClick={() => setMobileMenuOpen(false)}
+                    >
+                        {t('nav.tools')}
+                    </Link>
+
+                    {Object.keys(categories).map(catName => (
+                        <div key={catName}>
+                            <div style={styles.mobileCategoryHeader}>{catName}</div>
+                            {categories[catName].map(tool => (
+                                <Link
+                                    key={tool.href}
+                                    href={tool.href}
+                                    style={styles.mobileDropdownItem}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <tool.icon style={{ width: 18, height: 18 }} />
+                                    <span>{tool.title}</span>
+                                </Link>
+                            ))}
+                        </div>
+                    ))}
+                    
+                    <Link 
+                        href="/pricing" 
+                        style={styles.mobileMenuItem}
+                        onClick={() => setMobileMenuOpen(false)}
+                    >
+                        {t('nav.pricing')}
+                    </Link>
+                    
+                    <Link 
+                        href="/faq" 
+                        style={styles.mobileMenuItem}
+                        onClick={() => setMobileMenuOpen(false)}
+                    >
+                        FAQ
+                    </Link>
+                    
+                    <Link 
+                        href="/login" 
+                        style={{
+                            ...styles.mobileMenuItem,
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: '#fff'
+                        }}
+                        onClick={() => setMobileMenuOpen(false)}
+                    >
+                        Accedi
+                    </Link>
+                </div>
+            )}
         </nav>
     );
 }
