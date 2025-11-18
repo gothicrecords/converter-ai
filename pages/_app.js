@@ -26,9 +26,11 @@ function MyApp({ Component, pageProps }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Previeni scroll orizzontale
-    document.body.style.overflowX = 'hidden';
-    document.documentElement.style.overflowX = 'hidden';
+    // Previeni scroll orizzontale (solo client-side)
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      document.body.style.overflowX = 'hidden';
+      document.documentElement.style.overflowX = 'hidden';
+    }
     
     // Prefetch ottimizzato solo dopo idle per non bloccare FCP
     if ('requestIdleCallback' in window) {

@@ -4,7 +4,7 @@ import Head from 'next/head';
 import { HiSparkles, HiUpload, HiDownload, HiPhotograph } from 'react-icons/hi';
 import Navbar from '../components/Navbar';
 
-export default function Upscaler() {
+function Upscaler() {
   const [originalFile, setOriginalFile] = useState(null);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [upscaledUrl, setUpscaledUrl] = useState(null);

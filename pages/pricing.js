@@ -7,7 +7,7 @@ import { useTranslation } from '../lib/i18n';
 import getStripe from '../lib/stripe-client';
 import { getCurrentUser } from '../lib/auth';
 
-export default function PricingPage() {
+function PricingPage() {
     const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [user, setUser] = useState(null);
