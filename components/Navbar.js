@@ -5,9 +5,11 @@ import { BsChevronDown, BsChevronRight } from 'react-icons/bs';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
+import useMediaQuery from '../lib/useMediaQuery';
 
 export default function Navbar() {
     const { t } = useTranslation();
+    const isMobile = useMediaQuery('(max-width: 768px)');
     const [dropdownOpen, setDropdownOpen] = useState(null);
     const [scrolled, setScrolled] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
@@ -125,7 +127,7 @@ export default function Navbar() {
             marginTop: '-2px'
         },
         navMenu: {
-            display: 'flex',
+            display: isMobile ? 'none' : 'flex',
             gap: '2px',
             alignItems: 'center',
             paddingRight: '20px',
@@ -136,7 +138,7 @@ export default function Navbar() {
             position: 'absolute',
             left: '50%',
             transform: 'translateX(-50%)',
-            display: 'inline-flex',
+            display: isMobile ? 'none' : 'inline-flex',
             alignItems: 'center',
             gap: '6px',
             padding: '8px 14px',
@@ -206,7 +208,7 @@ export default function Navbar() {
             boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)'
         },
         hamburgerBtn: {
-            display: 'none',
+            display: isMobile ? 'flex' : 'none',
             alignItems: 'center',
             justifyContent: 'center',
             padding: '8px',
@@ -218,7 +220,7 @@ export default function Navbar() {
             marginRight: '8px'
         },
         secondaryMenuBtn: {
-            display: 'none',
+            display: isMobile ? 'flex' : 'none',
             alignItems: 'center',
             justifyContent: 'center',
             padding: '8px',
@@ -337,17 +339,6 @@ export default function Navbar() {
             marginBottom: '4px'
         }
     };
-
-    // Media query per nascondere menu desktop e mostrare hamburger su mobile
-    if (typeof window !== 'undefined') {
-        const mediaQuery = window.matchMedia('(max-width: 768px)');
-        if (mediaQuery.matches) {
-            styles.navMenu.display = 'none';
-            styles.homeBtn.display = 'none';
-            styles.hamburgerBtn.display = 'flex';
-            styles.secondaryMenuBtn.display = 'flex';
-        }
-    }
 
     return (
         <nav style={styles.navbar} ref={navRef}>
@@ -505,28 +496,30 @@ export default function Navbar() {
                     <LanguageSwitcher />
                 </div>
 
-                {/* Mobile buttons */}
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <button 
-                        style={styles.hamburgerBtn}
-                        onClick={() => {
-                            setMobileMenuOpen(!mobileMenuOpen);
-                            setMobileSecondaryMenuOpen(false);
-                        }}
-                    >
-                        <HiMenu />
-                    </button>
-                    
-                    <button 
-                        style={styles.secondaryMenuBtn}
-                        onClick={() => {
-                            setMobileSecondaryMenuOpen(!mobileSecondaryMenuOpen);
-                            setMobileMenuOpen(false);
-                        }}
-                    >
-                        <HiDotsVertical />
-                    </button>
-                </div>
+                {/* Mobile buttons - show only on mobile */}
+                {isMobile && (
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <button 
+                            style={styles.hamburgerBtn}
+                            onClick={() => {
+                                setMobileMenuOpen(!mobileMenuOpen);
+                                setMobileSecondaryMenuOpen(false);
+                            }}
+                        >
+                            <HiMenu />
+                        </button>
+                        
+                        <button 
+                            style={styles.secondaryMenuBtn}
+                            onClick={() => {
+                                setMobileSecondaryMenuOpen(!mobileSecondaryMenuOpen);
+                                setMobileMenuOpen(false);
+                            }}
+                        >
+                            <HiDotsVertical />
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Overlay per chiudere menu mobile */}
