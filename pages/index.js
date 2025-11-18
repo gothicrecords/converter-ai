@@ -408,6 +408,7 @@ export default function HomePage() {
             <div style={styles.toolHighlightTitle}>Immagini</div>
             <div style={styles.toolHighlightCount}>4 strumenti</div>
           </div>
+          <Link href="/pdf/jpg2pdf" style={{ textDecoration: 'none' }}>
           <div style={styles.toolHighlight} className="animate-slide-up tool-highlight-hover" data-delay="1">
             <div style={styles.toolHighlightIcon}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -420,7 +421,13 @@ export default function HomePage() {
             </div>
             <div style={styles.toolHighlightTitle}>PDF</div>
             <div style={styles.toolHighlightCount}>2 strumenti</div>
+            {/* Sub-links for SEO and quick access */}
+            <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8' }}>
+              <a href="/pdf/jpg2pdf" style={{ color: '#60a5fa', textDecoration: 'none', marginRight: 8 }}>JPG→PDF</a>
+              <a href="/pdf/pdf2jpg" style={{ color: '#60a5fa', textDecoration: 'none' }}>PDF→JPG</a>
+            </div>
           </div>
+          </Link>
           <div style={styles.toolHighlight} className="animate-slide-up tool-highlight-hover" data-delay="2">
             <div style={styles.toolHighlightIcon}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

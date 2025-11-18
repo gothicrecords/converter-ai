@@ -11,8 +11,14 @@ const tabs = [
   { key: 'pdf2docx', label: 'PDF -> WORD', icon: BsFileEarmarkWordFill, color: '#fa709a' },
 ];
 
-function PdfSuite(){
-  const [active, setActive] = useState('jpg2pdf');
+// Moved PdfSuite implementation into components/PdfConverter for reuse
+// Keep a dynamic import wrapper so we don't SSR the UI-heavy suite
+
+// Exporting PdfConverter dynamically below
+
+function DummyWrapper(){
+  return null;
+}
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [outUrl, setOutUrl] = useState('');
@@ -276,4 +282,4 @@ function PdfSuite(){
   );
 }
 
-export default dynamic(() => Promise.resolve(PdfSuite), { ssr: false });
+export default dynamic(() => import('../../components/PdfConverter'), { ssr: false });

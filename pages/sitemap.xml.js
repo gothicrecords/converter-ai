@@ -15,6 +15,19 @@ function generateSiteMap(tools) {
      <url>
         <loc>${EXTERNAL_DATA_URL}/pdf</loc>
      </url>
+    <!-- PDF tool pages for SEO -->
+    <url>
+      <loc>${EXTERNAL_DATA_URL}/pdf/jpg2pdf</loc>
+    </url>
+    <url>
+      <loc>${EXTERNAL_DATA_URL}/pdf/pdf2jpg</loc>
+    </url>
+    <url>
+      <loc>${EXTERNAL_DATA_URL}/pdf/docx2pdf</loc>
+    </url>
+    <url>
+      <loc>${EXTERNAL_DATA_URL}/pdf/pdf2docx</loc>
+    </url>
      <!--Pagine dinamiche degli strumenti-->
      ${tools
        .map(({ href }) => {
