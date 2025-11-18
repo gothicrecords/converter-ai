@@ -12,6 +12,14 @@ export default function HomePage() {
   
   return (
     <div style={styles.homeWrap}>
+      {/* Animated background elements */}
+      <div style={styles.bgOverlay}>
+        <div style={styles.bgCircle1}></div>
+        <div style={styles.bgCircle2}></div>
+        <div style={styles.bgCircle3}></div>
+        <div style={styles.bgGrid}></div>
+      </div>
+      
       <Head>
         <title>MegaPixelAI - Analisi Documenti con Intelligenza Artificiale</title>
         <meta name="description" content="Carica i tuoi documenti e chatta con l'AI. Analisi automatica di PDF, DOCX, immagini con OCR e ricerca semantica." />
@@ -19,6 +27,20 @@ export default function HomePage() {
         {/* Preload risorse critiche */}
         <link rel="preload" href="/styles.css" as="style" />
         <link rel="preload" as="image" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" />
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+          }
+          @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </Head>
       
       <Navbar />
@@ -174,36 +196,35 @@ const styles = {
   homeWrap: {
     position: 'relative',
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%)'
+    background: 'linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%)',
+    overflow: 'hidden'
   },
   heroSection: {
     textAlign: 'center',
-    padding: '80px 24px 60px',
+    padding: '60px 24px 50px',
     maxWidth: '900px',
     margin: '0 auto',
-    '@media (max-width: 768px)': {
-      padding: '60px 16px 40px'
-    }
+    position: 'relative',
+    zIndex: 1
   },
   heroBadge: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '8px 18px',
-    background: 'rgba(102, 126, 234, 0.1)',
-    border: '1px solid rgba(102, 126, 234, 0.3)',
-    borderRadius: '24px',
-    color: '#667eea',
-    fontSize: '13px',
+    padding: '6px 16px',
+    background: 'rgba(102, 126, 234, 0.12)',
+    border: '1px solid rgba(102, 126, 234, 0.25)',
+    borderRadius: '20px',
+    color: '#a78bfa',
+    fontSize: '12px',
     fontWeight: '600',
-    marginBottom: '24px',
-    animation: 'glow 2s ease-in-out infinite'
+    marginBottom: '20px'
   },
   heroTitle: {
-    fontSize: 'clamp(32px, 5vw, 48px)',
+    fontSize: 'clamp(28px, 4.5vw, 42px)',
     fontWeight: '800',
-    margin: '0 0 20px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+    margin: '0 0 16px',
+    background: 'linear-gradient(135deg, #e2e8f0 0%, #a78bfa 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
@@ -211,140 +232,133 @@ const styles = {
     letterSpacing: '-0.02em'
   },
   heroSubtitle: {
-    fontSize: '16px',
+    fontSize: '15px',
     color: '#94a3b8',
-    margin: '0 0 32px',
+    margin: '0 0 28px',
     lineHeight: 1.7
   },
   ctaButtons: {
     display: 'flex',
-    gap: '16px',
+    gap: '12px',
     justifyContent: 'center',
     flexWrap: 'wrap'
   },
   primaryCta: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '12px',
-    padding: '16px 32px',
+    gap: '8px',
+    padding: '12px 28px',
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     border: 'none',
     borderRadius: '12px',
     color: '#fff',
-    fontSize: '16px',
+    fontSize: '15px',
     fontWeight: '600',
     textDecoration: 'none',
     cursor: 'pointer',
     transition: 'all 0.3s',
-    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.35)',
   },
   secondaryCta: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '12px',
-    padding: '16px 32px',
+    gap: '8px',
+    padding: '12px 28px',
     background: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(102, 126, 234, 0.3)',
+    border: '1px solid rgba(102, 126, 234, 0.25)',
     borderRadius: '12px',
-    color: '#f1f5f9',
-    fontSize: '16px',
+    color: '#cbd5e1',
+    fontSize: '15px',
     fontWeight: '600',
     textDecoration: 'none',
     cursor: 'pointer',
     transition: 'all 0.3s',
   },
   featuresSection: {
-    padding: '60px 24px',
-    maxWidth: '1200px',
+    padding: '80px 24px 60px',
+    maxWidth: '1100px',
     margin: '0 auto',
-    '@media (max-width: 768px)': {
-      padding: '40px 16px'
-    }
+    position: 'relative',
+    zIndex: 1
   },
   featuresTitle: {
-    fontSize: '32px',
-    fontWeight: '700',
+    fontSize: '36px',
+    fontWeight: '800',
     textAlign: 'center',
-    marginBottom: '48px',
-    color: '#f1f5f9'
+    marginBottom: '16px',
+    background: 'linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text'
   },
   featuresGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '24px',
-    '@media (max-width: 768px)': {
-      gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-      gap: '12px'
-    }
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gap: '20px',
+    marginTop: '48px'
   },
   featureCard: {
-    padding: '32px 24px',
-    background: 'rgba(255, 255, 255, 0.03)',
-    border: '1px solid rgba(102, 126, 234, 0.2)',
-    borderRadius: '16px',
+    position: 'relative',
+    padding: '28px 20px',
+    background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(102, 126, 234, 0.15)',
+    borderRadius: '20px',
     textAlign: 'center',
-    transition: 'all 0.3s',
-    '@media (max-width: 768px)': {
-      padding: '16px 12px',
-      borderRadius: '12px'
-    }
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    cursor: 'pointer',
+    overflow: 'hidden'
   },
   featureIcon: {
     fontSize: '48px',
     marginBottom: '16px'
   },
   featureIconPro: {
-    width: '80px',
-    height: '80px',
-    margin: '0 auto 24px',
+    width: '64px',
+    height: '64px',
+    margin: '0 auto 20px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-    border: '1px solid rgba(102, 126, 234, 0.2)',
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.15) 100%)',
+    border: '1px solid rgba(102, 126, 234, 0.3)',
     borderRadius: '16px',
-    color: '#667eea',
-    '@media (max-width: 768px)': {
-      width: '48px',
-      height: '48px',
-      margin: '0 auto 12px'
-    }
+    color: '#a78bfa',
+    transition: 'all 0.4s ease'
   },
   featureTitle: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#f1f5f9',
-    marginBottom: '12px'
+    fontSize: '17px',
+    fontWeight: '700',
+    color: '#e2e8f0',
+    marginBottom: '10px',
+    letterSpacing: '-0.01em'
   },
   featureDesc: {
-    fontSize: '14px',
+    fontSize: '13px',
     color: '#94a3b8',
     lineHeight: 1.6,
     margin: 0
   },
   toolsPreview: {
-    padding: '80px 24px',
     textAlign: 'center',
-    background: 'rgba(30, 41, 59, 0.3)',
-    borderRadius: '24px',
-    maxWidth: '800px',
-    margin: '0 auto 60px',
-    textAlign: 'center',
-    padding: '60px 24px 60px',
+    padding: '50px 24px',
     maxWidth: '700px',
-    margin: '0 auto',
-    background: 'rgba(102, 126, 234, 0.05)',
+    margin: '0 auto 40px',
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%)',
     borderRadius: '24px',
-    border: '1px solid rgba(102, 126, 234, 0.2)'
+    border: '1px solid rgba(102, 126, 234, 0.15)',
+    position: 'relative',
+    zIndex: 1
   },
   toolsPreviewTitle: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#f1f5f9',
-    marginBottom: '16px'
+    fontSize: '26px',
+    fontWeight: '800',
+    color: '#e2e8f0',
+    marginBottom: '12px',
+    letterSpacing: '-0.01em'
   },
   toolsPreviewDesc: {
-    fontSize: '15px',
+    fontSize: '14px',
     color: '#94a3b8',
     marginBottom: '24px',
     lineHeight: 1.6
@@ -353,65 +367,76 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '14px 28px',
+    padding: '12px 24px',
     background: 'rgba(102, 126, 234, 0.15)',
-    border: '1px solid rgba(102, 126, 234, 0.4)',
-    borderRadius: '10px',
-    color: '#667eea',
-    fontSize: '15px',
+    border: '1px solid rgba(102, 126, 234, 0.35)',
+    borderRadius: '12px',
+    color: '#a78bfa',
+    fontSize: '14px',
     fontWeight: '600',
     textDecoration: 'none',
     transition: 'all 0.3s'
   },
   howItWorksSection: {
-    padding: '60px 24px',
-    maxWidth: '1200px',
-    margin: '0 auto'
+    padding: '80px 24px 60px',
+    maxWidth: '1100px',
+    margin: '0 auto',
+    position: 'relative',
+    zIndex: 1
   },
   howItWorksTitle: {
-    fontSize: '32px',
-    fontWeight: '700',
+    fontSize: '36px',
+    fontWeight: '800',
     textAlign: 'center',
     marginBottom: '48px',
-    color: '#f1f5f9'
+    background: 'linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text'
   },
   stepsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '32px'
+    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+    gap: '24px'
   },
   stepCard: {
+    position: 'relative',
     padding: '32px 24px',
-    background: 'rgba(255, 255, 255, 0.03)',
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%)',
+    backdropFilter: 'blur(10px)',
     border: '1px solid rgba(102, 126, 234, 0.2)',
-    borderRadius: '16px',
+    borderRadius: '24px',
     textAlign: 'center',
-    transition: 'all 0.3s'
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    cursor: 'pointer',
+    overflow: 'hidden'
   },
   stepNumber: {
-    width: '64px',
-    height: '64px',
+    width: '56px',
+    height: '56px',
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '28px',
-    fontWeight: '700',
+    fontSize: '24px',
+    fontWeight: '800',
     color: '#fff',
     margin: '0 auto 20px',
-    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.3)'
+    boxShadow: '0 8px 20px rgba(102, 126, 234, 0.4)',
+    transition: 'all 0.4s ease'
   },
   stepTitle: {
-    fontSize: '20px',
-    fontWeight: '600',
-    color: '#f1f5f9',
-    marginBottom: '12px'
+    fontSize: '18px',
+    fontWeight: '700',
+    color: '#e2e8f0',
+    marginBottom: '12px',
+    letterSpacing: '-0.01em'
   },
   stepDesc: {
-    fontSize: '14px',
+    fontSize: '13px',
     color: '#94a3b8',
-    lineHeight: 1.6,
+    lineHeight: 1.7,
     margin: 0
   },
   toolsGrid: {
@@ -504,83 +529,83 @@ const styles = {
   // Nuovi stili per sezione hero principale
   mainHero: {
     textAlign: 'center',
-    padding: '100px 24px 80px',
-    maxWidth: '1100px',
+    padding: '80px 24px 60px',
+    maxWidth: '1000px',
     margin: '0 auto',
     borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
-    '@media (max-width: 768px)': {
-      padding: '60px 16px 40px'
-    }
+    position: 'relative',
+    zIndex: 1
   },
   mainHeroContent: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '24px',
+    gap: '20px',
     alignItems: 'center'
   },
   mainHeroBadge: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '8px 16px',
+    padding: '6px 14px',
     background: 'rgba(102, 126, 234, 0.15)',
     border: '1px solid rgba(102, 126, 234, 0.3)',
-    borderRadius: '24px',
-    color: '#667eea',
-    fontSize: '14px',
+    borderRadius: '20px',
+    color: '#a78bfa',
+    fontSize: '13px',
     fontWeight: '600'
   },
   mainHeroTitle: {
-    fontSize: 'clamp(36px, 6vw, 56px)',
+    fontSize: 'clamp(32px, 5.5vw, 52px)',
     fontWeight: '900',
     lineHeight: '1.1',
     margin: 0,
     letterSpacing: '-0.02em',
-    maxWidth: '900px',
+    maxWidth: '850px',
     color: '#e2e8f0'
   },
   gradient: {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: 'linear-gradient(135deg, #667eea 0%, #a78bfa 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text'
   },
   mainHeroSubtitle: {
-    fontSize: '18px',
+    fontSize: '16px',
     color: '#94a3b8',
     lineHeight: '1.6',
     margin: 0,
-    maxWidth: '700px'
+    maxWidth: '650px'
   },
   mainHeroCta: {
     display: 'flex',
-    gap: '16px',
-    marginTop: '16px',
+    gap: '12px',
+    marginTop: '12px',
     flexWrap: 'wrap',
     justifyContent: 'center'
   },
   mainPrimaryCta: {
-    padding: '14px 32px',
+    padding: '12px 28px',
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     border: 'none',
     borderRadius: '12px',
     color: '#ffffff',
-    fontSize: '16px',
+    fontSize: '15px',
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
     textDecoration: 'none',
-    transition: 'transform 0.2s'
+    transition: 'transform 0.2s',
+    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.35)'
   },
   mainSecondaryCta: {
-    padding: '14px 32px',
+    padding: '12px 28px',
     background: 'rgba(102, 126, 234, 0.1)',
     border: '1px solid rgba(102, 126, 234, 0.3)',
     borderRadius: '12px',
     color: '#cbd5e1',
-    fontSize: '16px',
+    fontSize: '15px',
     fontWeight: '600',
     cursor: 'pointer',
     textDecoration: 'none',
@@ -588,27 +613,88 @@ const styles = {
   },
   statsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-    gap: '24px',
-    marginTop: '40px',
-    paddingTop: '32px',
-    borderTop: '1px solid rgba(148, 163, 184, 0.2)',
-    maxWidth: '800px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+    gap: '20px',
+    marginTop: '36px',
+    paddingTop: '28px',
+    borderTop: '1px solid rgba(148, 163, 184, 0.15)',
+    maxWidth: '700px',
     width: '100%'
   },
   statItem: {
     textAlign: 'center'
   },
   statValue: {
-    fontSize: '28px',
+    fontSize: '26px',
     fontWeight: '800',
-    color: '#667eea',
+    background: 'linear-gradient(135deg, #667eea 0%, #a78bfa 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
     marginBottom: '4px'
   },
   statLabel: {
     fontSize: '13px',
     color: '#94a3b8',
     fontWeight: '500'
+  },
+  // Background decorations
+  bgOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+    zIndex: 0,
+    overflow: 'hidden'
+  },
+  bgCircle1: {
+    position: 'absolute',
+    top: '10%',
+    right: '5%',
+    width: '500px',
+    height: '500px',
+    background: 'radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%)',
+    borderRadius: '50%',
+    filter: 'blur(60px)',
+    animation: 'float 8s ease-in-out infinite'
+  },
+  bgCircle2: {
+    position: 'absolute',
+    bottom: '20%',
+    left: '-10%',
+    width: '600px',
+    height: '600px',
+    background: 'radial-gradient(circle, rgba(118, 75, 162, 0.12) 0%, transparent 70%)',
+    borderRadius: '50%',
+    filter: 'blur(80px)',
+    animation: 'float 10s ease-in-out infinite reverse'
+  },
+  bgCircle3: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '800px',
+    height: '800px',
+    background: 'radial-gradient(circle, rgba(102, 126, 234, 0.08) 0%, transparent 70%)',
+    borderRadius: '50%',
+    filter: 'blur(100px)',
+    animation: 'pulse 6s ease-in-out infinite'
+  },
+  bgGrid: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundImage: `
+      linear-gradient(rgba(102, 126, 234, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(102, 126, 234, 0.03) 1px, transparent 1px)
+    `,
+    backgroundSize: '50px 50px',
+    opacity: 0.5
   }
 };
 
