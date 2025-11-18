@@ -5,11 +5,11 @@ import { BsChevronDown, BsChevronRight } from 'react-icons/bs';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
-import useMediaQuery from '../lib/useMediaQuery';
+import { useIsMobile } from '../lib/useMediaQuery';
 
 export default function Navbar() {
     const { t } = useTranslation();
-    const isMobile = useMediaQuery('(max-width: 768px)');
+    const isMobile = useIsMobile();
     const [dropdownOpen, setDropdownOpen] = useState(null);
     const [scrolled, setScrolled] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
