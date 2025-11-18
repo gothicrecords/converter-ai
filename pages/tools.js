@@ -264,14 +264,15 @@ const styles = {
     },
     filterBarMobile: {
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
         maxWidth: '400px',
         padding: '12px 20px',
         background: 'rgba(30, 41, 59, 0.5)',
         border: '1px solid rgba(102, 126, 234, 0.2)',
-        borderRadius: '24px'
+        borderRadius: '24px',
+        position: 'relative'
     },
     filterButtonCenter: {
         padding: '10px 28px',
@@ -299,7 +300,9 @@ const styles = {
         fontWeight: '600',
         cursor: 'pointer',
         transition: 'all 0.3s ease',
-        outline: 'none'
+        outline: 'none',
+        position: 'absolute',
+        right: '16px'
     },
     filterMenuIcon: {
         width: '14px',
