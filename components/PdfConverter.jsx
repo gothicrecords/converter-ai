@@ -5,10 +5,10 @@ import dynamic from 'next/dynamic';
 import Navbar from './Navbar';
 
 const tabs = [
-  { key: 'jpg2pdf', label: 'JPG -> PDF', color: '#f093fb', icon: '🖼️' },
-  { key: 'pdf2jpg', label: 'PDF -> JPG', color: '#4facfe', icon: '📄' },
-  { key: 'docx2pdf', label: 'WORD -> PDF', color: '#43e97b', icon: '📝' },
-  { key: 'pdf2docx', label: 'PDF -> WORD', color: '#fa709a', icon: '📋' },
+  { key: 'jpg2pdf', label: 'JPG -> PDF', color: '#f093fb' },
+  { key: 'pdf2jpg', label: 'PDF -> JPG', color: '#4facfe' },
+  { key: 'docx2pdf', label: 'WORD -> PDF', color: '#43e97b' },
+  { key: 'pdf2docx', label: 'PDF -> WORD', color: '#fa709a' },
 ];
 
 export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }){
@@ -142,7 +142,6 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
               className={'tab ' + (active===t.key?'active':'')}
               style={active === t.key ? { borderColor: t.color, background: `${t.color}15` } : {}}
             >
-              <span style={{ fontSize: 18, marginRight: 4 }}>{t.icon}</span>
               <span>{t.label}</span>
             </a>
           ))}
