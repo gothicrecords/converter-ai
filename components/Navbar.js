@@ -90,7 +90,7 @@ export default function Navbar() {
             transition: 'all 0.3s ease',
             width: '100%',
             maxWidth: '100vw',
-            overflowX: 'hidden'
+            overflow: 'visible'
         },
         navContent: {
             width: '100%',
@@ -100,7 +100,7 @@ export default function Navbar() {
             alignItems: 'center',
             justifyContent: 'space-between',
             position: 'relative',
-            overflowX: 'hidden'
+            overflow: 'visible'
         },
         navLogo: {
             display: 'flex',
@@ -435,7 +435,6 @@ export default function Navbar() {
                                 onMouseLeave={() => setHoveredItem(null)}
                             >
                                 {catName}
-                                <BsChevronDown style={{ width: 14, height: 14, marginLeft: 6 }} />
                             </button>
                             {dropdownOpen === catName && (
                                 <div style={styles.dropdownMenu}>
