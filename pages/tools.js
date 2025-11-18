@@ -172,10 +172,43 @@ export default function ToolsPage() {
 
 const styles = {
     pageWrap: { minHeight: '100vh', background: '#0a0e1a', color: '#e6eef8' },
-    hero: { maxWidth: '1200px', margin: '0 auto', padding: '120px 24px 40px', textAlign: 'center' },
-    heroContent: { display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' },
-    heroTitle: { fontSize: 'clamp(32px, 6vw, 48px)', fontWeight: '900', lineHeight: '1.1', margin: 0, letterSpacing: '-0.02em', maxWidth: '800px', color: '#e2e8f0' },
-    heroSubtitle: { fontSize: '18px', color: '#94a3b8', lineHeight: '1.6', margin: 0, maxWidth: '700px' },
+    hero: { 
+        maxWidth: '1200px', 
+        margin: '0 auto', 
+        padding: '100px 24px 50px', 
+        textAlign: 'center',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    heroContent: { 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '16px', 
+        alignItems: 'center',
+        maxWidth: '900px'
+    },
+    heroTitle: { 
+        fontSize: 'clamp(32px, 6vw, 48px)', 
+        fontWeight: '900', 
+        lineHeight: '1.1', 
+        margin: 0, 
+        letterSpacing: '-0.02em', 
+        maxWidth: '800px', 
+        background: 'linear-gradient(135deg, #e2e8f0 0%, #a78bfa 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        textAlign: 'center'
+    },
+    heroSubtitle: { 
+        fontSize: '17px', 
+        color: '#94a3b8', 
+        lineHeight: '1.6', 
+        margin: 0, 
+        maxWidth: '700px',
+        textAlign: 'center'
+    },
     toolsSection: { maxWidth: '1200px', margin: '0 auto', padding: '40px 24px 80px' },
     toolsGrid: {
         display: 'grid',
@@ -275,13 +308,16 @@ const styles = {
     filterSection: {
         maxWidth: '1200px',
         margin: '0 auto',
-        padding: '0 24px 40px'
+        padding: '0 24px 40px',
+        display: 'flex',
+        justifyContent: 'center'
     },
     filterContainer: {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '16px'
+        gap: '20px',
+        width: '100%'
     },
     filterBarMobile: {
         display: 'flex',
@@ -296,17 +332,20 @@ const styles = {
         position: 'relative'
     },
     filterButtonCenterDesktop: {
-        padding: '12px 32px',
-        background: 'rgba(30, 41, 59, 0.5)',
-        border: '1px solid rgba(102, 126, 234, 0.2)',
+        padding: '12px 36px',
+        background: 'rgba(30, 41, 59, 0.6)',
+        border: '1px solid rgba(102, 126, 234, 0.25)',
         borderRadius: '24px',
-        color: '#94a3b8',
-        fontSize: '15px',
+        color: '#cbd5e1',
+        fontSize: '16px',
         fontWeight: '700',
         cursor: 'pointer',
-        transition: 'all 0.3s ease',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         outline: 'none',
-        minWidth: '120px'
+        minWidth: '140px',
+        textAlign: 'center',
+        letterSpacing: '0.3px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
     },
     filterButtonCenter: {
         padding: '10px 28px',
@@ -343,30 +382,35 @@ const styles = {
         height: '14px'
     },
     filterGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))',
-        gap: '8px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: '12px',
         width: '100%',
-        maxWidth: '600px'
+        maxWidth: '700px'
     },
     filterButton: {
-        padding: '8px 16px',
-        background: 'rgba(30, 41, 59, 0.5)',
+        padding: '10px 24px',
+        background: 'rgba(30, 41, 59, 0.6)',
         border: '1px solid rgba(102, 126, 234, 0.2)',
         borderRadius: '20px',
-        color: '#94a3b8',
-        fontSize: '13px',
+        color: '#cbd5e1',
+        fontSize: '14px',
         fontWeight: '600',
         cursor: 'pointer',
-        transition: 'all 0.3s ease',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         outline: 'none',
-        whiteSpace: 'nowrap'
+        whiteSpace: 'nowrap',
+        textAlign: 'center',
+        minWidth: '100px',
+        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)'
     },
     filterButtonActive: {
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         borderColor: 'transparent',
         color: '#fff',
-        transform: 'scale(1.05)'
+        transform: 'translateY(-2px)',
+        boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)'
     }
 };
 
