@@ -8,6 +8,9 @@ export default function GenericConverter({ tool }) {
   const [resultDataUrl, setResultDataUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [width, setWidth] = useState('');
+  const [height, setHeight] = useState('');
+  const [quality, setQuality] = useState('80');
 
   const availableOutputs = [tool.targetFormat, 'pdf', 'txt', 'jpg', 'png']; // initial generic options
 
@@ -18,6 +21,9 @@ export default function GenericConverter({ tool }) {
       const form = new FormData();
       form.append('file', file);
       form.append('target', outputFormat);
+      if (width) form.append('width', width);
+      if (height) form.append('height', height);
+      if (quality) form.append('quality', quality);
       const res = await fetch(`/api/convert/${outputFormat}`, { method: 'POST', body: form });
       if (!res.ok) throw new Error('Conversion failed');
       const data = await res.json();
@@ -44,6 +50,22 @@ export default function GenericConverter({ tool }) {
         <select value={outputFormat} onChange={e => setOutputFormat(e.target.value)} style={styles.select}>
           {availableOutputs.map(fmt => <option key={fmt} value={fmt}>{fmt.toUpperCase()}</option>)}
         </select>
+        {(outputFormat === 'jpg' || outputFormat === 'jpeg' || outputFormat === 'webp' || outputFormat === 'png') && (
+          <div style={styles.optionsRow}>
+            <div style={styles.optionField}>
+              <label style={styles.label}>Larghezza (px)</label>
+              <input value={width} onChange={e => setWidth(e.target.value)} placeholder="es. 1920" style={styles.input} />
+            </div>
+            <div style={styles.optionField}>
+              <label style={styles.label}>Altezza (px)</label>
+              <input value={height} onChange={e => setHeight(e.target.value)} placeholder="es. 1080" style={styles.input} />
+            </div>
+            <div style={styles.optionField}>
+              <label style={styles.label}>Qualità</label>
+              <input value={quality} onChange={e => setQuality(e.target.value)} placeholder="1-100" style={styles.input} />
+            </div>
+          </div>
+        )}
         <button onClick={handleConvert} disabled={!file || loading} style={styles.btn}>
           {loading ? 'Conversione...' : 'Converti'}
         </button>
@@ -77,5 +99,8 @@ const styles = {
   resultName: { margin: '8px 0 16px', color: '#94a3b8', fontSize: '13px' },
   downloadBtn: { display: 'inline-block', padding: '10px 16px', background: '#4f46e5', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontSize: '13px', fontWeight: 600 },
   previewImg: { marginTop: '16px', maxWidth: '100%', borderRadius: '8px', border: '1px solid rgba(148,163,184,0.2)' },
-  previewText: { marginTop: '16px', width: '100%', minHeight: '160px', background: '#0f172a', color: '#e6eef8', border: '1px solid #334155', borderRadius: '8px', padding: '12px', fontFamily: 'monospace', fontSize: '12px' }
+  previewText: { marginTop: '16px', width: '100%', minHeight: '160px', background: '#0f172a', color: '#e6eef8', border: '1px solid #334155', borderRadius: '8px', padding: '12px', fontFamily: 'monospace', fontSize: '12px' },
+  optionsRow: { display: 'flex', gap: '12px', marginBottom: '16px' },
+  optionField: { flex: 1 },
+  input: { width: '100%', padding: '10px', borderRadius: '8px', background: '#0f172a', color: '#e6eef8', border: '1px solid #334155' }
 };

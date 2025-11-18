@@ -1,6 +1,21 @@
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
+import sharp from 'sharp';
+import PDFDocument from 'pdfkit';
+import JSZip from 'jszip';
+import * as XLSX from 'xlsx';
+import pdfParse from 'pdf-parse';
+import htmlPdf from 'html-pdf-node';
+import SVGtoPDF from 'svg-to-pdfkit';
+import zlib from 'zlib';
+import tarStream from 'tar-stream';
+import ttf2woff from 'ttf2woff';
+import ttf2woff2 from 'ttf2woff2';
+import ffmpegStatic from 'ffmpeg-static';
+import ffmpeg from 'fluent-ffmpeg';
+import mammoth from 'mammoth';
+import { marked } from 'marked';
 
 export const config = { api: { bodyParser: false } };
 
@@ -19,25 +34,269 @@ export default async function handler(req, res) {
     try {
       const inputPath = file.filepath;
       const originalName = file.originalFilename || 'file';
-      // Placeholder conversion logic: identity or simple text/image normalization.
-      const buffer = fs.readFileSync(inputPath);
-      let outputName = originalName;
-      // Force extension to target
-      const ext = `.${target.toLowerCase()}`;
-      if (!outputName.toLowerCase().endsWith(ext)) {
-        outputName = outputName.replace(/\.[^/.]+$/, ext);
-        if (!outputName.toLowerCase().endsWith(ext)) outputName += ext; // if replace failed
+      const inputBuffer = fs.readFileSync(inputPath);
+      const inputExt = (path.extname(originalName) || '').replace('.', '').toLowerCase();
+      const lowerTarget = String(target).toLowerCase();
+
+      function finalizeName(name) {
+        const ext = `.${lowerTarget}`;
+        if (name.toLowerCase().endsWith(ext)) return name;
+        const replaced = name.replace(/\.[^/.]+$/, ext);
+        return replaced.toLowerCase().endsWith(ext) ? replaced : name + ext;
       }
-      // Basic mime inference
+
+      let outputBuffer = null;
       let mime = 'application/octet-stream';
-      if (['png','jpg','jpeg','webp','gif','bmp'].includes(target)) mime = `image/${target==='jpg'?'jpeg':target}`;
-      else if (target === 'txt' || target === 'md') mime = 'text/plain';
-      else if (target === 'pdf') mime = 'application/pdf';
-      else if (target === 'csv') mime = 'text/csv';
-      else if (target === 'zip') mime = 'application/zip';
-      else if (target === 'epub') mime = 'application/epub+zip';
-      const dataUrl = toDataUrl(buffer, mime);
-      return res.status(200).json({ name: outputName, dataUrl, note: 'Conversion placeholder: native transformation pending.' });
+
+      // Optional options
+      const width = fields.width ? parseInt(String(fields.width)) : undefined;
+      const height = fields.height ? parseInt(String(fields.height)) : undefined;
+      const quality = fields.quality ? parseInt(String(fields.quality)) : 80;
+
+      // IMAGE CONVERSIONS via sharp
+      const imageTargets = ['png','jpg','jpeg','webp','tiff','bmp'];
+      if (imageTargets.includes(lowerTarget)) {
+        let pipeline = sharp(inputBuffer, { failOn: 'none' });
+        if (width || height) pipeline = pipeline.resize({ width, height, fit: 'inside' });
+        if (lowerTarget === 'jpg' || lowerTarget === 'jpeg') {
+          outputBuffer = await pipeline.jpeg({ quality }).toBuffer();
+          mime = 'image/jpeg';
+        } else if (lowerTarget === 'png') {
+          outputBuffer = await pipeline.png({ compressionLevel: 9 }).toBuffer();
+          mime = 'image/png';
+        } else if (lowerTarget === 'webp') {
+          outputBuffer = await pipeline.webp({ quality }).toBuffer();
+          mime = 'image/webp';
+        } else if (lowerTarget === 'tiff') {
+          outputBuffer = await pipeline.tiff().toBuffer();
+          mime = 'image/tiff';
+        } else if (lowerTarget === 'bmp') {
+          outputBuffer = await pipeline.bmp().toBuffer();
+          mime = 'image/bmp';
+        }
+      }
+
+      // PDF generation
+      if (!outputBuffer && lowerTarget === 'pdf') {
+        // Handle HTML with headless Chrome, else basic PDF with pdfkit
+        if (inputExt === 'html' || inputExt === 'htm') {
+          const fileObj = { content: inputBuffer.toString('utf8') };
+          const pdfBuffer = await htmlPdf.generatePdf(fileObj, { format: 'A4' });
+          outputBuffer = Buffer.from(pdfBuffer);
+          mime = 'application/pdf';
+        } else if (inputExt === 'svg') {
+          const doc = new PDFDocument({ autoFirstPage: false });
+          const chunks = [];
+          doc.on('data', d => chunks.push(d));
+          doc.on('error', () => {});
+          doc.addPage({ size: 'A4' });
+          const svgStr = inputBuffer.toString('utf8');
+          SVGtoPDF(doc, svgStr, 0, 0, { preserveAspectRatio: 'xMidYMid meet' });
+          doc.end();
+          await new Promise(resolve => doc.on('end', resolve));
+          outputBuffer = Buffer.concat(chunks);
+          mime = 'application/pdf';
+        } else if (['png','jpg','jpeg','webp','bmp','gif','tiff'].includes(inputExt)) {
+          const doc = new PDFDocument({ autoFirstPage: false });
+          const chunks = [];
+          doc.on('data', d => chunks.push(d));
+          doc.on('error', () => {});
+          const img = sharp(inputBuffer);
+          const meta = await img.metadata();
+          const pageWidth = (meta.width || 800);
+          const pageHeight = (meta.height || 600);
+          doc.addPage({ size: [pageWidth, pageHeight] });
+          const tmpPath = inputPath + '.tmpimg';
+          fs.writeFileSync(tmpPath, inputBuffer);
+          doc.image(tmpPath, 0, 0, { width: pageWidth, height: pageHeight });
+          doc.end();
+          await new Promise(resolve => doc.on('end', resolve));
+          outputBuffer = Buffer.concat(chunks);
+          fs.unlinkSync(tmpPath);
+          mime = 'application/pdf';
+        } else {
+          // Text-like pdf
+          const doc = new PDFDocument({ margin: 48 });
+          const chunks = [];
+          doc.on('data', d => chunks.push(d));
+          doc.on('error', () => {});
+          const content = inputBuffer.toString('utf8');
+          doc.fontSize(12).text(content);
+          doc.end();
+          await new Promise(resolve => doc.on('end', resolve));
+          outputBuffer = Buffer.concat(chunks);
+          mime = 'application/pdf';
+        }
+      }
+
+      // TXT extraction
+      if (!outputBuffer && lowerTarget === 'txt') {
+        if (inputExt === 'pdf') {
+          try {
+            const parsed = await pdfParse(inputBuffer);
+            outputBuffer = Buffer.from(parsed.text || '');
+          } catch (e) {
+            outputBuffer = Buffer.from('');
+          }
+        } else if (inputExt === 'docx') {
+          try {
+            const { value } = await mammoth.extractRawText({ buffer: inputBuffer });
+            outputBuffer = Buffer.from(value || '');
+          } catch {
+            outputBuffer = Buffer.from('');
+          }
+        } else {
+          outputBuffer = Buffer.from(inputBuffer.toString('utf8'));
+        }
+        mime = 'text/plain';
+      }
+
+      // CSV/XLSX
+      if (!outputBuffer && lowerTarget === 'csv' && ['xlsx', 'xls', 'ods'].includes(inputExt)) {
+        const wb = XLSX.read(inputBuffer, { type: 'buffer' });
+        const firstSheet = wb.SheetNames[0];
+        const csv = XLSX.utils.sheet_to_csv(wb.Sheets[firstSheet]);
+        outputBuffer = Buffer.from(csv, 'utf8');
+        mime = 'text/csv';
+      }
+      if (!outputBuffer && lowerTarget === 'xlsx' && ['csv','txt'].includes(inputExt)) {
+        const text = inputBuffer.toString('utf8');
+        const rows = text.split(/\r?\n/).map(line => line.split(','));
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+        outputBuffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+        mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      }
+
+      // DOCX -> HTML/PDF
+      if (!outputBuffer && (lowerTarget === 'html' || lowerTarget === 'pdf') && inputExt === 'docx') {
+        try {
+          const { value: html } = await mammoth.convertToHtml({ buffer: inputBuffer });
+          if (lowerTarget === 'html') {
+            outputBuffer = Buffer.from(html, 'utf8');
+            mime = 'text/html';
+          } else {
+            const fileObj = { content: html };
+            const pdfBuffer = await htmlPdf.generatePdf(fileObj, { format: 'A4' });
+            outputBuffer = Buffer.from(pdfBuffer);
+            mime = 'application/pdf';
+          }
+        } catch {}
+      }
+
+      // MD -> HTML/PDF
+      if (!outputBuffer && (lowerTarget === 'html' || lowerTarget === 'pdf') && inputExt === 'md') {
+        const html = marked.parse(inputBuffer.toString('utf8'));
+        if (lowerTarget === 'html') {
+          outputBuffer = Buffer.from(html, 'utf8');
+          mime = 'text/html';
+        } else {
+          const fileObj = { content: html };
+          const pdfBuffer = await htmlPdf.generatePdf(fileObj, { format: 'A4' });
+          outputBuffer = Buffer.from(pdfBuffer);
+          mime = 'application/pdf';
+        }
+      }
+
+      // ZIP (package the input file)
+      if (!outputBuffer && lowerTarget === 'zip') {
+        const zip = new JSZip();
+        zip.file(originalName, inputBuffer);
+        outputBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+        mime = 'application/zip';
+      }
+
+      // TAR/GZ/TGZ creation from single file
+      if (!outputBuffer && lowerTarget === 'tar') {
+        const pack = tarStream.pack();
+        const chunks = [];
+        pack.entry({ name: originalName, size: inputBuffer.length }, inputBuffer);
+        pack.finalize();
+        for await (const c of pack) chunks.push(c);
+        outputBuffer = Buffer.concat(chunks);
+        mime = 'application/x-tar';
+      }
+      if (!outputBuffer && (lowerTarget === 'gz' || lowerTarget === 'tgz')) {
+        const tarBuf = lowerTarget === 'tgz' ? (() => {
+          const p = tarStream.pack();
+          const arr = [];
+          p.entry({ name: originalName, size: inputBuffer.length }, inputBuffer);
+          p.finalize();
+          return new Promise(async resolve => {
+            for await (const c of p) arr.push(c);
+            resolve(Buffer.concat(arr));
+          });
+        })() : Promise.resolve(inputBuffer);
+        const src = await tarBuf;
+        outputBuffer = zlib.gzipSync(src);
+        mime = 'application/gzip';
+      }
+
+      // FONT: TTF -> WOFF/WOFF2
+      if (!outputBuffer && (lowerTarget === 'woff' || lowerTarget === 'woff2') && inputExt === 'ttf') {
+        if (lowerTarget === 'woff') {
+          const { buffer } = ttf2woff(new Uint8Array(inputBuffer));
+          outputBuffer = Buffer.from(buffer);
+          mime = 'font/woff';
+        } else {
+          const buf = ttf2woff2(inputBuffer);
+          outputBuffer = Buffer.from(buf);
+          mime = 'font/woff2';
+        }
+      }
+
+      // AUDIO/VIDEO via ffmpeg (best effort)
+      const audioTargets = ['mp3','wav','m4a','flac','ogg','weba','aac'];
+      const videoTargets = ['mp4','webm','avi','mkv','mov','flv'];
+      if (!outputBuffer && (audioTargets.includes(lowerTarget) || videoTargets.includes(lowerTarget))) {
+        try {
+          ffmpeg.setFfmpegPath(ffmpegStatic);
+          const tmpDir = path.dirname(inputPath);
+          const outPath = path.join(tmpDir, `out_${Date.now()}.${lowerTarget}`);
+          await new Promise((resolve, reject) => {
+            let cmd = ffmpeg(inputPath).output(outPath).on('end', resolve).on('error', reject);
+            if (videoTargets.includes(lowerTarget)) {
+              if (lowerTarget === 'mp4') cmd = cmd.videoCodec('libx264').audioCodec('aac').outputOptions(['-movflags faststart']);
+              if (lowerTarget === 'webm') cmd = cmd.videoCodec('libvpx-vp9').audioCodec('libopus');
+            } else {
+              if (lowerTarget === 'mp3') cmd = cmd.audioCodec('libmp3lame').audioBitrate('192k');
+              if (lowerTarget === 'm4a' || lowerTarget === 'aac') cmd = cmd.audioCodec('aac').audioBitrate('192k');
+              if (lowerTarget === 'flac') cmd = cmd.audioCodec('flac');
+              if (lowerTarget === 'wav') cmd = cmd.audioCodec('pcm_s16le');
+              if (lowerTarget === 'ogg' || lowerTarget === 'weba') cmd = cmd.audioCodec('libopus');
+            }
+            cmd.run();
+          });
+          outputBuffer = fs.readFileSync(outPath);
+          try { fs.unlinkSync(outPath); } catch {}
+          if (audioTargets.includes(lowerTarget)) {
+            if (lowerTarget === 'mp3') mime = 'audio/mpeg';
+            else if (lowerTarget === 'wav') mime = 'audio/wav';
+            else if (lowerTarget === 'm4a' || lowerTarget === 'aac') mime = 'audio/aac';
+            else if (lowerTarget === 'flac') mime = 'audio/flac';
+            else if (lowerTarget === 'ogg' || lowerTarget === 'weba') mime = 'audio/ogg';
+          } else {
+            if (lowerTarget === 'mp4') mime = 'video/mp4';
+            else if (lowerTarget === 'webm') mime = 'video/webm';
+            else if (lowerTarget === 'avi') mime = 'video/x-msvideo';
+            else if (lowerTarget === 'mkv') mime = 'video/x-matroska';
+            else if (lowerTarget === 'mov') mime = 'video/quicktime';
+            else if (lowerTarget === 'flv') mime = 'video/x-flv';
+          }
+        } catch {}
+      }
+
+      // SVG → PNG
+      if (!outputBuffer && (lowerTarget === 'png') && inputExt === 'svg') {
+        outputBuffer = await sharp(inputBuffer).png().toBuffer();
+        mime = 'image/png';
+      }
+
+      // If still not handled, return original buffer but with forced extension
+      const name = finalizeName(originalName);
+      const dataUrl = toDataUrl(outputBuffer || inputBuffer, mime);
+      return res.status(200).json({ name, dataUrl });
     } catch (e) {
       return res.status(500).json({ error: 'Conversion failed', details: e.message });
     }
