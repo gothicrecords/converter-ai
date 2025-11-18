@@ -103,6 +103,37 @@ export default async function handler(req, res) {
           const pdfBuffer = await htmlPdf.generatePdf(fileObj, { format: 'A4' });
           outputBuffer = Buffer.from(pdfBuffer);
           mime = 'application/pdf';
+        } else if (inputExt === 'csv') {
+          // Simple table rendering from CSV using pdfkit
+          const doc = new PDFDocument({ margin: 36 });
+          const chunks = [];
+          doc.on('data', d => chunks.push(d));
+          doc.on('error', () => {});
+          const text = inputBuffer.toString('utf8');
+          const rows = text.split(/\r?\n/).filter(Boolean).map(line => line.split(','));
+          const colWidths = [];
+          const maxCols = rows.reduce((m, r) => Math.max(m, r.length), 0);
+          for (let c = 0; c < maxCols; c++) colWidths[c] = Math.floor((doc.page.width - doc.page.margins.left - doc.page.margins.right) / maxCols);
+          let y = doc.y;
+          const rowHeight = 20;
+          rows.forEach((cols, ri) => {
+            let x = doc.page.margins.left;
+            cols.forEach((cell, ci) => {
+              const w = colWidths[ci] || 80;
+              doc.rect(x, y, w, rowHeight).strokeOpacity(0.3).stroke();
+              doc.fontSize(10).fillColor('#000').text(cell, x + 4, y + 4, { width: w - 8, height: rowHeight - 8, ellipsis: true });
+              x += w;
+            });
+            y += rowHeight;
+            if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
+              doc.addPage();
+              y = doc.y;
+            }
+          });
+          doc.end();
+          await new Promise(resolve => doc.on('end', resolve));
+          outputBuffer = Buffer.concat(chunks);
+          mime = 'application/pdf';
         } else if (inputExt === 'svg') {
           const doc = new PDFDocument({ autoFirstPage: false });
           const chunks = [];
@@ -229,6 +260,34 @@ export default async function handler(req, res) {
         zip.file(originalName, inputBuffer);
         outputBuffer = await zip.generateAsync({ type: 'nodebuffer' });
         mime = 'application/zip';
+      }
+
+      // ZIP extraction -> TGZ repack (single-file API)
+      if (!outputBuffer && (lowerTarget === 'tgz' || lowerTarget === 'tar' || lowerTarget === 'gz') && inputExt === 'zip') {
+        const zip = await JSZip.loadAsync(inputBuffer);
+        // Build a tar from all entries
+        const pack = tarStream.pack();
+        const tarChunks = [];
+        const finalizePack = async () => {
+          pack.finalize();
+          for await (const c of pack) tarChunks.push(c);
+          return Buffer.concat(tarChunks);
+        };
+        const entries = Object.keys(zip.files);
+        for (const name of entries) {
+          const entry = zip.files[name];
+          if (entry.dir) continue;
+          const fileBuf = await entry.async('nodebuffer');
+          pack.entry({ name, size: fileBuf.length }, fileBuf);
+        }
+        const tarBuf = await finalizePack();
+        if (lowerTarget === 'tar') {
+          outputBuffer = tarBuf;
+          mime = 'application/x-tar';
+        } else if (lowerTarget === 'gz' || lowerTarget === 'tgz') {
+          outputBuffer = zlib.gzipSync(tarBuf);
+          mime = 'application/gzip';
+        }
       }
 
       // 7Z creation using bundled 7z binary
