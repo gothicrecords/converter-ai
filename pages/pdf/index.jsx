@@ -1,7 +1,5 @@
 import dynamic from 'next/dynamic';
 
-import dynamic from 'next/dynamic';
-
 const PdfConverter = dynamic(() => import('../../components/PdfConverter'), { ssr: false });
 
 export default function PdfIndexPage() {

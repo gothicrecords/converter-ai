@@ -593,7 +593,7 @@ const styles = {
 };
 
 // Aggiungi animazioni CSS globali e stili per card
-if (typeof document !== 'undefined') {
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     const styleId = 'tools-page-animations';
     if (!document.getElementById(styleId)) {
         const style = document.createElement('style');

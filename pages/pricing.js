@@ -246,6 +246,15 @@ function PricingPage() {
     );
 }
 
+// Disabilita pre-rendering per questa pagina (usa window)
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}
+
+export default PricingPage;
+
 const styles = {
     pageWrap: { minHeight: '100vh', background: '#0a0e1a', color: '#e6eef8' },
     hero: { maxWidth: '800px', margin: '0 auto', padding: '100px 24px 60px', textAlign: 'center' },

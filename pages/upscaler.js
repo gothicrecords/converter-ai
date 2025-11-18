@@ -199,3 +199,12 @@ function Upscaler() {
     </>
   );
 }
+
+// Disabilita pre-rendering per questa pagina (usa browser APIs)
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}
+
+export default Upscaler;
