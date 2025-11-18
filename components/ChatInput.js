@@ -255,8 +255,8 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
           type="submit"
           disabled={!message.trim() || disabled}
           style={{
-            background: disabled ? '#4b5563' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
+            background: isMobile ? 'transparent' : (disabled ? '#4b5563' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'),
+            color: isMobile ? '#667eea' : 'white',
             padding: isMobile ? '6px' : '14px 20px',
             borderRadius: isMobile ? '50%' : '12px',
             border: 'none',
@@ -268,7 +268,7 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
             justifyContent: 'center',
             gap: isMobile ? '0' : '8px',
             transition: 'all 0.3s',
-            boxShadow: disabled ? 'none' : '0 4px 20px rgba(102, 126, 234, 0.4)',
+            boxShadow: 'none',
             opacity: disabled ? 0.5 : 1,
             minWidth: isMobile ? '32px' : 'auto',
             width: isMobile ? '32px' : 'auto',
@@ -276,13 +276,13 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
             flexShrink: 0
           }}
           onMouseEnter={(e) => {
-            if (!disabled) {
+            if (!disabled && !isMobile) {
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = '0 6px 25px rgba(102, 126, 234, 0.5)';
             }
           }}
           onMouseLeave={(e) => {
-            if (!disabled) {
+            if (!disabled && !isMobile) {
               e.currentTarget.style.transform = 'translateY(0)';
               e.currentTarget.style.boxShadow = '0 4px 20px rgba(102, 126, 234, 0.4)';
             }
