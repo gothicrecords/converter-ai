@@ -62,7 +62,7 @@ export default async function handler(req, res) {
       const abitrate = fields.abitrate ? String(fields.abitrate) : undefined;
 
       // IMAGE CONVERSIONS via sharp
-      const imageTargets = ['png','jpg','jpeg','webp','tiff','bmp'];
+      const imageTargets = ['png','jpg','jpeg','webp','tiff','bmp','avif','heif','gif'];
       if (imageTargets.includes(lowerTarget)) {
         let pipeline = sharp(inputBuffer, { failOn: 'none' });
         if (width || height) pipeline = pipeline.resize({ width, height, fit: 'inside' });
@@ -75,12 +75,23 @@ export default async function handler(req, res) {
         } else if (lowerTarget === 'webp') {
           outputBuffer = await pipeline.webp({ quality }).toBuffer();
           mime = 'image/webp';
+        } else if (lowerTarget === 'avif') {
+          outputBuffer = await pipeline.avif({ quality }).toBuffer();
+          mime = 'image/avif';
+        } else if (lowerTarget === 'heif') {
+          // heif container (may encode HEIC/HEIF depending on libvips build)
+          outputBuffer = await pipeline.heif({ quality }).toBuffer();
+          mime = 'image/heif';
         } else if (lowerTarget === 'tiff') {
           outputBuffer = await pipeline.tiff().toBuffer();
           mime = 'image/tiff';
         } else if (lowerTarget === 'bmp') {
           outputBuffer = await pipeline.bmp().toBuffer();
           mime = 'image/bmp';
+        } else if (lowerTarget === 'gif') {
+          // Animated GIFs will be flattened to first frame
+          outputBuffer = await pipeline.gif().toBuffer();
+          mime = 'image/gif';
         }
       }
 
@@ -167,13 +178,18 @@ export default async function handler(req, res) {
         outputBuffer = Buffer.from(csv, 'utf8');
         mime = 'text/csv';
       }
-      if (!outputBuffer && lowerTarget === 'xlsx' && ['csv','txt'].includes(inputExt)) {
-        const text = inputBuffer.toString('utf8');
-        const rows = text.split(/\r?\n/).map(line => line.split(','));
-        const ws = XLSX.utils.aoa_to_sheet(rows);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-        outputBuffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+      if (!outputBuffer && lowerTarget === 'xlsx' && ['csv','txt','ods','xls'].includes(inputExt)) {
+        if (inputExt === 'csv' || inputExt === 'txt') {
+          const text = inputBuffer.toString('utf8');
+          const rows = text.split(/\r?\n/).filter(Boolean).map(line => line.split(','));
+          const ws = XLSX.utils.aoa_to_sheet(rows);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+          outputBuffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+        } else {
+          const wb = XLSX.read(inputBuffer, { type: 'buffer' });
+          outputBuffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+        }
         mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       }
 
