@@ -75,15 +75,19 @@ export default function Navbar() {
             padding: scrolled ? '4px 0' : '8px 0',
             boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
             transition: 'all 0.3s ease',
-            width: '100%'
+            width: '100%',
+            maxWidth: '100vw',
+            overflowX: 'hidden'
         },
         navContent: {
             width: '100%',
+            maxWidth: '100%',
             padding: '0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            position: 'relative'
+            position: 'relative',
+            overflowX: 'hidden'
         },
         navLogo: {
             display: 'flex',
@@ -121,7 +125,9 @@ export default function Navbar() {
             display: 'flex',
             gap: '2px',
             alignItems: 'center',
-            paddingRight: '20px'
+            paddingRight: '20px',
+            flexWrap: 'nowrap',
+            whiteSpace: 'nowrap'
         },
         homeBtn: {
             position: 'absolute',

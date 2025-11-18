@@ -26,6 +26,10 @@ function MyApp({ Component, pageProps }) {
   const router = useRouter();
 
   useEffect(() => {
+    // Previeni scroll orizzontale
+    document.body.style.overflowX = 'hidden';
+    document.documentElement.style.overflowX = 'hidden';
+    
     // Prefetch solo dopo idle per non bloccare FCP
     if ('requestIdleCallback' in window) {
       requestIdleCallback(() => {
@@ -53,10 +57,20 @@ function MyApp({ Component, pageProps }) {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider initialTranslations={pageProps.translations || {}}>
         <Head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
           <meta name="theme-color" content="#0f1720" />
           <link rel="preconnect" href="https://www.googletagmanager.com" />
           <title>Tool Suite - Upscaler AI & PDF Converter</title>
+          <style>{`
+            html, body {
+              overflow-x: hidden;
+              max-width: 100vw;
+              position: relative;
+            }
+            * {
+              max-width: 100%;
+            }
+          `}</style>
         </Head>
 
       {/* Google Analytics 4 - Completamente disabilitato per performance */}
