@@ -34,6 +34,14 @@ const nextConfig = {
     reactRemoveProperties: process.env.NODE_ENV === 'production',
   },
   
+  // Output configuration per evitare problemi con export
+  output: 'standalone',
+  
+  // Generazione statica più robusta
+  generateBuildId: async () => {
+    return `build-${Date.now()}`;
+  },
+  
   // Internationalization
   i18n: {
     defaultLocale: 'en',
