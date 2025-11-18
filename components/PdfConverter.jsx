@@ -5,10 +5,10 @@ import dynamic from 'next/dynamic';
 import Navbar from './Navbar';
 
 const tabs = [
-  { key: 'jpg2pdf', label: 'JPG -> PDF' },
-  { key: 'pdf2jpg', label: 'PDF -> JPG' },
-  { key: 'docx2pdf', label: 'WORD -> PDF' },
-  { key: 'pdf2docx', label: 'PDF -> WORD' },
+  { key: 'jpg2pdf', label: 'JPG -> PDF', color: '#f093fb', icon: '🖼️' },
+  { key: 'pdf2jpg', label: 'PDF -> JPG', color: '#4facfe', icon: '📄' },
+  { key: 'docx2pdf', label: 'WORD -> PDF', color: '#43e97b', icon: '📝' },
+  { key: 'pdf2docx', label: 'PDF -> WORD', color: '#fa709a', icon: '📋' },
 ];
 
 export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }){
@@ -140,7 +140,9 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
               href={`/pdf/${t.key}`}
               onClick={(e) => { e.preventDefault(); setActive(t.key); history.pushState(null,'',`/pdf/${t.key}`); }}
               className={'tab ' + (active===t.key?'active':'')}
+              style={active === t.key ? { borderColor: t.color, background: `${t.color}15` } : {}}
             >
+              <span style={{ fontSize: 18, marginRight: 4 }}>{t.icon}</span>
               <span>{t.label}</span>
             </a>
           ))}
@@ -235,10 +237,9 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
           .page-title{font-size:clamp(28px,5vw,40px);font-weight:800;margin:0 0 12px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
           .page-subtitle{font-size:16px;color:#94a3b8;margin:0}
           .tabs{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:32px}
-          .tab{display:flex;align-items:center;gap:8px;background:#0f172a;color:#cfe0ff;border:2px solid rgba(148,163,184,0.24);border-radius:12px;padding:12px 18px;cursor:pointer;transition:all 0.3s;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 6px 14px rgba(0,0,0,0.25)}
+          .tab{display:flex;align-items:center;gap:4px;background:#0f172a;color:#cfe0ff;border:2px solid rgba(148,163,184,0.24);border-radius:12px;padding:12px 18px;cursor:pointer;transition:all 0.3s;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 6px 14px rgba(0,0,0,0.25);text-decoration:none}
           .tab:hover{transform:translateY(-2px);border-color:rgba(148,163,184,0.36)}
-          .tab.active{color:#fff}
-          .tab a{color:inherit;text-decoration:none}
+          .tab.active{color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 8px 20px rgba(0,0,0,0.35)}
           .panel{margin-top:16px;padding:28px;background:#0b1220;border:2px solid rgba(148,163,184,0.24);border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 12px 26px rgba(0,0,0,0.35)}
           .drop{border:2px dashed rgba(148,163,184,0.36);border-radius:12px;padding:32px;text-align:center;cursor:pointer;position:relative;min-height:180px;display:flex;align-items:center;justify-content:center;transition:all 0.3s}
           .drop:hover{border-color:rgba(148,163,184,0.55);background:rgba(148,163,184,0.05)}
