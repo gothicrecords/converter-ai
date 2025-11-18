@@ -71,7 +71,7 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
       borderTop: '1px solid rgba(102, 126, 234, 0.2)',
       background: 'rgba(15, 23, 42, 0.8)',
       backdropFilter: 'blur(10px)',
-      padding: isMobile ? '12px 16px' : '20px 24px'
+      padding: isMobile ? '8px 12px' : '20px 24px'
     }}>
       {/* Attached Files Preview */}
       {attachedFiles.length > 0 && (
@@ -169,7 +169,7 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
       <form onSubmit={handleSubmit} style={{ 
         display: 'flex', 
         alignItems: 'center',
-        gap: isMobile ? '8px' : '12px'
+        gap: isMobile ? '6px' : '12px'
       }}>
         {/* File Upload Button (Mobile only) */}
         {isMobile && (
@@ -177,21 +177,20 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
             type="button"
             onClick={handleFileUploadClick}
             style={{
-              background: 'rgba(102, 126, 234, 0.15)',
-              border: '1px solid rgba(102, 126, 234, 0.3)',
-              borderRadius: '8px',
-              padding: '8px',
+              background: 'transparent',
+              border: 'none',
+              padding: '0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               transition: 'all 0.2s',
-              minWidth: '36px',
-              height: '36px',
+              minWidth: '32px',
+              height: '32px',
               flexShrink: 0
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#667eea" strokeWidth="2.5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#667eea" strokeWidth="2">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
@@ -218,16 +217,16 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
             rows={1}
             style={{
               width: '100%',
-              padding: isMobile ? '8px 12px' : '14px 16px',
+              padding: isMobile ? '7px 12px' : '14px 16px',
               background: 'rgba(255, 255, 255, 0.05)',
               border: '1px solid rgba(102, 126, 234, 0.3)',
-              borderRadius: isMobile ? '18px' : '12px',
+              borderRadius: isMobile ? '16px' : '12px',
               color: '#f1f5f9',
-              fontSize: isMobile ? '14px' : '15px',
-              lineHeight: isMobile ? '20px' : '1.5',
+              fontSize: isMobile ? '13px' : '15px',
+              lineHeight: isMobile ? '18px' : '1.5',
               resize: 'none',
-              maxHeight: isMobile ? '36px' : '200px',
-              minHeight: isMobile ? '36px' : 'auto',
+              maxHeight: isMobile ? '32px' : '200px',
+              minHeight: isMobile ? '32px' : 'auto',
               overflow: isMobile ? 'hidden' : 'auto',
               fontFamily: 'inherit',
               transition: 'all 0.2s',
@@ -264,7 +263,7 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
           style={{
             background: disabled ? '#4b5563' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: 'white',
-            padding: isMobile ? '8px' : '14px 20px',
+            padding: isMobile ? '6px' : '14px 20px',
             borderRadius: isMobile ? '50%' : '12px',
             border: 'none',
             fontWeight: '600',
@@ -277,9 +276,9 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
             transition: 'all 0.3s',
             boxShadow: disabled ? 'none' : '0 4px 20px rgba(102, 126, 234, 0.4)',
             opacity: disabled ? 0.5 : 1,
-            minWidth: isMobile ? '36px' : 'auto',
-            width: isMobile ? '36px' : 'auto',
-            height: isMobile ? '36px' : 'auto',
+            minWidth: isMobile ? '32px' : 'auto',
+            width: isMobile ? '32px' : 'auto',
+            height: isMobile ? '32px' : 'auto',
             flexShrink: 0
           }}
           onMouseEnter={(e) => {
@@ -310,7 +309,7 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
           ) : (
             <>
               {!isMobile && <span>Send</span>}
-              <svg width={isMobile ? "18" : "18"} height={isMobile ? "18" : "18"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg width={isMobile ? "16" : "18"} height={isMobile ? "16" : "18"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <line x1="22" y1="2" x2="11" y2="13"></line>
                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
               </svg>
