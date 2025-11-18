@@ -7,7 +7,7 @@ import Navbar from '../components/Navbar';
 import FileUploadZone from '../components/FileUploadZone';
 import Footer from '../components/Footer';
 
-export default function ChatPage() {
+function ChatPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -580,6 +580,15 @@ export default function ChatPage() {
     </>
   );
 }
+
+// Disabilita pre-rendering per questa pagina (usa localStorage)
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}
+
+export default ChatPage;
 
 const styles = {
   loadingContainer: {
