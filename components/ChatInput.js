@@ -179,18 +179,19 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
             style={{
               background: 'rgba(102, 126, 234, 0.15)',
               border: '1px solid rgba(102, 126, 234, 0.3)',
-              borderRadius: '10px',
-              padding: '10px',
+              borderRadius: '8px',
+              padding: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               transition: 'all 0.2s',
-              minWidth: '40px',
-              height: '40px'
+              minWidth: '36px',
+              height: '36px',
+              flexShrink: 0
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#667eea" strokeWidth="2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#667eea" strokeWidth="2.5">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
@@ -217,16 +218,16 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
             rows={1}
             style={{
               width: '100%',
-              padding: isMobile ? '10px 12px' : '14px 16px',
+              padding: isMobile ? '8px 12px' : '14px 16px',
               background: 'rgba(255, 255, 255, 0.05)',
               border: '1px solid rgba(102, 126, 234, 0.3)',
-              borderRadius: isMobile ? '20px' : '12px',
+              borderRadius: isMobile ? '18px' : '12px',
               color: '#f1f5f9',
               fontSize: isMobile ? '14px' : '15px',
               lineHeight: isMobile ? '20px' : '1.5',
               resize: 'none',
-              maxHeight: isMobile ? '40px' : '200px',
-              minHeight: isMobile ? '40px' : 'auto',
+              maxHeight: isMobile ? '36px' : '200px',
+              minHeight: isMobile ? '36px' : 'auto',
               overflow: isMobile ? 'hidden' : 'auto',
               fontFamily: 'inherit',
               transition: 'all 0.2s',
@@ -263,7 +264,7 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
           style={{
             background: disabled ? '#4b5563' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: 'white',
-            padding: isMobile ? '10px' : '14px 20px',
+            padding: isMobile ? '8px' : '14px 20px',
             borderRadius: isMobile ? '50%' : '12px',
             border: 'none',
             fontWeight: '600',
@@ -276,9 +277,10 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
             transition: 'all 0.3s',
             boxShadow: disabled ? 'none' : '0 4px 20px rgba(102, 126, 234, 0.4)',
             opacity: disabled ? 0.5 : 1,
-            minWidth: isMobile ? '40px' : 'auto',
-            width: isMobile ? '40px' : 'auto',
-            height: isMobile ? '40px' : 'auto'
+            minWidth: isMobile ? '36px' : 'auto',
+            width: isMobile ? '36px' : 'auto',
+            height: isMobile ? '36px' : 'auto',
+            flexShrink: 0
           }}
           onMouseEnter={(e) => {
             if (!disabled) {
