@@ -3,7 +3,15 @@ import { useState, useRef, useEffect } from 'react';
 export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] }) {
   const [message, setMessage] = useState('');
   const [attachedFiles, setAttachedFiles] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
   const textareaRef = useRef(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -50,7 +58,7 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
       borderTop: '1px solid rgba(102, 126, 234, 0.2)',
       background: 'rgba(15, 23, 42, 0.8)',
       backdropFilter: 'blur(10px)',
-      padding: '20px 24px'
+      padding: isMobile ? '12px 16px' : '20px 24px'
     }}>
       {/* Attached Files Preview */}
       {attachedFiles.length > 0 && (
@@ -70,7 +78,10 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
                 color: '#f1f5f9'
               }}
             >
-              <span>📄</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
               <span style={{ fontWeight: '500', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {file.original_filename}
               </span>
@@ -81,11 +92,16 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
                   border: 'none',
                   color: '#a78bfa',
                   cursor: 'pointer',
-                  fontSize: '16px',
-                  padding: '0 4px'
+                  fontSize: '14px',
+                  padding: '0 4px',
+                  display: 'flex',
+                  alignItems: 'center'
                 }}
               >
-                ✕
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               </button>
             </div>
           ))}
@@ -123,7 +139,10 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
                   e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.2)';
                 }}
               >
-                <span>📄</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
                 <span style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {file.original_filename}
                 </span>
@@ -141,20 +160,20 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask me anything about your files... (Shift+Enter for new line)"
+            placeholder={isMobile ? "Scrivi un messaggio..." : "Ask me anything about your files... (Shift+Enter for new line)"}
             disabled={disabled}
             rows={1}
             style={{
               width: '100%',
-              padding: '14px 16px',
+              padding: isMobile ? '10px 12px' : '14px 16px',
               background: 'rgba(255, 255, 255, 0.05)',
               border: '1px solid rgba(102, 126, 234, 0.3)',
-              borderRadius: '12px',
+              borderRadius: isMobile ? '10px' : '12px',
               color: '#f1f5f9',
-              fontSize: '15px',
+              fontSize: isMobile ? '14px' : '15px',
               lineHeight: '1.5',
               resize: 'none',
-              maxHeight: '200px',
+              maxHeight: isMobile ? '120px' : '200px',
               overflow: 'auto',
               fontFamily: 'inherit',
               transition: 'all 0.2s'
@@ -190,18 +209,20 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
           style={{
             background: disabled ? '#4b5563' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: 'white',
-            padding: '14px 24px',
-            borderRadius: '12px',
+            padding: isMobile ? '12px' : '14px 20px',
+            borderRadius: isMobile ? '10px' : '12px',
             border: 'none',
             fontWeight: '600',
-            fontSize: '15px',
+            fontSize: isMobile ? '14px' : '15px',
             cursor: disabled ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            justifyContent: 'center',
+            gap: isMobile ? '0' : '8px',
             transition: 'all 0.3s',
             boxShadow: disabled ? 'none' : '0 4px 20px rgba(102, 126, 234, 0.4)',
-            opacity: disabled ? 0.5 : 1
+            opacity: disabled ? 0.5 : 1,
+            minWidth: isMobile ? '44px' : 'auto'
           }}
           onMouseEnter={(e) => {
             if (!disabled) {
@@ -226,29 +247,38 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite'
               }}></div>
-              <span>Sending...</span>
+              {!isMobile && <span>Sending...</span>}
             </>
           ) : (
             <>
-              <span>Send</span>
-              <span>📤</span>
+              {!isMobile && <span>Send</span>}
+              <svg width={isMobile ? "20" : "18"} height={isMobile ? "20" : "18"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
             </>
           )}
         </button>
       </form>
 
       {/* Helper Text */}
-      <div style={{
-        marginTop: '10px',
-        fontSize: '12px',
-        color: '#64748b',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-      }}>
-        <span>💡</span>
-        <span>Tip: Attach files to ask specific questions about their content</span>
-      </div>
+      {!isMobile && (
+        <div style={{
+          marginTop: '10px',
+          fontSize: '12px',
+          color: '#64748b',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span>Tip: Attach files to ask specific questions about their content</span>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes spin {

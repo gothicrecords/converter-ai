@@ -232,18 +232,18 @@ export default function Navbar() {
         mobileMenu: {
             position: 'fixed',
             top: 0,
-            left: mobileMenuOpen ? 0 : '-100%',
+            right: mobileMenuOpen ? 0 : '-100%',
             bottom: 0,
             width: '80%',
             maxWidth: '320px',
             background: 'rgba(10, 14, 26, 0.98)',
             backdropFilter: 'blur(16px)',
-            borderRight: '1px solid rgba(102, 126, 234, 0.2)',
+            borderLeft: '1px solid rgba(102, 126, 234, 0.2)',
             overflowY: 'auto',
             padding: '20px',
             zIndex: 1002,
-            transition: 'left 0.3s ease',
-            boxShadow: '4px 0 20px rgba(0, 0, 0, 0.5)'
+            transition: 'right 0.3s ease',
+            boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)'
         },
         mobileSecondaryMenu: {
             position: 'fixed',

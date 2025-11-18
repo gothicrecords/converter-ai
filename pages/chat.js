@@ -16,9 +16,21 @@ export default function ChatPage() {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const messagesEndRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) setSidebarOpen(true);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     checkUser();
@@ -141,8 +153,8 @@ export default function ChatPage() {
         <Navbar />
 
         <div style={styles.chatContainer}>
-          {/* Sidebar */}
-          {sidebarOpen && (
+          {/* Sidebar - Desktop only */}
+          {!isMobile && sidebarOpen && (
             <aside style={styles.sidebar}>
               <div style={styles.sidebarHeader}>
                 <h2 style={styles.sidebarTitle}>Conversations</h2>
@@ -270,24 +282,33 @@ export default function ChatPage() {
           {/* Chat Area */}
           <main style={styles.main}>
             {/* Header */}
-            <div style={styles.chatHeader}>
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                style={styles.toggleBtn}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-              </button>
-              <h1 style={styles.chatTitle}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '12px' }}>
+            <div style={{
+              ...styles.chatHeader,
+              padding: isMobile ? '8px 12px' : '20px 24px',
+              justifyContent: isMobile ? 'center' : 'flex-start'
+            }}>
+              {!isMobile && (
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  style={styles.toggleBtn}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                  </svg>
+                </button>
+              )}
+              <h1 style={{
+                ...styles.chatTitle,
+                fontSize: isMobile ? '16px' : '20px'
+              }}>
+                <svg width={isMobile ? "18" : "24"} height={isMobile ? "18" : "24"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: isMobile ? '6px' : '12px' }}>
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
-                <span>AI Document Intelligence</span>
+                <span>{isMobile ? 'Documenti AI' : 'AI Document Intelligence'}</span>
               </h1>
             </div>
 
@@ -318,17 +339,128 @@ export default function ChatPage() {
                 </div>
               ) : messages.length === 0 ? (
                 <div style={styles.emptyChat}>
-                  <div style={styles.aiAvatar}>
-                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                  </div>
-                  <h2 style={styles.emptyChatTitle}>Analyze Your Documents with AI</h2>
-                  <p style={styles.emptyChatDesc}>
-                    Upload files and ask questions about the content. AI analyzes, extracts information, and answers your questions.
-                  </p>
+                  {isMobile ? (
+                    /* Mobile empty state */
+                    <>
+                      <div style={{
+                        width: '48px',
+                        height: '48px',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '16px',
+                        boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)'
+                      }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                      </div>
+                      <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px', color: '#f1f5f9' }}>
+                        Analizza Documenti
+                      </h2>
+                      <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '20px', textAlign: 'center', lineHeight: '1.5', maxWidth: '280px' }}>
+                        Carica file e inizia a chattare con l'AI
+                      </p>
+                      <button
+                        onClick={() => setShowUpload(true)}
+                        style={{
+                          padding: '12px 32px',
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          border: 'none',
+                          borderRadius: '12px',
+                          color: '#fff',
+                          fontSize: '15px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          marginBottom: '28px',
+                          boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
+                        }}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="17 8 12 3 7 8"></polyline>
+                          <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        Carica Documenti
+                      </button>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                        <div style={{ textAlign: 'center', width: '70px' }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            margin: '0 auto 8px',
+                            background: 'rgba(102, 126, 234, 0.15)',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#667eea'
+                          }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                              <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                          </div>
+                          <span style={{ fontSize: '11px', color: '#94a3b8' }}>PDF, DOCX</span>
+                        </div>
+                        <div style={{ textAlign: 'center', width: '70px' }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            margin: '0 auto 8px',
+                            background: 'rgba(102, 126, 234, 0.15)',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#667eea'
+                          }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="11" cy="11" r="8"></circle>
+                              <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                          </div>
+                          <span style={{ fontSize: '11px', color: '#94a3b8' }}>Ricerca AI</span>
+                        </div>
+                        <div style={{ textAlign: 'center', width: '70px' }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            margin: '0 auto 8px',
+                            background: 'rgba(102, 126, 234, 0.15)',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#667eea'
+                          }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                          </div>
+                          <span style={{ fontSize: '11px', color: '#94a3b8' }}>Chat AI</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    /* Desktop empty state */
+                    <>
+                      <div style={styles.aiAvatar}>
+                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                      </div>
+                      <h2 style={styles.emptyChatTitle}>Analyze Your Documents with AI</h2>
+                      <p style={styles.emptyChatDesc}>
+                        Upload files and ask questions about the content. AI analyzes, extracts information, and answers your questions.
+                      </p>
 
-                  <div style={styles.suggestedPrompts}>
+                      <div style={styles.suggestedPrompts}>
                     <button
                       onClick={() => handleSendMessage({ content: 'How does document analysis work?', fileIds: [] })}
                       style={styles.promptBtn}
@@ -427,6 +559,8 @@ export default function ChatPage() {
                       </div>
                     </button>
                   </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div style={styles.messagesList}>
