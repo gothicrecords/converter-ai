@@ -180,7 +180,10 @@ const styles = {
     textAlign: 'center',
     padding: '80px 24px 60px',
     maxWidth: '900px',
-    margin: '0 auto'
+    margin: '0 auto',
+    '@media (max-width: 768px)': {
+      padding: '60px 16px 40px'
+    }
   },
   heroBadge: {
     display: 'inline-flex',
@@ -253,7 +256,10 @@ const styles = {
   featuresSection: {
     padding: '60px 24px',
     maxWidth: '1200px',
-    margin: '0 auto'
+    margin: '0 auto',
+    '@media (max-width: 768px)': {
+      padding: '40px 16px'
+    }
   },
   featuresTitle: {
     fontSize: '32px',
@@ -488,7 +494,10 @@ const styles = {
     padding: '100px 24px 80px',
     maxWidth: '1100px',
     margin: '0 auto',
-    borderBottom: '1px solid rgba(148, 163, 184, 0.1)'
+    borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
+    '@media (max-width: 768px)': {
+      padding: '60px 16px 40px'
+    }
   },
   mainHeroContent: {
     display: 'flex',
