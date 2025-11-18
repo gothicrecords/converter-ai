@@ -25,7 +25,6 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['react-icons', 'framer-motion'],
     scrollRestoration: true,
-    optimizeCss: true,
   },
   
   compiler: {
