@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Head from 'next/head';
+import { memo, useMemo } from 'react';
 import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
@@ -7,8 +8,44 @@ import { loadTranslationsSSR } from '../lib/i18n-server';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
+// Memoized components for better performance
+const AnimatedBadge = memo(({ icon: Icon, text }) => (
+  <div style={styles.mainHeroBadge} className="animate-fade-in-up">
+    <Icon style={{ width: 16, height: 16 }} />
+    <span>{text}</span>
+  </div>
+));
+AnimatedBadge.displayName = 'AnimatedBadge';
+
+const StatItem = memo(({ value, label, delay }) => (
+  <div style={styles.statItem} className="animate-fade-in" data-delay={delay}>
+    <div style={styles.statValue} className="animate-count-up">{value}</div>
+    <div style={styles.statLabel}>{label}</div>
+  </div>
+));
+StatItem.displayName = 'StatItem';
+
+const FeatureCard = memo(({ icon, title, description, delay }) => (
+  <div style={styles.featureCard} className="animate-slide-up" data-delay={delay}>
+    <div style={styles.featureIconPro}>
+      {icon}
+    </div>
+    <h3 style={styles.featureTitle}>{title}</h3>
+    <p style={styles.featureDesc}>{description}</p>
+  </div>
+));
+FeatureCard.displayName = 'FeatureCard';
+
 export default function HomePage() {
   const { t } = useTranslation();
+  
+  // Memoize static data
+  const stats = useMemo(() => [
+    { value: '50K+', label: t('home.activeUsers'), delay: 0 },
+    { value: '2M+', label: t('home.imagesProcessed'), delay: 100 },
+    { value: '99.9%', label: t('home.uptime'), delay: 200 },
+    { value: '4.9/5', label: t('home.avgRating'), delay: 300 }
+  ], [t]);
   
   return (
     <div style={styles.homeWrap}>
@@ -23,22 +60,119 @@ export default function HomePage() {
       <Head>
         <title>MegaPixelAI - Analisi Documenti con Intelligenza Artificiale</title>
         <meta name="description" content="Carica i tuoi documenti e chatta con l'AI. Analisi automatica di PDF, DOCX, immagini con OCR e ricerca semantica." />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         
         {/* Preload risorse critiche */}
         <link rel="preload" href="/styles.css" as="style" />
-        <link rel="preload" as="image" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        
         <style>{`
           @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+            0%, 100% { transform: translateY(0px) translateZ(0); }
+            50% { transform: translateY(-20px) translateZ(0); }
           }
           @keyframes pulse {
             0%, 100% { opacity: 0.3; }
             50% { opacity: 0.6; }
           }
-          @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(30px) translateZ(0);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) translateZ(0);
+            }
+          }
+          @keyframes slideUp {
+            from {
+              opacity: 0;
+              transform: translateY(40px) translateZ(0);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) translateZ(0);
+            }
+          }
+          @keyframes scaleIn {
+            from {
+              opacity: 0;
+              transform: scale(0.9) translateZ(0);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1) translateZ(0);
+            }
+          }
+          @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+          }
+          
+          .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+          }
+          .animate-slide-up {
+            animation: slideUp 0.7s ease-out forwards;
+            opacity: 0;
+          }
+          .animate-slide-up[data-delay="0"] { animation-delay: 0s; }
+          .animate-slide-up[data-delay="1"] { animation-delay: 0.1s; }
+          .animate-slide-up[data-delay="2"] { animation-delay: 0.2s; }
+          .animate-slide-up[data-delay="3"] { animation-delay: 0.3s; }
+          
+          .animate-fade-in {
+            animation: scaleIn 0.5s ease-out forwards;
+            opacity: 0;
+          }
+          .animate-fade-in[data-delay="0"] { animation-delay: 0.2s; }
+          .animate-fade-in[data-delay="100"] { animation-delay: 0.3s; }
+          .animate-fade-in[data-delay="200"] { animation-delay: 0.4s; }
+          .animate-fade-in[data-delay="300"] { animation-delay: 0.5s; }
+          
+          /* Performance optimizations */
+          * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+          }
+          
+          /* GPU acceleration for animations */
+          .animate-fade-in-up,
+          .animate-slide-up,
+          .animate-fade-in {
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            perspective: 1000px;
+          }
+          
+          /* Reduce motion for accessibility */
+          @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+              animation-duration: 0.01ms !important;
+              animation-iteration-count: 1 !important;
+              transition-duration: 0.01ms !important;
+            }
+          }
+          
+          /* Hover effects with GPU acceleration */
+          .hover-lift {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+            will-change: transform;
+          }
+          .hover-lift:hover {
+            transform: translateY(-3px) translateZ(0);
+          }
+          
+          /* Mobile optimizations */
+          @media (max-width: 768px) {
+            .animate-fade-in-up,
+            .animate-slide-up,
+            .animate-fade-in {
+              animation-duration: 0.4s;
+            }
           }
         `}</style>
       </Head>
@@ -48,42 +182,26 @@ export default function HomePage() {
       {/* Nuova sezione hero principale */}
       <div style={styles.mainHero}>
         <div style={styles.mainHeroContent}>
-          <div style={styles.mainHeroBadge}>
-            <HiSparkles style={{ width: 16, height: 16 }} />
-            <span>{t('home.poweredBy')}</span>
-          </div>
-          <h1 style={styles.mainHeroTitle}>
+          <AnimatedBadge icon={HiSparkles} text={t('home.poweredBy')} />
+          <h1 style={styles.mainHeroTitle} className="animate-fade-in-up">
             {t('home.heroTitle1')}<span style={styles.gradient}>{t('home.heroTitle2')}</span>
           </h1>
-          <p style={styles.mainHeroSubtitle}>
+          <p style={styles.mainHeroSubtitle} className="animate-fade-in-up">
             {t('home.heroSubtitle')}
           </p>
-          <div style={styles.mainHeroCta}>
-            <Link href="/tools" style={styles.mainPrimaryCta}>
+          <div style={styles.mainHeroCta} className="animate-fade-in-up">
+            <Link href="/tools" style={styles.mainPrimaryCta} className="hover-lift">
               <span>{t('hero.cta')}</span>
               <HiArrowRight style={{ width: 20, height: 20 }} />
             </Link>
-            <Link href="/home" style={styles.mainSecondaryCta}>
+            <Link href="/home" style={styles.mainSecondaryCta} className="hover-lift">
               <span>{t('home.learnMore')}</span>
             </Link>
           </div>
           <div style={styles.statsGrid}>
-            <div style={styles.statItem}>
-              <div style={styles.statValue}>50K+</div>
-              <div style={styles.statLabel}>{t('home.activeUsers')}</div>
-            </div>
-            <div style={styles.statItem}>
-              <div style={styles.statValue}>2M+</div>
-              <div style={styles.statLabel}>{t('home.imagesProcessed')}</div>
-            </div>
-            <div style={styles.statItem}>
-              <div style={styles.statValue}>99.9%</div>
-              <div style={styles.statLabel}>{t('home.uptime')}</div>
-            </div>
-            <div style={styles.statItem}>
-              <div style={styles.statValue}>4.9/5</div>
-              <div style={styles.statLabel}>{t('home.avgRating')}</div>
-            </div>
+            {stats.map((stat, i) => (
+              <StatItem key={i} value={stat.value} label={stat.label} delay={stat.delay} />
+            ))}
           </div>
         </div>
       </div>
@@ -109,49 +227,45 @@ export default function HomePage() {
       </div>
 
       <div style={styles.featuresSection}>
-        <h2 style={styles.featuresTitle}>{t('features.title')}</h2>
+        <h2 style={styles.featuresTitle} className="animate-fade-in-up">{t('features.title')}</h2>
         <div style={styles.featuresGrid}>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIconPro}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-              </svg>
-            </div>
-            <h3 style={styles.featureTitle}>{t('features.aiPowered')}</h3>
-            <p style={styles.featureDesc}>{t('features.aiPoweredDesc')}</p>
-          </div>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIconPro}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-              </svg>
-            </div>
-            <h3 style={styles.featureTitle}>{t('features.fastProcessing')}</h3>
-            <p style={styles.featureDesc}>{t('features.fastProcessingDesc')}</p>
-          </div>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIconPro}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-            </div>
-            <h3 style={styles.featureTitle}>{t('features.cloudBased')}</h3>
-            <p style={styles.featureDesc}>{t('features.cloudBasedDesc')}</p>
-          </div>
-          <div style={styles.featureCard}>
-            <div style={styles.featureIconPro}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-            </div>
-            <h3 style={styles.featureTitle}>{t('features.secure')}</h3>
-            <p style={styles.featureDesc}>{t('features.secureDesc')}</p>
-          </div>
+          <FeatureCard
+            delay={0}
+            icon={<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>}
+            title={t('features.aiPowered')}
+            description={t('features.aiPoweredDesc')}
+          />
+          <FeatureCard
+            delay={1}
+            icon={<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>}
+            title={t('features.fastProcessing')}
+            description={t('features.fastProcessingDesc')}
+          />
+          <FeatureCard
+            delay={2}
+            icon={<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>}
+            title={t('features.cloudBased')}
+            description={t('features.cloudBasedDesc')}
+          />
+          <FeatureCard
+            delay={3}
+            icon={<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>}
+            title={t('features.secure')}
+            description={t('features.secureDesc')}
+          />
         </div>
       </div>
 
@@ -307,7 +421,9 @@ const styles = {
     textAlign: 'center',
     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     cursor: 'pointer',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    willChange: 'transform',
+    transform: 'translateZ(0)'
   },
   featureIcon: {
     fontSize: '48px',
@@ -596,8 +712,10 @@ const styles = {
     alignItems: 'center',
     gap: '8px',
     textDecoration: 'none',
-    transition: 'transform 0.2s',
-    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.35)'
+    transition: 'transform 0.2s, box-shadow 0.2s',
+    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.35)',
+    willChange: 'transform',
+    transform: 'translateZ(0)'
   },
   mainSecondaryCta: {
     padding: '12px 28px',
@@ -609,7 +727,9 @@ const styles = {
     fontWeight: '600',
     cursor: 'pointer',
     textDecoration: 'none',
-    transition: 'all 0.2s'
+    transition: 'all 0.2s',
+    willChange: 'transform',
+    transform: 'translateZ(0)'
   },
   statsGrid: {
     display: 'grid',
@@ -658,7 +778,9 @@ const styles = {
     background: 'radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%)',
     borderRadius: '50%',
     filter: 'blur(60px)',
-    animation: 'float 8s ease-in-out infinite'
+    animation: 'float 8s ease-in-out infinite',
+    willChange: 'transform',
+    contain: 'layout style paint'
   },
   bgCircle2: {
     position: 'absolute',
@@ -669,7 +791,9 @@ const styles = {
     background: 'radial-gradient(circle, rgba(118, 75, 162, 0.12) 0%, transparent 70%)',
     borderRadius: '50%',
     filter: 'blur(80px)',
-    animation: 'float 10s ease-in-out infinite reverse'
+    animation: 'float 10s ease-in-out infinite reverse',
+    willChange: 'transform',
+    contain: 'layout style paint'
   },
   bgCircle3: {
     position: 'absolute',
@@ -681,7 +805,9 @@ const styles = {
     background: 'radial-gradient(circle, rgba(102, 126, 234, 0.08) 0%, transparent 70%)',
     borderRadius: '50%',
     filter: 'blur(100px)',
-    animation: 'pulse 6s ease-in-out infinite'
+    animation: 'pulse 6s ease-in-out infinite',
+    willChange: 'opacity',
+    contain: 'layout style paint'
   },
   bgGrid: {
     position: 'absolute',
