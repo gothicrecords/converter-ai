@@ -38,7 +38,7 @@ const ToolPage = ({ initialSlug, meta }) => {
     const tool = aiTool || (conversionTool && {
         title: conversionTool.title,
         description: conversionTool.description,
-        icon: aiTool?.icon || HiArrowRight // fallback icon
+        icon: HiArrowRight // fallback icon sempre definito
     });
     const otherTools = tools.filter(t => t.href !== `/tools/${slug}`).slice(0, 6);
 
@@ -107,9 +107,15 @@ const ToolPage = ({ initialSlug, meta }) => {
 
             <main style={styles.mainContent}>
                 <header style={styles.toolHeader}>
-                    <div style={styles.iconBadge}>
-                        <tool.icon style={styles.iconBadgeIcon} />
-                    </div>
+                    {tool.icon && (
+                        <div style={styles.iconBadge}>
+                            {typeof tool.icon === 'function' ? (
+                                <tool.icon style={styles.iconBadgeIcon} />
+                            ) : (
+                                <HiArrowRight style={styles.iconBadgeIcon} />
+                            )}
+                        </div>
+                    )}
                     <h1 style={styles.toolTitle}>
                         {tool.title}
                     </h1>
@@ -152,23 +158,50 @@ const ToolPage = ({ initialSlug, meta }) => {
 export default ToolPage;
 
 export async function getStaticPaths() {
-    const aiSlugs = tools.map(t => t.href.replace('/tools/', ''));
-    const convSlugs = listConversionSlugs();
-    const slugs = Array.from(new Set([...aiSlugs, ...convSlugs]));
-    const paths = slugs.map(slug => ({ params: { slug } }));
-    return { paths, fallback: 'blocking' };
+    try {
+        const aiSlugs = tools.map(t => t.href.replace('/tools/', '')).filter(Boolean);
+        const convSlugs = listConversionSlugs().filter(Boolean);
+        const slugs = Array.from(new Set([...aiSlugs, ...convSlugs])).filter(Boolean);
+        const paths = slugs.map(slug => ({ params: { slug: String(slug) } }));
+        return { paths, fallback: 'blocking' };
+    } catch (error) {
+        console.error('Error in getStaticPaths:', error);
+        return { paths: [], fallback: 'blocking' };
+    }
 }
 
 export async function getStaticProps({ params }) {
-    const { slug } = params;
-    const aiTool = tools.find(t => t.href === `/tools/${slug}`);
-    const conversionTool = getConversionTool(slug);
-    const meta = aiTool
-        ? { title: aiTool.title, description: aiTool.description }
-        : conversionTool
-            ? { title: conversionTool.title, description: conversionTool.description }
-            : { title: 'Strumento non trovato', description: 'Lo strumento richiesto non esiste.' };
-    return { props: { initialSlug: slug, meta }, revalidate: 3600 };
+    try {
+        const { slug } = params || {};
+        if (!slug) {
+            return { notFound: true };
+        }
+        
+        const aiTool = tools.find(t => t.href === `/tools/${slug}`);
+        const conversionTool = getConversionTool(slug);
+        const meta = aiTool
+            ? { title: aiTool.title || 'Strumento', description: aiTool.description || '' }
+            : conversionTool
+                ? { title: conversionTool.title || 'Convertitore', description: conversionTool.description || '' }
+                : { title: 'Strumento non trovato', description: 'Lo strumento richiesto non esiste.' };
+        
+        return { 
+            props: { 
+                initialSlug: String(slug), 
+                meta 
+            }, 
+            revalidate: 3600 
+        };
+    } catch (error) {
+        console.error('Error in getStaticProps:', error);
+        return { 
+            props: { 
+                initialSlug: params?.slug || 'unknown', 
+                meta: { title: 'Errore', description: 'Errore nel caricamento dello strumento.' } 
+            },
+            revalidate: 60
+        };
+    }
 }
 
 const styles = {
