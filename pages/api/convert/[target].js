@@ -20,6 +20,7 @@ import Epub from 'epub-gen';
 import ttf2eotConv from 'ttf2eot';
 import { path7za } from '7zip-bin';
 import { execFile } from 'child_process';
+import { createExtractorFromData } from 'node-unrar-js';
 
 export const config = { api: { bodyParser: false } };
 
@@ -178,6 +179,17 @@ export default async function handler(req, res) {
           mime = 'application/pdf';
         }
       }
+      // AI -> PDF (embedded PDF extraction)
+      if (!outputBuffer && lowerTarget === 'pdf' && inputExt === 'ai') {
+        const bin = inputBuffer.toString('binary');
+        const start = bin.indexOf('%PDF-');
+        const end = bin.lastIndexOf('%%EOF');
+        if (start !== -1 && end !== -1 && end > start) {
+          const pdfBinary = bin.substring(start, end + 5);
+          outputBuffer = Buffer.from(pdfBinary, 'binary');
+          mime = 'application/pdf';
+        }
+      }
 
       // TXT extraction
       if (!outputBuffer && lowerTarget === 'txt') {
@@ -305,6 +317,75 @@ export default async function handler(req, res) {
         try { fs.unlinkSync(inFile); fs.unlinkSync(outPath); } catch {}
         mime = 'application/x-7z-compressed';
       }
+      // Generic archive extraction via 7z, repack to ZIP/TGZ
+      const extractable = ['7z','rar','tar','gz','tgz','zip','bz2','xz'];
+      if (!outputBuffer && extractable.includes(inputExt) && (lowerTarget === 'zip' || lowerTarget === 'tgz')) {
+        const tmpDir = path.dirname(inputPath);
+        const inPath = path.join(tmpDir, `in_${Date.now()}.${inputExt}`);
+        fs.writeFileSync(inPath, inputBuffer);
+        const outDir = path.join(tmpDir, `ext_${Date.now()}`);
+        fs.mkdirSync(outDir);
+        let extracted = false;
+        try {
+          await new Promise((resolve, reject) => {
+            execFile(path7za, ['x', inPath, `-o${outDir}`, '-y'], (err) => {
+              if (err) reject(err); else resolve();
+            });
+          });
+          extracted = true;
+        } catch {}
+        if (!extracted && inputExt === 'rar') {
+          try {
+            const extractor = await createExtractorFromData({ data: inputBuffer });
+            const list = extractor.extract();
+            for (const entry of list.files) {
+              if (entry.type === 'file') {
+                const outPathFile = path.join(outDir, entry.fileHeader.name);
+                const outSub = path.dirname(outPathFile);
+                fs.mkdirSync(outSub, { recursive: true });
+                fs.writeFileSync(outPathFile, Buffer.from(entry.extract()));
+              }
+            }
+            extracted = true;
+          } catch {}
+        }
+        if (extracted) {
+          if (lowerTarget === 'zip') {
+            const zip = new JSZip();
+            const addDir = (dir, base = '') => {
+              const items = fs.readdirSync(dir, { withFileTypes: true });
+              for (const it of items) {
+                const p = path.join(dir, it.name);
+                const rel = path.join(base, it.name);
+                if (it.isDirectory()) addDir(p, rel);
+                else zip.file(rel.replace(/\\/g, '/'), fs.readFileSync(p));
+              }
+            };
+            addDir(outDir);
+            outputBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+            mime = 'application/zip';
+          } else {
+            const pack = tarStream.pack();
+            const tarChunks = [];
+            const addDir = (dir, base = '') => {
+              const items = fs.readdirSync(dir, { withFileTypes: true });
+              for (const it of items) {
+                const p = path.join(dir, it.name);
+                const rel = path.join(base, it.name);
+                if (it.isDirectory()) addDir(p, rel);
+                else pack.entry({ name: rel.replace(/\\/g, '/'), size: fs.statSync(p).size }, fs.readFileSync(p));
+              }
+            };
+            addDir(outDir);
+            pack.finalize();
+            for await (const c of pack) tarChunks.push(c);
+            const tarBuf2 = Buffer.concat(tarChunks);
+            outputBuffer = zlib.gzipSync(tarBuf2);
+            mime = 'application/gzip';
+          }
+        }
+        try { fs.rmSync(outDir, { recursive: true, force: true }); fs.unlinkSync(inPath); } catch {}
+      }
 
       // TAR/GZ/TGZ creation from single file
       if (!outputBuffer && lowerTarget === 'tar') {
@@ -403,6 +484,19 @@ export default async function handler(req, res) {
       if (!outputBuffer && (lowerTarget === 'png') && inputExt === 'svg') {
         outputBuffer = await sharp(inputBuffer).png().toBuffer();
         mime = 'image/png';
+      }
+      // PDF -> PNG/JPG (first page) via sharp if supported
+      if (!outputBuffer && (lowerTarget === 'png' || lowerTarget === 'jpg' || lowerTarget === 'jpeg') && inputExt === 'pdf') {
+        try {
+          const raster = sharp(inputBuffer, { density: 150 });
+          if (lowerTarget === 'png') {
+            outputBuffer = await raster.png().toBuffer();
+            mime = 'image/png';
+          } else {
+            outputBuffer = await raster.jpeg({ quality }).toBuffer();
+            mime = 'image/jpeg';
+          }
+        } catch {}
       }
 
       // SVGZ -> SVG
