@@ -343,6 +343,7 @@ export default function Navbar() {
         const mediaQuery = window.matchMedia('(max-width: 768px)');
         if (mediaQuery.matches) {
             styles.navMenu.display = 'none';
+            styles.homeBtn.display = 'none';
             styles.hamburgerBtn.display = 'flex';
             styles.secondaryMenuBtn.display = 'flex';
         }
