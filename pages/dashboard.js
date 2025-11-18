@@ -10,7 +10,7 @@ import { getCurrentUser, logout, isAuthenticated, getUserStats } from '../lib/au
 import { getHistory } from '../lib/history';
 import { useTranslation } from '../lib/i18n';
 
-export default function DashboardPage() {
+function DashboardPage() {
     const { t } = useTranslation();
     const router = useRouter();
     const [user, setUser] = useState(null);
@@ -308,6 +308,15 @@ export default function DashboardPage() {
         </div>
     );
 }
+
+// Disabilita pre-rendering per questa pagina (usa localStorage)
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}
+
+export default DashboardPage;
 
 const styles = {
     pageWrap: { minHeight: '100vh', background: '#0a0e1a', color: '#e6eef8' },
