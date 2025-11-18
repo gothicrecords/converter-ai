@@ -1,18 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
+import { useIsMobile } from '../lib/useMediaQuery';
 
 export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] }) {
   const [message, setMessage] = useState('');
   const [attachedFiles, setAttachedFiles] = useState([]);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   useEffect(() => {
     if (textareaRef.current) {
