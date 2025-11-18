@@ -271,7 +271,11 @@ const styles = {
   featuresGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '24px'
+    gap: '24px',
+    '@media (max-width: 768px)': {
+      gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+      gap: '12px'
+    }
   },
   featureCard: {
     padding: '32px 24px',
@@ -279,7 +283,11 @@ const styles = {
     border: '1px solid rgba(102, 126, 234, 0.2)',
     borderRadius: '16px',
     textAlign: 'center',
-    transition: 'all 0.3s'
+    transition: 'all 0.3s',
+    '@media (max-width: 768px)': {
+      padding: '16px 12px',
+      borderRadius: '12px'
+    }
   },
   featureIcon: {
     fontSize: '48px',
@@ -295,7 +303,12 @@ const styles = {
     background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
     border: '1px solid rgba(102, 126, 234, 0.2)',
     borderRadius: '16px',
-    color: '#667eea'
+    color: '#667eea',
+    '@media (max-width: 768px)': {
+      width: '48px',
+      height: '48px',
+      margin: '0 auto 12px'
+    }
   },
   featureTitle: {
     fontSize: '18px',

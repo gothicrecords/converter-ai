@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HiArrowRight } from 'react-icons/hi';
+import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import { useTranslation } from '../lib/i18n';
 import { loadTranslationsSSR } from '../lib/i18n-server';
 import Navbar from '../components/Navbar';
@@ -12,6 +13,7 @@ import { useIsMobile } from '../lib/useMediaQuery';
 export default function ToolsPage() {
     const { t } = useTranslation();
     const [selectedCategory, setSelectedCategory] = useState('Tutti');
+    const [filtersExpanded, setFiltersExpanded] = useState(false);
     const isMobile = useIsMobile();
 
     // Ottieni categorie uniche
@@ -23,9 +25,9 @@ export default function ToolsPage() {
         : allTools.filter(tool => tool.category === selectedCategory);
 
     // Stili dinamici basati su mobile
-    const getCardPadding = () => isMobile ? '16px' : '24px';
-    const getIconSize = () => isMobile ? 40 : 48;
-    const getIconInnerSize = () => isMobile ? 20 : 24;
+    const getCardPadding = () => isMobile ? '12px' : '24px';
+    const getIconSize = () => isMobile ? 32 : 48;
+    const getIconInnerSize = () => isMobile ? 16 : 24;
 
     return (
         <div style={styles.pageWrap}>
@@ -51,36 +53,49 @@ export default function ToolsPage() {
             {/* Filtri per categoria */}
             <section style={styles.filterSection}>
                 <div style={styles.filterContainer}>
-                    {/* Filtro "Tutti" centrale */}
-                    <button
-                        onClick={() => setSelectedCategory('Tutti')}
-                        style={{
-                            ...styles.filterButtonCenter,
-                            ...(selectedCategory === 'Tutti' ? styles.filterButtonActive : {})
-                        }}
-                    >
-                        Tutti
-                    </button>
-                    
-                    {/* Altri filtri distribuiti */}
-                    <div style={styles.filterGrid}>
-                        {categories.filter(cat => cat !== 'Tutti').map((category) => (
+                    <div style={isMobile ? styles.filterBarMobile : styles.filterBar}>
+                        <button
+                            onClick={() => setSelectedCategory('Tutti')}
+                            style={{
+                                ...styles.filterButtonCenter,
+                                ...(selectedCategory === 'Tutti' ? styles.filterButtonActive : {})
+                            }}
+                        >
+                            Tutti
+                        </button>
+                        {isMobile && (
                             <button
-                                key={category}
-                                onClick={() => setSelectedCategory(category)}
-                                style={{
-                                    ...styles.filterButton,
-                                    ...(selectedCategory === category ? styles.filterButtonActive : {})
-                                }}
+                                style={styles.filterMenuButton}
+                                onClick={() => setFiltersExpanded(prev => !prev)}
                             >
-                                {category}
+                                Filtri
+                                {filtersExpanded ? (
+                                    <BsChevronUp style={styles.filterMenuIcon} />
+                                ) : (
+                                    <BsChevronDown style={styles.filterMenuIcon} />
+                                )}
                             </button>
-                        ))}
+                        )}
                     </div>
-                </div>
-            </section>
 
-            <section style={styles.toolsSection}>
+                    {(!isMobile || filtersExpanded) && (
+                        <div style={styles.filterGrid}>
+                            {categories.filter(cat => cat !== 'Tutti').map((category) => (
+                                <button
+                                    key={category}
+                                    onClick={() => setSelectedCategory(category)}
+                                    style={{
+                                        ...styles.filterButton,
+                                        ...(selectedCategory === category ? styles.filterButtonActive : {})
+                                    }}
+                                >
+                                    {category}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </section>            <section style={styles.toolsSection}>
                 <div style={styles.toolsGrid}>
                     {filteredTools.map((tool, i) => {
                         const IconComponent = tool.icon;
@@ -135,10 +150,14 @@ const styles = {
     heroTitle: { fontSize: 'clamp(32px, 6vw, 48px)', fontWeight: '900', lineHeight: '1.1', margin: 0, letterSpacing: '-0.02em', maxWidth: '800px', color: '#e2e8f0' },
     heroSubtitle: { fontSize: '18px', color: '#94a3b8', lineHeight: '1.6', margin: 0, maxWidth: '700px' },
     toolsSection: { maxWidth: '1200px', margin: '0 auto', padding: '40px 24px 80px' },
-    toolsGrid: { 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
-        gap: '24px'
+    toolsGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        gap: '24px',
+        '@media (max-width: 768px)': {
+            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+            gap: '12px'
+        }
     },
     toolCard: { 
         position: 'relative', 
@@ -237,10 +256,27 @@ const styles = {
         alignItems: 'center',
         gap: '16px'
     },
-    filterButtonCenter: {
-        padding: '12px 32px',
+    filterBar: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%'
+    },
+    filterBarMobile: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        maxWidth: '400px',
+        padding: '12px 20px',
         background: 'rgba(30, 41, 59, 0.5)',
         border: '1px solid rgba(102, 126, 234, 0.2)',
+        borderRadius: '24px'
+    },
+    filterButtonCenter: {
+        padding: '10px 28px',
+        background: 'transparent',
+        border: 'none',
         borderRadius: '24px',
         color: '#94a3b8',
         fontSize: '15px',
@@ -248,7 +284,26 @@ const styles = {
         cursor: 'pointer',
         transition: 'all 0.3s ease',
         outline: 'none',
-        minWidth: '120px'
+        minWidth: '100px'
+    },
+    filterMenuButton: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '8px 12px',
+        background: 'rgba(102, 126, 234, 0.15)',
+        border: '1px solid rgba(102, 126, 234, 0.3)',
+        borderRadius: '16px',
+        color: '#667eea',
+        fontSize: '13px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        outline: 'none'
+    },
+    filterMenuIcon: {
+        width: '14px',
+        height: '14px'
     },
     filterGrid: {
         display: 'grid',
