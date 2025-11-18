@@ -10,7 +10,6 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   compress: true,
   poweredByHeader: false,
-  swcMinify: true,
   
   // Image optimization
   images: {
@@ -84,30 +83,6 @@ const nextConfig = {
         ],
       },
     ];
-  },
-  
-  // Performance optimizations
-  webpack: (config, { isServer }) => {
-    // Ottimizzazione bundle size
-    if (!isServer) {
-      config.optimization.splitChunks.cacheGroups = {
-        ...config.optimization.splitChunks.cacheGroups,
-        commons: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          chunks: 'all',
-          priority: 10,
-        },
-        lib: {
-          test: /[\\/]lib[\\/]/,
-          name: 'lib',
-          chunks: 'all',
-          priority: 5,
-        },
-      };
-    }
-    
-    return config;
   },
 };
 
