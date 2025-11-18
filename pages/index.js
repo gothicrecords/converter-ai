@@ -28,39 +28,39 @@ export default function HomePage() {
         <div style={styles.mainHeroContent}>
           <div style={styles.mainHeroBadge}>
             <HiSparkles style={{ width: 16, height: 16 }} />
-            <span>Powered by AI</span>
+            <span>{t('home.poweredBy')}</span>
           </div>
           <h1 style={styles.mainHeroTitle}>
-            Trasforma i tuoi contenuti con l'<span style={styles.gradient}>Intelligenza Artificiale</span>
+            {t('home.heroTitle1')}<span style={styles.gradient}>{t('home.heroTitle2')}</span>
           </h1>
           <p style={styles.mainHeroSubtitle}>
-            15+ strumenti professionali per immagini, PDF, audio e video. Nessuna registrazione. Nessun limite. Risultati istantanei.
+            {t('home.heroSubtitle')}
           </p>
           <div style={styles.mainHeroCta}>
             <Link href="/tools" style={styles.mainPrimaryCta}>
-              <span>Inizia Gratis</span>
+              <span>{t('hero.cta')}</span>
               <HiArrowRight style={{ width: 20, height: 20 }} />
             </Link>
             <Link href="/home" style={styles.mainSecondaryCta}>
-              <span>Scopri di più</span>
+              <span>{t('home.learnMore')}</span>
             </Link>
           </div>
           <div style={styles.statsGrid}>
             <div style={styles.statItem}>
               <div style={styles.statValue}>50K+</div>
-              <div style={styles.statLabel}>Utenti Attivi</div>
+              <div style={styles.statLabel}>{t('home.activeUsers')}</div>
             </div>
             <div style={styles.statItem}>
               <div style={styles.statValue}>2M+</div>
-              <div style={styles.statLabel}>Immagini Processate</div>
+              <div style={styles.statLabel}>{t('home.imagesProcessed')}</div>
             </div>
             <div style={styles.statItem}>
               <div style={styles.statValue}>99.9%</div>
-              <div style={styles.statLabel}>Uptime</div>
+              <div style={styles.statLabel}>{t('home.uptime')}</div>
             </div>
             <div style={styles.statItem}>
               <div style={styles.statValue}>4.9/5</div>
-              <div style={styles.statLabel}>Rating Medio</div>
+              <div style={styles.statLabel}>{t('home.avgRating')}</div>
             </div>
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function HomePage() {
         </p>
         <div style={styles.ctaButtons}>
           <Link href="/chat" style={styles.primaryCta}>
-            <span>Prova Ora</span>
+            <span>{t('hero.tryNow')}</span>
             <HiArrowRight style={{ width: 20, height: 20 }} />
           </Link>
         </div>
