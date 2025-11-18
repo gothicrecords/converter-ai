@@ -95,31 +95,20 @@ export default function ToolsPage() {
                             )}
                         </>
                     ) : (
-                        <>
-                            <button
-                                onClick={() => setSelectedCategory('Tutti')}
-                                style={{
-                                    ...styles.filterButtonCenterDesktop,
-                                    ...(selectedCategory === 'Tutti' ? styles.filterButtonActive : {})
-                                }}
-                            >
-                                Tutti
-                            </button>
-                            <div style={styles.filterGrid}>
-                                {categories.filter(cat => cat !== 'Tutti').map((category) => (
-                                    <button
-                                        key={category}
-                                        onClick={() => setSelectedCategory(category)}
-                                        style={{
-                                            ...styles.filterButton,
-                                            ...(selectedCategory === category ? styles.filterButtonActive : {})
-                                        }}
-                                    >
-                                        {category}
-                                    </button>
-                                ))}
-                            </div>
-                        </>
+                        <div style={styles.filterContainerDesktop}>
+                            {categories.map((category) => (
+                                <button
+                                    key={category}
+                                    onClick={() => setSelectedCategory(category)}
+                                    style={{
+                                        ...styles.filterButtonDesktop,
+                                        ...(selectedCategory === category ? styles.filterButtonActiveDesktop : {})
+                                    }}
+                                >
+                                    {category}
+                                </button>
+                            ))}
+                        </div>
                     )}
                 </div>
             </section>            <section style={styles.toolsSection}>
@@ -308,9 +297,10 @@ const styles = {
     filterSection: {
         maxWidth: '1200px',
         margin: '0 auto',
-        padding: '0 24px 40px',
+        padding: '0 24px 50px',
         display: 'flex',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     filterContainer: {
         display: 'flex',
@@ -318,6 +308,17 @@ const styles = {
         alignItems: 'center',
         gap: '20px',
         width: '100%'
+    },
+    filterContainerDesktop: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '8px',
+        background: 'rgba(15, 23, 42, 0.8)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(102, 126, 234, 0.2)',
+        borderRadius: '50px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
     },
     filterBarMobile: {
         display: 'flex',
@@ -331,21 +332,26 @@ const styles = {
         borderRadius: '24px',
         position: 'relative'
     },
-    filterButtonCenterDesktop: {
-        padding: '12px 36px',
-        background: 'rgba(30, 41, 59, 0.6)',
-        border: '1px solid rgba(102, 126, 234, 0.25)',
-        borderRadius: '24px',
-        color: '#cbd5e1',
-        fontSize: '16px',
-        fontWeight: '700',
+    filterButtonDesktop: {
+        padding: '10px 24px',
+        background: 'transparent',
+        border: 'none',
+        borderRadius: '50px',
+        color: '#94a3b8',
+        fontSize: '14px',
+        fontWeight: '600',
         cursor: 'pointer',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         outline: 'none',
-        minWidth: '140px',
+        whiteSpace: 'nowrap',
         textAlign: 'center',
-        letterSpacing: '0.3px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+        position: 'relative'
+    },
+    filterButtonActiveDesktop: {
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: '#ffffff',
+        boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+        transform: 'scale(1.05)'
     },
     filterButtonCenter: {
         padding: '10px 28px',
