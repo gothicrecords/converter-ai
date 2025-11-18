@@ -37,7 +37,11 @@ function MyApp({ Component, pageProps }) {
           '/tools/rimozione-sfondo-ai',
           '/tools/generazione-immagini-ai',
           '/upscaler',
-          '/pdf'
+          '/pdf',
+          '/pdf/jpg2pdf',
+          '/pdf/pdf2jpg',
+          '/pdf/docx2pdf',
+          '/pdf/pdf2docx'
         ];
         commonRoutes.forEach(route => router.prefetch(route));
       });
