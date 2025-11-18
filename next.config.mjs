@@ -28,45 +28,9 @@ const nextConfig = {
     optimizeCss: true,
   },
   
-  // Webpack optimizations
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      // Code splitting ottimizzato
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            default: false,
-            vendors: false,
-            // Vendor chunks
-            vendor: {
-              name: 'vendor',
-              chunks: 'all',
-              test: /node_modules/,
-              priority: 20,
-            },
-            // Common chunks
-            common: {
-              name: 'common',
-              minChunks: 2,
-              chunks: 'all',
-              priority: 10,
-              reuseExistingChunk: true,
-            },
-            // React chunks
-            react: {
-              name: 'react',
-              test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-              chunks: 'all',
-              priority: 30,
-            },
-          },
-        },
-      };
-    }
-    return config;
-  },
+  // Turbopack configuration (Next.js 16+)
+  // Turbopack gestisce automaticamente code splitting ottimizzato
+  turbopack: {},
   
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { 
