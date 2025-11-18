@@ -66,9 +66,8 @@ export default function PdfToolPage({ initialActive }){
 }
 
 export function getStaticPaths(){
-  const slugs = Object.keys(TOOL_META);
-  const paths = slugs.map(s => ({ params: { slug: s } }));
-  return { paths, fallback: 'blocking' };
+  // Generate all PDF pages on-demand to avoid build errors
+  return { paths: [], fallback: 'blocking' };
 }
 
 export function getStaticProps({ params }){

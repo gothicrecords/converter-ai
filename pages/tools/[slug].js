@@ -158,22 +158,11 @@ const ToolPage = ({ initialSlug, meta }) => {
 export default ToolPage;
 
 export async function getStaticPaths() {
-    try {
-        const aiSlugs = tools.map(t => t.href.replace('/tools/', '')).filter(Boolean);
-        const convSlugs = listConversionSlugs().filter(Boolean);
-        const slugs = Array.from(new Set([...aiSlugs, ...convSlugs])).filter(Boolean);
-        
-        // Limit to 20 for faster Vercel builds; rest generated on-demand
-        const paths = slugs.slice(0, 20).map(slug => ({ params: { slug: String(slug) } }));
-        
-        return { 
-            paths, 
-            fallback: 'blocking'
-        };
-    } catch (error) {
-        console.error('Error in getStaticPaths:', error);
-        return { paths: [], fallback: 'blocking' };
-    }
+    // Generate all pages on-demand to avoid Vercel build timeout
+    return { 
+        paths: [], 
+        fallback: 'blocking'
+    };
 }
 
 export async function getStaticProps({ params }) {
