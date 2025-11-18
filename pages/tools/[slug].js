@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { tools } from '../../lib/tools';
-import { getConversionTool } from '../../lib/conversionRegistry';
+import { getConversionTool, listConversionSlugs } from '../../lib/conversionRegistry';
 import GenericConverter from '../../components/GenericConverter';
 import { HiArrowRight } from 'react-icons/hi';
 import Link from 'next/link';
@@ -26,9 +26,9 @@ const GrammarChecker = dynamic(() => import('../../components/tools/GrammarCheck
 const ThumbnailGenerator = dynamic(() => import('../../components/tools/ThumbnailGenerator'), { ssr: false });
 const CombineSplitPDF = dynamic(() => import('../../components/tools/CombineSplitPDF'), { ssr: false });
 
-const ToolPage = () => {
+const ToolPage = ({ initialSlug, meta }) => {
     const router = useRouter();
-    const { slug } = router.query;
+    const slug = initialSlug || router.query.slug;
 
     // First try AI tools list, then conversion registry.
     const aiTool = tools.find(t => t.href === `/tools/${slug}`);
@@ -91,10 +91,10 @@ const ToolPage = () => {
     return (
         <div style={styles.pageWrap}>
             <Head>
-                <title>{`${tool.title} | Suite di Strumenti AI`}</title>
-                <meta name="description" content={tool.description} />
-                <meta property="og:title" content={`${tool.title} | Suite di Strumenti AI`} />
-                <meta property="og:description" content={tool.description} />
+                <title>{`${meta?.title || tool.title} | Suite di Strumenti AI`}</title>
+                <meta name="description" content={meta?.description || tool.description} />
+                <meta property="og:title" content={`${meta?.title || tool.title} | Suite di Strumenti AI`} />
+                <meta property="og:description" content={meta?.description || tool.description} />
             </Head>
 
             <Navbar />
@@ -144,6 +144,26 @@ const ToolPage = () => {
 };
 
 export default ToolPage;
+
+export async function getStaticPaths() {
+    const aiSlugs = tools.map(t => t.href.replace('/tools/', ''));
+    const convSlugs = listConversionSlugs();
+    const slugs = Array.from(new Set([...aiSlugs, ...convSlugs]));
+    const paths = slugs.map(slug => ({ params: { slug } }));
+    return { paths, fallback: 'blocking' };
+}
+
+export async function getStaticProps({ params }) {
+    const { slug } = params;
+    const aiTool = tools.find(t => t.href === `/tools/${slug}`);
+    const conversionTool = getConversionTool(slug);
+    const meta = aiTool
+        ? { title: aiTool.title, description: aiTool.description }
+        : conversionTool
+            ? { title: conversionTool.title, description: conversionTool.description }
+            : { title: 'Strumento non trovato', description: 'Lo strumento richiesto non esiste.' };
+    return { props: { initialSlug: slug, meta }, revalidate: 3600 };
+}
 
 const styles = {
     pageWrap: {

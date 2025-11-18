@@ -11,6 +11,10 @@ export default function GenericConverter({ tool }) {
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
   const [quality, setQuality] = useState('80');
+  const [vWidth, setVWidth] = useState('');
+  const [vHeight, setVHeight] = useState('');
+  const [vBitrate, setVBitrate] = useState('2500k');
+  const [aBitrate, setABitrate] = useState('192k');
 
   const availableOutputs = [tool.targetFormat, 'pdf', 'txt', 'jpg', 'png']; // initial generic options
 
@@ -24,6 +28,10 @@ export default function GenericConverter({ tool }) {
       if (width) form.append('width', width);
       if (height) form.append('height', height);
       if (quality) form.append('quality', quality);
+      if (vWidth) form.append('vwidth', vWidth);
+      if (vHeight) form.append('vheight', vHeight);
+      if (vBitrate) form.append('vbitrate', vBitrate);
+      if (aBitrate) form.append('abitrate', aBitrate);
       const res = await fetch(`/api/convert/${outputFormat}`, { method: 'POST', body: form });
       if (!res.ok) throw new Error('Conversion failed');
       const data = await res.json();
@@ -63,6 +71,26 @@ export default function GenericConverter({ tool }) {
             <div style={styles.optionField}>
               <label style={styles.label}>Qualità</label>
               <input value={quality} onChange={e => setQuality(e.target.value)} placeholder="1-100" style={styles.input} />
+            </div>
+          </div>
+        )}
+        {(['mp4','webm','avi','mkv','mov','flv'].includes(outputFormat)) && (
+          <div style={styles.optionsRow}>
+            <div style={styles.optionField}>
+              <label style={styles.label}>Video larghezza</label>
+              <input value={vWidth} onChange={e => setVWidth(e.target.value)} placeholder="es. 1280" style={styles.input} />
+            </div>
+            <div style={styles.optionField}>
+              <label style={styles.label}>Video altezza</label>
+              <input value={vHeight} onChange={e => setVHeight(e.target.value)} placeholder="es. 720" style={styles.input} />
+            </div>
+            <div style={styles.optionField}>
+              <label style={styles.label}>Bitrate video</label>
+              <input value={vBitrate} onChange={e => setVBitrate(e.target.value)} placeholder="es. 2500k" style={styles.input} />
+            </div>
+            <div style={styles.optionField}>
+              <label style={styles.label}>Bitrate audio</label>
+              <input value={aBitrate} onChange={e => setABitrate(e.target.value)} placeholder="es. 192k" style={styles.input} />
             </div>
           </div>
         )}

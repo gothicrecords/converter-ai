@@ -18,6 +18,8 @@ import mammoth from 'mammoth';
 import { marked } from 'marked';
 import Epub from 'epub-gen';
 import ttf2eotConv from 'ttf2eot';
+import { path7za } from '7zip-bin';
+import { execFile } from 'child_process';
 
 export const config = { api: { bodyParser: false } };
 
@@ -54,6 +56,10 @@ export default async function handler(req, res) {
       const width = fields.width ? parseInt(String(fields.width)) : undefined;
       const height = fields.height ? parseInt(String(fields.height)) : undefined;
       const quality = fields.quality ? parseInt(String(fields.quality)) : 80;
+      const vwidth = fields.vwidth ? parseInt(String(fields.vwidth)) : undefined;
+      const vheight = fields.vheight ? parseInt(String(fields.vheight)) : undefined;
+      const vbitrate = fields.vbitrate ? String(fields.vbitrate) : undefined;
+      const abitrate = fields.abitrate ? String(fields.abitrate) : undefined;
 
       // IMAGE CONVERSIONS via sharp
       const imageTargets = ['png','jpg','jpeg','webp','tiff','bmp'];
@@ -209,6 +215,22 @@ export default async function handler(req, res) {
         mime = 'application/zip';
       }
 
+      // 7Z creation using bundled 7z binary
+      if (!outputBuffer && lowerTarget === '7z') {
+        const tmpDir = path.dirname(inputPath);
+        const inFile = path.join(tmpDir, `in_${Date.now()}_${originalName}`);
+        fs.writeFileSync(inFile, inputBuffer);
+        const outPath = path.join(tmpDir, `out_${Date.now()}.7z`);
+        await new Promise((resolve, reject) => {
+          execFile(path7za, ['a', outPath, inFile], (err) => {
+            if (err) reject(err); else resolve();
+          });
+        });
+        outputBuffer = fs.readFileSync(outPath);
+        try { fs.unlinkSync(inFile); fs.unlinkSync(outPath); } catch {}
+        mime = 'application/x-7z-compressed';
+      }
+
       // TAR/GZ/TGZ creation from single file
       if (!outputBuffer && lowerTarget === 'tar') {
         const pack = tarStream.pack();
@@ -267,12 +289,19 @@ export default async function handler(req, res) {
             if (videoTargets.includes(lowerTarget)) {
               if (lowerTarget === 'mp4') cmd = cmd.videoCodec('libx264').audioCodec('aac').outputOptions(['-movflags faststart']);
               if (lowerTarget === 'webm') cmd = cmd.videoCodec('libvpx-vp9').audioCodec('libopus');
+              if (vwidth || vheight) {
+                const w = vwidth || -1; const h = vheight || -1;
+                cmd = cmd.outputOptions([`-vf`, `scale=${w}:${h}:force_original_aspect_ratio=decrease`]);
+              }
+              if (vbitrate) cmd = cmd.videoBitrate(vbitrate);
+              if (abitrate) cmd = cmd.audioBitrate(abitrate);
             } else {
               if (lowerTarget === 'mp3') cmd = cmd.audioCodec('libmp3lame').audioBitrate('192k');
               if (lowerTarget === 'm4a' || lowerTarget === 'aac') cmd = cmd.audioCodec('aac').audioBitrate('192k');
               if (lowerTarget === 'flac') cmd = cmd.audioCodec('flac');
               if (lowerTarget === 'wav') cmd = cmd.audioCodec('pcm_s16le');
               if (lowerTarget === 'ogg' || lowerTarget === 'weba') cmd = cmd.audioCodec('libopus');
+              if (abitrate) cmd = cmd.audioBitrate(abitrate);
             }
             cmd.run();
           });
