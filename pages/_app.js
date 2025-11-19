@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
 import dynamic from 'next/dynamic';
+/*
 // Lazy load components to prevent initial load errors
 const DownloadManager = dynamic(() => import('../components/DownloadManager'), {
   ssr: false,
@@ -20,6 +21,8 @@ const ChatSupport = dynamic(() => import('../components/ChatSupport'), {
   ssr: false,
   loading: () => null
 });
+*/
+*/
 
 import * as analytics from '../lib/analytics';
 
@@ -346,8 +349,8 @@ function MyApp({ Component, pageProps }) {
 
         <ToastContainer />
         <Component {...pageProps} />
-        <DownloadManager />
-        <ChatSupport />
+        {/* <DownloadManager /> */}
+        {/* <ChatSupport /> */}
         {process.env.NODE_ENV === 'production' && (
           <>
             <SpeedInsights />
