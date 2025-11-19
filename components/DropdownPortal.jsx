@@ -27,18 +27,27 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
 
   useEffect(() => {
     if (!open) {
-      setStyle(prev => ({ ...prev, visibility: 'hidden' }));
+      setStyle({ visibility: 'hidden', position: 'fixed', top: 0, left: 0, zIndex: 10050 });
       return;
     }
 
     if (typeof window === 'undefined' || !anchorEl) return;
 
     let active = true;
+    let rafId = null;
 
     const updatePosition = () => {
       if (!active || !anchorEl || !elRef.current) return;
+      
       const anchorRect = anchorEl.getBoundingClientRect();
       const dropdownRect = elRef.current.getBoundingClientRect();
+      
+      // Se anchorRect ha dimensioni 0, l'elemento anchor non è ancora pronto
+      if (anchorRect.width === 0 || anchorRect.height === 0) {
+        rafId = window.requestAnimationFrame(updatePosition);
+        return;
+      }
+      
       const spaceBelow = window.innerHeight - anchorRect.bottom;
       const spaceAbove = anchorRect.top;
 
@@ -63,8 +72,10 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
       });
     };
 
-    updatePosition();
-    const rafId = window.requestAnimationFrame(updatePosition);
+    // Aspetta un frame per assicurarsi che il DOM sia pronto
+    rafId = window.requestAnimationFrame(() => {
+      rafId = window.requestAnimationFrame(updatePosition);
+    });
 
     window.addEventListener('resize', updatePosition);
     window.addEventListener('scroll', updatePosition, true);
