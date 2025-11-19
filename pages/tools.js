@@ -91,16 +91,7 @@ ToolCard.displayName = 'ToolCard';
 
 export default function ToolsPage() {
     const [selectedCategory, setSelectedCategory] = useState('Tutti');
-    const [mounted, setMounted] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
+    const isMobile = false; // Always render desktop version, CSS handles responsive
 
     // Inject tool-specific styles client-side only
     useEffect(() => {

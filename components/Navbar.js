@@ -11,8 +11,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 export default function Navbar() {
     const { t } = useTranslation();
     const router = useRouter();
-    const [mounted, setMounted] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
+    const isMobile = false; // Always render desktop version, CSS handles responsive
     const [dropdownOpen, setDropdownOpen] = useState(null);
     const [scrolled, setScrolled] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
@@ -21,14 +20,6 @@ export default function Navbar() {
     const [expandedCategory, setExpandedCategory] = useState(null);
     const navRef = useRef(null);
     const closeTimeoutRef = useRef(null);
-    
-    useEffect(() => {
-        setMounted(true);
-        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
     
     useEffect(() => {
         if (!isMobile) {
