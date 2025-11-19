@@ -451,13 +451,14 @@ const getStyles = (isMobile) => ({
     }
 });
 
-export async function getServerSideProps({ locale }) {
+export async function getStaticProps({ locale }) {
     const { loadTranslationsSSR } = await import('../lib/i18n-server');
     const translations = await loadTranslationsSSR(locale || 'en');
-    
+
     return {
         props: {
-            translations
-        }
+            translations,
+        },
+        revalidate: 86400,
     };
 }

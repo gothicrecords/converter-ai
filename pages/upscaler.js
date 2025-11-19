@@ -218,11 +218,6 @@ function Upscaler() {
   );
 }
 
-// Disabilita pre-rendering per questa pagina (usa browser APIs)
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}
+// Nessun data fetching necessario: lasciare la pagina come SSG/CSR pura
 
 export default Upscaler;
