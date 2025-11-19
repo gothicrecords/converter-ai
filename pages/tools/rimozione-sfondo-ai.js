@@ -4,7 +4,7 @@ import SEOHead from '../../components/SEOHead';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
 
-export default function RimozioneSfondoAIPage() {
+export default function RimozioneSfondoAIPage({ articleData }) {
   const faqItems = [
     {
       question: "Come funziona la rimozione dello sfondo con AI?",
@@ -53,11 +53,7 @@ export default function RimozioneSfondoAIPage() {
     }
   ];
 
-  const articleData = {
-    datePublished: "2024-01-01T00:00:00Z",
-    dateModified: new Date().toISOString(),
-    tags: ["AI", "rimozione sfondo", "editing immagini", "foto editing", "trasparente", "ritaglio"]
-  };
+  // articleData is provided via getStaticProps to avoid hydration drift
 
   return (
     <div style={styles.pageWrap}>
@@ -148,6 +144,21 @@ export default function RimozioneSfondoAIPage() {
       <Footer />
     </div>
   );
+}
+
+export async function getStaticProps() {
+  // Compute stable article data on the server to avoid client/server mismatches
+  const articleData = {
+    datePublished: '2024-01-01T00:00:00Z',
+    // Use build-time timestamp; page will revalidate daily
+    dateModified: new Date().toISOString(),
+    tags: ['AI', 'rimozione sfondo', 'editing immagini', 'foto editing', 'trasparente', 'ritaglio']
+  };
+
+  return {
+    props: { articleData },
+    revalidate: 86400 // 24h
+  };
 }
 
 const styles = {

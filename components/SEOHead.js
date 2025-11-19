@@ -294,8 +294,12 @@ export default function SEOHead({
             <meta property="og:type" content={type} />
             {type === 'article' && articleData && (
                 <>
-                    <meta property="article:published_time" content={articleData.datePublished || new Date().toISOString()} />
-                    <meta property="article:modified_time" content={articleData.dateModified || new Date().toISOString()} />
+                    {articleData.datePublished && (
+                        <meta property="article:published_time" content={articleData.datePublished} />
+                    )}
+                    {articleData.dateModified && (
+                        <meta property="article:modified_time" content={articleData.dateModified} />
+                    )}
                     {articleData.tags && articleData.tags.map((tag, i) => (
                         <meta key={`article-tag-${i}`} property="article:tag" content={tag} />
                     ))}
