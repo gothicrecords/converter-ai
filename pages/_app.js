@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
 import dynamic from 'next/dynamic';
+import { useAnimation } from '../lib/useAnimation';
 
 // Lazy load components to prevent initial load errors
 const DownloadManager = dynamic(() => import('../components/DownloadManager'), {
@@ -101,6 +102,19 @@ const queryClient = new QueryClient({
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
+  const canAnimate = useAnimation();
+  
+  // Applica classe per abilitare animazioni solo lato client
+  useEffect(() => {
+    if (canAnimate && typeof document !== 'undefined') {
+      document.documentElement.classList.add('animations-ready');
+      // Applica animazioni a tutti gli elementi con classi animate-*
+      const animatedElements = document.querySelectorAll('[class*="animate-"]');
+      animatedElements.forEach((el) => {
+        el.classList.add('animate-ready');
+      });
+    }
+  }, [canAnimate]);
 
   useEffect(() => {
     // Previeni scroll orizzontale (solo client-side)

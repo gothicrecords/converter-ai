@@ -204,19 +204,41 @@
    CLASSI DI ANIMAZIONE
    ============================================ */
 
+/* Animazioni applicate solo lato client per evitare problemi SSR */
+/* Durante SSR, gli elementi sono visibili senza animazione */
+html:not(.animations-ready) [class*="animate-"] {
+  opacity: 1 !important;
+  animation: none !important;
+}
+
 .animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
   opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+html.animations-ready .animate-fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
   opacity: 0;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+html.animations-ready .animate-fade-in {
+  opacity: 0;
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
 .animate-slide-up {
-  animation: slideUp 0.7s ease-out forwards;
   opacity: 0;
+  animation: slideUp 0.7s ease-out forwards;
+}
+
+html.animations-ready .animate-slide-up {
+  opacity: 0;
+  animation: slideUp 0.7s ease-out forwards;
 }
 
 .animate-slide-in-left {
