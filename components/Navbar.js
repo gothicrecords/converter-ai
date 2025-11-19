@@ -565,7 +565,7 @@ export default function Navbar() {
                             </button>
                             {dropdownOpen === catName && (
                                 <DropdownPortal
-                                    anchorRef={{ current: buttonRefs.current[catName] }}
+                                    anchorEl={buttonRefs.current[catName]}
                                     open={dropdownOpen === catName}
                                     onClose={() => setDropdownOpen(null)}
                                 >

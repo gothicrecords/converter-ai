@@ -1,16 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+const MARGIN = 8;
+
 /**
  * DropdownPortal
- * Renders children into a portal (document.body) and positions it relative to an anchor
+ * Renders children into a portal (document.body) and positions it relative to an anchor element.
  * Props:
- * - anchorRef: ref to the element the dropdown should be anchored to
- * - open: boolean
- * - onClose: function
- * - children
+ * - anchorEl: DOM element that anchors the dropdown
+ * - open: boolean flag to show/hide the portal
+ * - onClose: callback invoked when clicking outside
+ * - children: dropdown content
  */
-export default function DropdownPortal({ anchorRef, open, onClose, children, offset = 8, preferRight = false }) {
+export default function DropdownPortal({ anchorEl, open, onClose, children, offset = 8, preferRight = false }) {
   const [container] = useState(() => typeof document !== 'undefined' ? document.createElement('div') : null);
   const [style, setStyle] = useState({ visibility: 'hidden' });
   const elRef = useRef(null);
@@ -24,69 +26,68 @@ export default function DropdownPortal({ anchorRef, open, onClose, children, off
   }, [container]);
 
   useEffect(() => {
-    function handle() {
-      if (!anchorRef?.current || !elRef?.current) return;
-      const anchorRect = anchorRef.current.getBoundingClientRect();
+    if (!open) {
+      setStyle(prev => ({ ...prev, visibility: 'hidden' }));
+      return;
+    }
+
+    if (typeof window === 'undefined' || !anchorEl) return;
+
+    let active = true;
+
+    const updatePosition = () => {
+      if (!active || !anchorEl || !elRef.current) return;
+      const anchorRect = anchorEl.getBoundingClientRect();
       const dropdownRect = elRef.current.getBoundingClientRect();
-      const topCandidate = anchorRect.bottom + offset;
       const spaceBelow = window.innerHeight - anchorRect.bottom;
       const spaceAbove = anchorRect.top;
-      let top,
-          left = anchorRect.left;
 
-      // Prefer to show below if there's enough space, otherwise above
-      if (spaceBelow >= dropdownRect.height || spaceBelow >= spaceAbove) {
-        top = Math.min(topCandidate, window.innerHeight - dropdownRect.height - 8);
-      } else {
-        // open above
-        top = Math.max(anchorRect.top - dropdownRect.height - offset, 8);
+      let top = anchorRect.bottom + offset;
+      if (spaceBelow < dropdownRect.height && spaceAbove > dropdownRect.height) {
+        top = anchorRect.top - dropdownRect.height - offset;
       }
+      top = Math.min(Math.max(top, MARGIN), Math.max(window.innerHeight - dropdownRect.height - MARGIN, MARGIN));
 
-      // Fit horizontally - align to left edge of button by default
-      // Only adjust if it would overflow the viewport
-      if (left + dropdownRect.width > window.innerWidth - 16) {
-        // Align to right edge if overflowing
-        left = Math.max(anchorRect.right - dropdownRect.width, 8);
-      }
+      let left = preferRight
+        ? anchorRect.right - dropdownRect.width
+        : anchorRect.left + anchorRect.width / 2 - dropdownRect.width / 2;
+      const maxLeft = Math.max(window.innerWidth - dropdownRect.width - MARGIN, MARGIN);
+      left = Math.min(Math.max(left, MARGIN), maxLeft);
 
-      if (preferRight) {
-        // Align to right edge of anchor
-        left = Math.max(anchorRect.right - dropdownRect.width, 8);
-      }
+      setStyle({
+        top: `${top}px`,
+        left: `${left}px`,
+        position: 'fixed',
+        zIndex: 10050,
+        visibility: 'visible'
+      });
+    };
 
-      setStyle({ top: `${top}px`, left: `${left}px`, position: 'fixed', zIndex: 10050, visibility: 'visible' });
-    }
+    updatePosition();
+    const rafId = window.requestAnimationFrame(updatePosition);
 
-    if (open) {
-      // Initial position calculation
-      handle();
-      // Recalculate after a brief delay to ensure dimensions are correct
-      const timer = setTimeout(handle, 10);
-      
-      window.addEventListener('resize', handle);
-      window.addEventListener('scroll', handle, true);
-      
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('resize', handle);
-        window.removeEventListener('scroll', handle, true);
-      };
-    }
-  }, [open, anchorRef, container, offset, preferRight]);
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+
+    return () => {
+      active = false;
+      if (rafId) window.cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [open, anchorEl, offset, preferRight]);
 
   useEffect(() => {
     const onDocClick = (e) => {
       if (!open) return;
-      if (!container) return;
-      // If clicked outside the portal and outside anchor
-      if (anchorRef?.current && anchorRef.current.contains(e.target)) return;
-      if (elRef?.current && elRef.current.contains(e.target)) return;
+      if (anchorEl && anchorEl.contains(e.target)) return;
+      if (elRef.current && elRef.current.contains(e.target)) return;
       onClose && onClose();
     };
 
     if (open) document.addEventListener('mousedown', onDocClick);
     return () => document.removeEventListener('mousedown', onDocClick);
-  }, [open, anchorRef, container, onClose]);
+  }, [open, anchorEl, onClose]);
 
   if (!container) return null;
 

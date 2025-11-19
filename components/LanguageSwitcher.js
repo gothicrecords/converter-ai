@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
-import { useState, memo } from 'react';
+import { useState, memo, useRef } from 'react';
+import DropdownPortal from './DropdownPortal';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -20,6 +21,7 @@ const LanguageSwitcher = memo(function LanguageSwitcher() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredLang, setHoveredLang] = useState(null);
+  const buttonRef = useRef(null);
   const currentLang = languages.find(lang => lang.code === router.locale) || languages[0];
 
   const changeLanguage = async (locale) => {
@@ -30,12 +32,14 @@ const LanguageSwitcher = memo(function LanguageSwitcher() {
   return (
     <div style={styles.container}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        ref={buttonRef}
+        onClick={() => setIsOpen((prev) => !prev)}
         style={{
           ...styles.button,
           background: isOpen ? 'rgba(102, 126, 234, 0.15)' : 'transparent'
         }}
         aria-label="Change language"
+        aria-expanded={isOpen}
       >
         <span style={styles.flag}>{currentLang.flag}</span>
         <svg style={styles.chevron} width="10" height="10" viewBox="0 0 12 12" fill="none">
@@ -43,34 +47,37 @@ const LanguageSwitcher = memo(function LanguageSwitcher() {
         </svg>
       </button>
 
-      {isOpen && (
-        <>
-          <div style={styles.overlay} onClick={() => setIsOpen(false)} />
-          <div style={styles.dropdown}>
-            {languages.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => changeLanguage(lang.code)}
-                onMouseEnter={() => setHoveredLang(lang.code)}
-                onMouseLeave={() => setHoveredLang(null)}
-                style={{
-                  ...styles.option,
-                  ...(lang.code === router.locale ? styles.optionActive : {}),
-                  background: hoveredLang === lang.code ? 'rgba(102, 126, 234, 0.2)' : 'transparent'
-                }}
-              >
-                <span style={styles.optionFlag}>{lang.flag}</span>
-                <span style={styles.optionName}>{lang.name}</span>
-                {lang.code === router.locale && (
-                  <svg style={styles.check} width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M13.5 4.5L6 12L2.5 8.5" stroke="#667eea" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                )}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+      <DropdownPortal
+        anchorEl={buttonRef.current}
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        offset={6}
+        preferRight
+      >
+        <div style={styles.dropdown} className="language-dropdown">
+          {languages.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => changeLanguage(lang.code)}
+              onMouseEnter={() => setHoveredLang(lang.code)}
+              onMouseLeave={() => setHoveredLang(null)}
+              style={{
+                ...styles.option,
+                ...(lang.code === router.locale ? styles.optionActive : {}),
+                background: hoveredLang === lang.code ? 'rgba(102, 126, 234, 0.2)' : 'transparent'
+              }}
+            >
+              <span style={styles.optionFlag}>{lang.flag}</span>
+              <span style={styles.optionName}>{lang.name}</span>
+              {lang.code === router.locale && (
+                <svg style={styles.check} width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M13.5 4.5L6 12L2.5 8.5" stroke="#667eea" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      </DropdownPortal>
     </div>
   );
 });
@@ -106,25 +113,18 @@ const styles = {
     color: '#94a3b8',
     transition: 'transform 0.2s',
   },
-  overlay: {
-    position: 'fixed',
-    inset: 0,
-    zIndex: 999,
-  },
   dropdown: {
-    position: 'absolute',
-    top: 'calc(100% + 8px)',
-    right: 0,
     minWidth: '200px',
-    maxHeight: '400px',
+    maxHeight: '360px',
     overflowY: 'auto',
     background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
     border: '1px solid rgba(148, 163, 184, 0.2)',
     borderRadius: '12px',
     boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
     padding: '8px',
-    zIndex: 1000,
     animation: 'fadeInUp 0.2s ease-out',
+    scrollbarWidth: 'none',
+    msOverflowStyle: 'none'
   },
   option: {
     display: 'flex',

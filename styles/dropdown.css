@@ -1,2 +1,4 @@
 .dropdown-portal{pointer-events:auto;}
 .dropdown-portal .dropdown-menu-scroll{box-shadow:0 12px 48px rgba(0,0,0,0.6), 0 0 30px rgba(102,126,234,0.2);border-radius:16px;}
+.language-dropdown{scrollbar-width:none;-ms-overflow-style:none;}
+.language-dropdown::-webkit-scrollbar{width:0;height:0;}
