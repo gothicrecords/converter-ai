@@ -1,11 +1,38 @@
 // pages/upscaler.js - Professional Upscaler UI
 import { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
 import { HiSparkles, HiUpload, HiDownload, HiPhotograph } from 'react-icons/hi';
-import Navbar from '../components/Navbar';
-import * as analytics from '../lib/analytics';
+
+// Load Navbar client-side only to avoid any SSR hydration edge cases here
+const Navbar = dynamic(() => import('../components/Navbar'), { ssr: false });
+
+// Safe analytics loader: defers import to client and no-ops if unavailable
+function useSafeAnalytics() {
+  const [a, setA] = useState(null);
+  useEffect(() => {
+    let mounted = true;
+    if (typeof window === 'undefined') return;
+    import('../lib/analytics')
+      .then((mod) => { if (mounted) setA(mod); })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, []);
+  const noop = () => {};
+  return a || {
+    pageview: noop,
+    event: noop,
+    trackFileUpload: noop,
+    trackToolStart: noop,
+    trackToolComplete: noop,
+    trackConversion: noop,
+    trackDownload: noop,
+    trackError: noop,
+  };
+}
 
 function Upscaler() {
+  const analytics = useSafeAnalytics();
   const [originalFile, setOriginalFile] = useState(null);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [upscaledUrl, setUpscaledUrl] = useState(null);
@@ -29,8 +56,10 @@ function Upscaler() {
     setStatus(`Selezionato: ${file.name}`);
     
     // Track file upload
-    analytics.trackFileUpload(file.type, file.size, 'Image Upscaler');
-    analytics.trackToolStart('Image Upscaler', file.type, file.size);
+    try {
+      analytics.trackFileUpload(file.type, file.size, 'Image Upscaler');
+      analytics.trackToolStart('Image Upscaler', file.type, file.size);
+    } catch {}
   };
 
   const onDrop = (e) => {
@@ -52,15 +81,19 @@ function Upscaler() {
       if (!res.ok) throw new Error(j.details || j.error || 'Upscale failed');
       
       const duration = Date.now() - startTime;
-      analytics.trackToolComplete('Image Upscaler', duration, true);
-      analytics.trackConversion('image_upscale', originalFile.type, 'upscaled_image', originalFile.size, duration);
+      try {
+        analytics.trackToolComplete('Image Upscaler', duration, true);
+        analytics.trackConversion('image_upscale', originalFile.type, 'upscaled_image', originalFile.size, duration);
+      } catch {}
       
       setUpscaledUrl(j.url);
       setStatus('Fatto!');
     } catch (err) {
       const duration = Date.now() - startTime;
-      analytics.trackToolComplete('Image Upscaler', duration, false);
-      analytics.trackError(err.message, 'Upscaler', 'upscale_error');
+      try {
+        analytics.trackToolComplete('Image Upscaler', duration, false);
+        analytics.trackError(err.message, 'Upscaler', 'upscale_error');
+      } catch {}
       setStatus(`Errore: ${err.message}`);
     } finally {
       setLoading(false);
@@ -82,61 +115,66 @@ function Upscaler() {
       window.URL.revokeObjectURL(url);
       
       // Track download
-      analytics.trackDownload('jpg', 'Image Upscaler', blob.size);
+      try { analytics.trackDownload('jpg', 'Image Upscaler', blob.size); } catch {}
     } catch (e) {
-      analytics.trackError(e.message, 'Upscaler', 'download_error');
+      try { analytics.trackError(e.message, 'Upscaler', 'download_error'); } catch {}
       console.error('Download failed:', e);
     }
   };
 
   // Slider interactions using Pointer Events for consistent mouse/touch/pen dragging
   useEffect(() => {
-    const el = sliderRef.current;
-    if (!el || !upscaledUrl) return;
+    try {
+      if (typeof window === 'undefined' || typeof document === 'undefined') return;
+      const el = sliderRef.current;
+      if (!el || !upscaledUrl) return;
 
-    const getPercent = (clientX) => {
-      const r = el.getBoundingClientRect();
-      const x = Math.min(Math.max(clientX - r.left, 0), r.width);
-      return (x / r.width) * 100;
-    };
+      const getPercent = (clientX) => {
+        const r = el.getBoundingClientRect();
+        const x = Math.min(Math.max(clientX - r.left, 0), r.width);
+        return (x / r.width) * 100;
+      };
 
-    const commit = () => {
-      if (pendingPos.current == null) return;
-      setSliderPos(pendingPos.current);
-      rafId.current = null;
-      pendingPos.current = null;
-    };
-    const schedule = () => {
-      if (rafId.current) return;
-      rafId.current = requestAnimationFrame(commit);
-    };
-    const onPointerDown = (e) => {
-      dragging.current = true;
-      try { el.setPointerCapture(e.pointerId); } catch {}
-      pendingPos.current = getPercent(e.clientX);
-      schedule();
-    };
-    const onPointerMove = (e) => {
-      if (!dragging.current) return;
-      pendingPos.current = getPercent(e.clientX);
-      schedule();
-    };
-    const onPointerUp = (e) => {
-      dragging.current = false;
-      try { el.releasePointerCapture(e.pointerId); } catch {}
-    };
+      const commit = () => {
+        if (pendingPos.current == null) return;
+        setSliderPos(pendingPos.current);
+        rafId.current = null;
+        pendingPos.current = null;
+      };
+      const schedule = () => {
+        if (rafId.current) return;
+        rafId.current = requestAnimationFrame(commit);
+      };
+      const onPointerDown = (e) => {
+        dragging.current = true;
+        try { el.setPointerCapture(e.pointerId); } catch {}
+        pendingPos.current = getPercent(e.clientX);
+        schedule();
+      };
+      const onPointerMove = (e) => {
+        if (!dragging.current) return;
+        pendingPos.current = getPercent(e.clientX);
+        schedule();
+      };
+      const onPointerUp = (e) => {
+        dragging.current = false;
+        try { el.releasePointerCapture(e.pointerId); } catch {}
+      };
 
-    el.addEventListener('pointerdown', onPointerDown);
-    el.addEventListener('pointermove', onPointerMove);
-    el.addEventListener('pointerup', onPointerUp);
-    el.addEventListener('pointercancel', onPointerUp);
+      el.addEventListener('pointerdown', onPointerDown);
+      el.addEventListener('pointermove', onPointerMove);
+      el.addEventListener('pointerup', onPointerUp);
+      el.addEventListener('pointercancel', onPointerUp);
 
-    return () => {
-      el.removeEventListener('pointerdown', onPointerDown);
-      el.removeEventListener('pointermove', onPointerMove);
-      el.removeEventListener('pointerup', onPointerUp);
-      el.removeEventListener('pointercancel', onPointerUp);
-    };
+      return () => {
+        el.removeEventListener('pointerdown', onPointerDown);
+        el.removeEventListener('pointermove', onPointerMove);
+        el.removeEventListener('pointerup', onPointerUp);
+        el.removeEventListener('pointercancel', onPointerUp);
+      };
+    } catch (e) {
+      try { analytics.trackError(e.message, 'Upscaler', 'slider_init_error'); } catch {}
+    }
   }, [upscaledUrl]);
 
   return (
