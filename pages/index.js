@@ -72,8 +72,8 @@ export default function HomePage() {
         type="website"
       />
       <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-        {/* Preload risorse critiche - CSS ora importati come moduli */}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Preload risorse critiche - CSS ora importati come moduli */
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
       </Head>
       
