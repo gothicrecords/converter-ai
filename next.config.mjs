@@ -91,6 +91,8 @@ const nextConfig = {
     return config;
   },
   
+  // Turbopack configuration (empty to silence warning)
+  turbopack: {},
   
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { 
