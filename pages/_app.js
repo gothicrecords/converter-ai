@@ -1,4 +1,5 @@
-import '../public/styles.css';
+import '../styles/styles.css';
+import '../styles/animations.css';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -8,6 +9,8 @@ import { Analytics } from '@vercel/analytics/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
+import DownloadManager from '../components/DownloadManager';
+import ChatSupport from '../components/ChatSupport';
 import * as analytics from '../lib/analytics';
 
 // Create React Query client with optimized settings
@@ -15,7 +18,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime in v5)
       refetchOnWindowFocus: false,
       retry: 1,
     },
@@ -57,15 +60,64 @@ function MyApp({ Component, pageProps }) {
       }, 2000);
     }
 
-    // Track pageviews con Google Analytics
+    // Track pageviews con Google Analytics e GTM
     const handleRouteChange = (url) => {
       analytics.pageview(url);
     };
     router.events.on('routeChangeComplete', handleRouteChange);
+    
+    // Track initial pageview
+    if (router.asPath) {
+      analytics.pageview(router.asPath);
+    }
+    
     return () => {
       router.events.off('routeChangeComplete', handleRouteChange);
     };
   }, [router]);
+
+  // Web Vitals Tracking
+  useEffect(() => {
+    if (typeof window === 'undefined' || process.env.NODE_ENV !== 'production') return;
+
+    // Load web-vitals library dynamically (optional)
+    import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB, onINP }) => {
+      onCLS(analytics.trackWebVital);
+      onFID(analytics.trackWebVital);
+      onFCP(analytics.trackWebVital);
+      onLCP(analytics.trackWebVital);
+      onTTFB(analytics.trackWebVital);
+      if (onINP) onINP(analytics.trackWebVital);
+    }).catch(() => {
+      // Web-vitals not available, skip silently
+    });
+
+    // Global error tracking
+    const handleError = (event) => {
+      analytics.trackError(
+        event.message || 'Unknown error',
+        event.filename || 'unknown',
+        'javascript_error',
+        event.lineno
+      );
+    };
+
+    const handleUnhandledRejection = (event) => {
+      analytics.trackError(
+        event.reason?.message || 'Unhandled promise rejection',
+        'promise_rejection',
+        'promise_error'
+      );
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -74,6 +126,9 @@ function MyApp({ Component, pageProps }) {
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
           <meta name="theme-color" content="#0f1720" />
           <link rel="preconnect" href="https://www.googletagmanager.com" />
+          <link rel="preconnect" href="https://www.google-analytics.com" />
+          <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+          <link rel="dns-prefetch" href="https://www.google-analytics.com" />
           <title>Tool Suite - Upscaler AI & PDF Converter</title>
           <style>{`
             html, body {
@@ -104,32 +159,66 @@ function MyApp({ Component, pageProps }) {
           `}</style>
         </Head>
 
-      {/* Google Analytics 4 - Completamente disabilitato per performance */}
-      {process.env.NODE_ENV === 'production' && (
+      {/* Google Tag Manager */}
+      {analytics.ENABLE_ANALYTICS && analytics.GTM_ID !== 'GTM-XXXXXXX' && (
         <>
           <Script
-            strategy="worker"
+            id="gtm-script"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                })(window,document,'script','dataLayer','${analytics.GTM_ID}');
+              `,
+            }}
+          />
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${analytics.GTM_ID}`}
+              height="0"
+              width="0"
+              style={{ display: 'none', visibility: 'hidden' }}
+            />
+          </noscript>
+        </>
+      )}
+
+      {/* Google Analytics 4 - Enhanced */}
+      {analytics.ENABLE_ANALYTICS && analytics.GA_TRACKING_ID !== 'G-XXXXXXXXXX' && (
+        <>
+          <Script
+            strategy="afterInteractive"
             src={`https://www.googletagmanager.com/gtag/js?id=${analytics.GA_TRACKING_ID}`}
           />
           <Script
             id="gtag-init"
-            strategy="worker"
+            strategy="afterInteractive"
             dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${analytics.GA_TRACKING_ID}', {
-              page_path: window.location.pathname,
-            });
-          `,
-        }}
-      />
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${analytics.GA_TRACKING_ID}', {
+                  page_path: window.location.pathname,
+                  page_location: window.location.href,
+                  page_title: document.title,
+                  send_page_view: true,
+                  anonymize_ip: true,
+                  cookie_flags: 'SameSite=None;Secure',
+                });
+              `,
+            }}
+          />
         </>
       )}
 
         <ToastContainer />
         <Component {...pageProps} />
+        <DownloadManager />
+        <ChatSupport />
         {process.env.NODE_ENV === 'production' && (
           <>
             <SpeedInsights />

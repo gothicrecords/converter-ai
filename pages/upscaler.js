@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
 import { HiSparkles, HiUpload, HiDownload, HiPhotograph } from 'react-icons/hi';
 import Navbar from '../components/Navbar';
+import * as analytics from '../lib/analytics';
 
 function Upscaler() {
   const [originalFile, setOriginalFile] = useState(null);
@@ -26,6 +27,10 @@ function Upscaler() {
     setOriginalUrl(url);
     setUpscaledUrl(null);
     setStatus(`Selezionato: ${file.name}`);
+    
+    // Track file upload
+    analytics.trackFileUpload(file.type, file.size, 'Image Upscaler');
+    analytics.trackToolStart('Image Upscaler', file.type, file.size);
   };
 
   const onDrop = (e) => {
@@ -38,15 +43,24 @@ function Upscaler() {
     if (!originalFile) return;
     setLoading(true);
     setStatus('Upscaling in corso...');
+    const startTime = Date.now();
     const fd = new FormData();
     fd.append('image', originalFile);
     try {
       const res = await fetch('/api/upscale', { method: 'POST', body: fd });
       const j = await res.json();
       if (!res.ok) throw new Error(j.details || j.error || 'Upscale failed');
+      
+      const duration = Date.now() - startTime;
+      analytics.trackToolComplete('Image Upscaler', duration, true);
+      analytics.trackConversion('image_upscale', originalFile.type, 'upscaled_image', originalFile.size, duration);
+      
       setUpscaledUrl(j.url);
       setStatus('Fatto!');
     } catch (err) {
+      const duration = Date.now() - startTime;
+      analytics.trackToolComplete('Image Upscaler', duration, false);
+      analytics.trackError(err.message, 'Upscaler', 'upscale_error');
       setStatus(`Errore: ${err.message}`);
     } finally {
       setLoading(false);
@@ -66,7 +80,11 @@ function Upscaler() {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
+      
+      // Track download
+      analytics.trackDownload('jpg', 'Image Upscaler', blob.size);
     } catch (e) {
+      analytics.trackError(e.message, 'Upscaler', 'download_error');
       console.error('Download failed:', e);
     }
   };
@@ -135,7 +153,7 @@ function Upscaler() {
           <span>AI Powered</span>
         </div>
         <h1 className="page-title">Upscaler AI</h1>
-        <p className="page-subtitle">Migliora le tue immagini con upscaling 2x in 8K</p>
+        <p className="page-subtitle">Migliora le tue immagini con upscaling avanzato fino a 4K/8K - Completamente gratuito e locale</p>
       </div>
 
       {!originalUrl && (

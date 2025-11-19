@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { HiSparkles, HiDownload, HiLightningBolt } from 'react-icons/hi';
 import ExportModal from '../ExportModal';
 import { LoadingOverlay, ProgressBar } from '../Loading';
-import { showToast } from '../Toast';
+import { showToast, updateToast } from '../Toast';
 import { saveToHistory } from '../../utils/history';
 
 export default function ImageGenerator() {
@@ -18,7 +18,10 @@ export default function ImageGenerator() {
 
     const handleGenerate = async () => {
         if (!prompt.trim()) {
-            showToast('Inserisci una descrizione', 'error');
+            showToast('Inserisci una descrizione', 'error', 4000, {
+                details: 'Il campo prompt è obbligatorio per la generazione',
+                technical: 'Status: Empty prompt validation failed'
+            });
             return;
         }
 
@@ -27,8 +30,25 @@ export default function ImageGenerator() {
         setResult(null);
         setProgress(0);
 
+        const startTime = Date.now();
+        const promptLength = prompt.length;
+        const wordCount = prompt.trim().split(/\s+/).length;
+        
+        const toastId = showToast('Generazione immagine AI in corso...', 'progress', 0, {
+            progress: 0,
+            details: `Prompt: ${wordCount} parole • Rapporto: ${aspect} • Dettaglio: ${detail.toFixed(1)}x`,
+            technical: `Model: AI Image Generator • Realism: ${realism ? 'Enabled' : 'Disabled'} • Prompt Length: ${promptLength} chars`
+        });
+
         const progressInterval = setInterval(() => {
-            setProgress(prev => Math.min(prev + 5, 90));
+            setProgress(prev => {
+                const newProgress = Math.min(prev + 5, 90);
+                updateToast(toastId, { 
+                    progress: newProgress,
+                    message: newProgress < 50 ? 'Elaborazione prompt...' : newProgress < 85 ? 'Generazione immagine...' : 'Finalizzazione...'
+                });
+                return newProgress;
+            });
         }, 300);
 
         try {
@@ -40,6 +60,7 @@ export default function ImageGenerator() {
 
             clearInterval(progressInterval);
             setProgress(95);
+            updateToast(toastId, { progress: 95, message: 'Elaborazione finale...' });
 
             if (!response.ok) {
                 const contentType = response.headers.get('content-type');
@@ -61,6 +82,9 @@ export default function ImageGenerator() {
             setResult(url);
             setProgress(100);
 
+            const generationTime = ((Date.now() - startTime) / 1000).toFixed(2);
+            const imageSize = (blob.size / 1024 / 1024).toFixed(2);
+
             // Save to history
             saveToHistory({
                 tool: 'Generazione Immagini AI',
@@ -70,11 +94,22 @@ export default function ImageGenerator() {
                 result: url
             });
 
-            showToast('Immagine generata con successo!', 'success');
+            updateToast(toastId, {
+                type: 'success',
+                message: 'Immagine generata con successo!',
+                progress: 100,
+                details: `Tempo generazione: ${generationTime}s • Dimensione: ${imageSize} MB • Risoluzione: ${aspect}`,
+                technical: `AI Model: Image Generation • Quality: 4K • Format: JPEG • Compression: ${((blob.size / (4096 * 4096 * 3)) * 100).toFixed(1)}%`
+            });
         } catch (err) {
             console.error('Generation error:', err);
             setError(err.message);
-            showToast(err.message, 'error');
+            updateToast(toastId, {
+                type: 'error',
+                message: err.message,
+                details: 'Errore durante la generazione dell\'immagine',
+                technical: `Error: ${err.message} • Status: ${err.message.includes('HTTP') ? 'Network Error' : 'Generation Failed'}`
+            });
             clearInterval(progressInterval);
         } finally {
             setLoading(false);
@@ -114,8 +149,8 @@ export default function ImageGenerator() {
                 </div>
                 <h1 style={styles.title}>Generazione Immagini AI</h1>
                 <p style={styles.subtitle}>
-                    Crea immagini uniche e professionali con l'intelligenza artificiale.<br/>
-                    Descrivi ciò che vuoi e l'AI lo realizzerà per te.
+                    Crea immagini uniche e professionali in 4K con tecniche procedurali avanzate.<br/>
+                    Completamente gratuito e locale - nessuna API esterna richiesta.
                 </p>
             </div>
 
@@ -215,8 +250,8 @@ export default function ImageGenerator() {
                     <div style={styles.loadingContainer}>
                         <div style={styles.spinner}></div>
                         <p style={styles.loadingText}>
-                            L'AI sta creando la tua immagine 4K ({aspect})...<br/>
-                            <span style={{ fontSize: '14px', color: '#64748b' }}>Qualità professionale — può richiedere 30-60 secondi</span>
+                            Generazione procedurale in corso - Immagine 4K ({aspect})...<br/>
+                            <span style={{ fontSize: '14px', color: '#64748b' }}>Elaborazione locale avanzata — può richiedere 20-40 secondi</span>
                         </p>
                     </div>
                 )}

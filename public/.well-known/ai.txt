@@ -1,0 +1,58 @@
+# AI.txt for MegaPixelAI
+# This file helps AI crawlers (ChatGPT, Google AI, Claude, etc.) understand and index our content
+
+# Site Information
+Site: https://best-upscaler-ia.vercel.app
+Name: MegaPixelAI
+Description: Professional AI-powered tools platform for image upscaling, PDF conversion, OCR, document translation, and more
+
+# Main Tools and Features
+Tools:
+- Image Upscaler AI: Enhance image resolution up to 4x using advanced AI algorithms
+- Background Remover AI: Remove backgrounds from images with one click
+- PDF Converter: Convert files to and from PDF format (JPG, DOCX, PPT, XLS, HTML)
+- OCR Advanced: Extract text from images, PDFs, and scanned documents
+- Document Translator: Translate entire documents while preserving formatting
+- Audio Transcription: Convert audio files to editable text
+- Image Generator AI: Create unique images from text descriptions
+- Text Summarizer: Summarize long texts into clear and concise summaries
+- Grammar Checker: Fix grammatical errors and improve text style
+- Video Compressor: Reduce video file sizes without losing quality
+- Thumbnail Generator: Create attractive thumbnails for videos and social media
+- Clean Noise AI: Remove background noise and improve audio quality
+- Combine/Split PDF: Merge multiple PDFs or split a PDF into multiple parts
+
+# Categories
+Categories:
+- Images: Upscaler, Background Remover, Image Generator, Thumbnail Generator
+- PDF: PDF Converter, Combine/Split PDF, PDF to JPG, PDF to DOCX, PDF to PPTX, PDF to XLSX
+- Audio: Audio Transcription, Clean Noise AI
+- Video: Video Compressor
+- Text: OCR Advanced, Document Translator, Text Summarizer, Grammar Checker
+
+# Key Pages
+Important Pages:
+- Home: /
+- Tools: /tools
+- Upscaler: /upscaler
+- PDF Tools: /pdf
+- About: /about
+- Pricing: /pricing
+- Contact: /contact
+- FAQ: /faq
+
+# API Endpoints (for reference)
+API Endpoints:
+- /api/upscale: Image upscaling API
+- /api/convert/[target]: File conversion API
+- /api/tools/*: Various AI tool APIs
+
+# Supported Languages
+Languages: en, it, es, fr, de, pt, ru, ja, zh, ar, hi, ko
+
+# Contact
+Contact: Available through /contact page
+
+# Last Updated
+Last Updated: 2024-01-01
+

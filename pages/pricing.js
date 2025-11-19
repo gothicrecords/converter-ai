@@ -6,6 +6,7 @@ import { HiCheckCircle } from 'react-icons/hi';
 import { useTranslation } from '../lib/i18n';
 import getStripe from '../lib/stripe-client';
 import { getCurrentUser } from '../lib/auth';
+import * as analytics from '../lib/analytics';
 
 function PricingPage() {
     const { t } = useTranslation();
@@ -24,12 +25,23 @@ function PricingPage() {
     const handleSubscribe = async (priceId) => {
         // Verifica se l'utente è autenticato
         if (!user) {
+            analytics.trackButtonClick('Subscribe (Not Logged In)', 'Pricing Page');
             alert('Devi effettuare il login per abbonarti al piano Pro');
             window.location.href = '/login?redirect=/pricing';
             return;
         }
 
         setLoading(true);
+        
+        // Track begin checkout
+        const planName = priceId.includes('pro') ? 'pro' : 'premium';
+        const planPrice = planName === 'pro' ? 2.99 : 9.99;
+        analytics.trackBeginCheckout(planPrice, [{
+            item_id: planName,
+            item_name: `${planName} Plan`,
+            price: planPrice,
+            quantity: 1,
+        }]);
         
         try {
             // Crea sessione checkout con dati utente reali
@@ -47,9 +59,13 @@ function PricingPage() {
 
             const { url } = await response.json();
             
+            // Track checkout redirect
+            analytics.trackButtonClick('Checkout Redirect', 'Pricing Page');
+            
             // Redirect a Stripe Checkout
             window.location.href = url;
         } catch (error) {
+            analytics.trackError(error.message, 'Pricing Page', 'checkout_error');
             console.error('Subscription error:', error);
             alert('Errore durante il pagamento. Riprova.');
         } finally {
@@ -263,22 +279,83 @@ const styles = {
     heroSubtitle: { fontSize: '18px', color: '#94a3b8', lineHeight: '1.6', margin: 0 },
     pricing: { maxWidth: '1200px', margin: '0 auto', padding: '60px 24px' },
     pricingGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', alignItems: 'start' },
-    pricingCard: { position: 'relative', padding: '40px', background: 'rgba(102, 126, 234, 0.05)', border: '1px solid rgba(102, 126, 234, 0.2)', borderRadius: '20px', transition: 'all 0.3s' },
-    popularCard: { background: 'rgba(102, 126, 234, 0.1)', border: '2px solid #667eea', transform: 'scale(1.05)' },
-    popularBadge: { position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', padding: '6px 20px', background: '#667eea', borderRadius: '20px', fontSize: '12px', fontWeight: '700', color: '#ffffff' },
+    pricingCard: { 
+        position: 'relative', 
+        padding: '48px 40px', 
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%)', 
+        backdropFilter: 'blur(16px)',
+        border: '1px solid rgba(102, 126, 234, 0.25)', 
+        borderRadius: '24px', 
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(102, 126, 234, 0.1)',
+        overflow: 'hidden'
+    },
+    popularCard: { 
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.12) 100%)', 
+        border: '2px solid #667eea', 
+        transform: 'scale(1.05)',
+        boxShadow: '0 8px 32px rgba(102, 126, 234, 0.4), 0 0 40px rgba(102, 126, 234, 0.2)'
+    },
+    popularBadge: { 
+        position: 'absolute', 
+        top: '-14px', 
+        left: '50%', 
+        transform: 'translateX(-50%)', 
+        padding: '8px 24px', 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backgroundSize: '200% 200%',
+        borderRadius: '24px', 
+        fontSize: '12px', 
+        fontWeight: '700', 
+        color: '#ffffff',
+        boxShadow: '0 4px 16px rgba(102, 126, 234, 0.5)',
+        letterSpacing: '0.5px',
+        animation: 'gradientShift 3s ease infinite'
+    },
     planName: { fontSize: '24px', fontWeight: '800', margin: '0 0 16px', color: '#e2e8f0' },
     planPrice: { display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '12px' },
     priceAmount: { fontSize: '48px', fontWeight: '900', color: '#667eea' },
     pricePeriod: { fontSize: '18px', color: '#94a3b8' },
     planDescription: { fontSize: '15px', color: '#94a3b8', lineHeight: '1.6', marginBottom: '24px' },
-    planCta: { display: 'block', width: '100%', padding: '14px', background: 'rgba(102, 126, 234, 0.15)', border: '1px solid #667eea', borderRadius: '12px', color: '#cbd5e1', fontSize: '16px', fontWeight: '700', textAlign: 'center', textDecoration: 'none', marginBottom: '32px', transition: 'all 0.2s' },
-    popularCta: { background: '#667eea', color: '#ffffff', border: 'none' },
+    planCta: { 
+        display: 'block', 
+        width: '100%', 
+        padding: '16px', 
+        background: 'rgba(102, 126, 234, 0.15)', 
+        border: '1px solid #667eea', 
+        borderRadius: '12px', 
+        color: '#cbd5e1', 
+        fontSize: '16px', 
+        fontWeight: '700', 
+        textAlign: 'center', 
+        textDecoration: 'none', 
+        marginBottom: '32px', 
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        backdropFilter: 'blur(10px)',
+        position: 'relative',
+        overflow: 'hidden',
+        willChange: 'transform, box-shadow'
+    },
+    popularCta: { 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backgroundSize: '200% 200%',
+        color: '#ffffff', 
+        border: 'none',
+        boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4), 0 0 20px rgba(102, 126, 234, 0.2)'
+    },
     featureList: { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' },
     featureItem: { display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '15px', color: '#cbd5e1' },
     checkIcon: { width: 20, height: 20, color: '#10b981', flexShrink: 0, marginTop: '2px' },
     comparison: { maxWidth: '1200px', margin: '0 auto', padding: '80px 24px' },
     comparisonTitle: { fontSize: '32px', fontWeight: '800', textAlign: 'center', marginBottom: '48px', color: '#e2e8f0' },
-    comparisonTable: { background: 'rgba(102, 126, 234, 0.05)', border: '1px solid rgba(102, 126, 234, 0.2)', borderRadius: '16px', overflow: 'hidden' },
+    comparisonTable: { 
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%)', 
+        backdropFilter: 'blur(16px)',
+        border: '1px solid rgba(102, 126, 234, 0.25)', 
+        borderRadius: '20px', 
+        overflow: 'hidden',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(102, 126, 234, 0.1)'
+    },
     tableHeader: { display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '16px', padding: '20px', background: 'rgba(102, 126, 234, 0.1)', fontWeight: '700', fontSize: '14px', color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' },
     tableRow: { display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '16px', padding: '20px', borderTop: '1px solid rgba(102, 126, 234, 0.1)' },
     featureColumn: { color: '#cbd5e1', fontSize: '15px' },
@@ -286,7 +363,15 @@ const styles = {
     faq: { maxWidth: '900px', margin: '0 auto', padding: '80px 24px' },
     faqTitle: { fontSize: '32px', fontWeight: '800', textAlign: 'center', marginBottom: '48px', color: '#e2e8f0' },
     faqGrid: { display: 'flex', flexDirection: 'column', gap: '24px' },
-    faqItem: { padding: '32px', background: 'rgba(102, 126, 234, 0.05)', border: '1px solid rgba(102, 126, 234, 0.2)', borderRadius: '16px' },
+    faqItem: { 
+        padding: '36px', 
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%)', 
+        backdropFilter: 'blur(16px)',
+        border: '1px solid rgba(102, 126, 234, 0.25)', 
+        borderRadius: '20px',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(102, 126, 234, 0.1)'
+    },
     faqQuestion: { fontSize: '18px', fontWeight: '700', margin: '0 0 12px', color: '#e2e8f0' },
     faqAnswer: { fontSize: '15px', color: '#94a3b8', lineHeight: '1.6', margin: 0 },
     cta: { maxWidth: '800px', margin: '0 auto', padding: '80px 24px', textAlign: 'center' },

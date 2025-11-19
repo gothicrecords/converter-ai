@@ -1,10 +1,10 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { HiDownload, HiRefresh } from 'react-icons/hi';
-import { motion, AnimatePresence } from 'framer-motion';
+import { HiDownload, HiRefresh, HiX } from 'react-icons/hi';
+import { SafeMotionDiv, SafeAnimatePresence, fadeInUp, scaleIn } from '../../lib/animations';
 import EnhancedDropzone from '../EnhancedDropzone';
 import ExportModal from '../ExportModal';
 import { LoadingOverlay, ProgressBar } from '../Loading';
-import { showToast } from '../Toast';
+import { showToast, updateToast } from '../Toast';
 import { saveToHistory } from '../../utils/history';
 
 const PRESETS = {
@@ -45,7 +45,10 @@ const BackgroundRemover = () => {
 
     const handleProcessImage = async () => {
         if (files.length === 0) {
-            showToast('Carica prima un\'immagine', 'error');
+            showToast('Carica prima un\'immagine', 'error', 4000, {
+                details: 'Nessun file selezionato per l\'elaborazione',
+                technical: 'Status: No file provided'
+            });
             return;
         }
 
@@ -54,8 +57,18 @@ const BackgroundRemover = () => {
         setProcessedImage(null);
         setProgress(0);
 
+        const startTime = Date.now();
+        const file = files[0];
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        
+        const toastId = showToast('Elaborazione in corso...', 'progress', 0, {
+            progress: 0,
+            details: `File: ${file.name.substring(0, 25)}${file.name.length > 25 ? '...' : ''} • ${fileSize} MB`,
+            technical: `Type: ${subjectType} • Size: ${mappedSize} • Crop: ${crop ? 'Yes' : 'No'}`
+        });
+
         const formData = new FormData();
-        formData.append('file', files[0]);
+        formData.append('file', file);
         formData.append('type', subjectType);
         formData.append('size', mappedSize);
         formData.append('crop', crop ? 'true' : 'false');
@@ -63,7 +76,11 @@ const BackgroundRemover = () => {
 
         // Simulate progress
         const progressInterval = setInterval(() => {
-            setProgress(prev => Math.min(prev + 10, 90));
+            setProgress(prev => {
+                const newProgress = Math.min(prev + 10, 90);
+                updateToast(toastId, { progress: newProgress });
+                return newProgress;
+            });
         }, 200);
 
         try {
@@ -74,6 +91,7 @@ const BackgroundRemover = () => {
 
             clearInterval(progressInterval);
             setProgress(95);
+            updateToast(toastId, { progress: 95, message: 'Finalizzazione...' });
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -85,12 +103,15 @@ const BackgroundRemover = () => {
             setProcessedImage(imageUrl);
             setProgress(100);
 
+            const processTime = ((Date.now() - startTime) / 1000).toFixed(2);
+            const outputSize = (blob.size / 1024 / 1024).toFixed(2);
+
             // Save to history
             const reader = new FileReader();
             reader.onload = () => {
                 saveToHistory({
                     tool: 'Rimozione Sfondo AI',
-                    filename: files[0].name,
+                    filename: file.name,
                     thumbnail: reader.result,
                     params: { subjectType, quality: mappedSize, crop, cropMargin },
                     result: imageUrl
@@ -98,11 +119,22 @@ const BackgroundRemover = () => {
             };
             reader.readAsDataURL(blob);
 
-            showToast('Sfondo rimosso con successo!', 'success');
+            updateToast(toastId, {
+                type: 'success',
+                message: 'Sfondo rimosso con successo!',
+                progress: 100,
+                details: `Tempo elaborazione: ${processTime}s • Output: ${outputSize} MB`,
+                technical: `Algorithm: AI Background Removal • Quality: ${mappedSize} • Compression: ${((1 - blob.size / file.size) * 100).toFixed(1)}%`
+            });
 
         } catch (err) {
             setError(err.message);
-            showToast(err.message, 'error');
+            updateToast(toastId, {
+                type: 'error',
+                message: err.message,
+                details: 'Errore durante l\'elaborazione dell\'immagine',
+                technical: `Error: ${err.message} • File: ${file.name}`
+            });
             clearInterval(progressInterval);
         } finally {
             setIsLoading(false);
@@ -116,7 +148,17 @@ const BackgroundRemover = () => {
         setQuality(preset.quality);
         setCrop(preset.crop);
         setCropMargin(preset.cropMargin);
-        showToast(`Preset "${preset.name}" applicato`, 'info');
+        showToast(`Preset "${preset.name}" applicato`, 'info', 3000, {
+            details: `Tipo: ${preset.type} • Qualità: ${preset.quality}% • Ritaglio: ${preset.crop ? 'Sì' : 'No'}`,
+            technical: `Preset: ${presetKey} • Crop Margin: ${preset.cropMargin}%`
+        });
+    };
+
+    const handleRemoveFile = () => {
+        setFiles([]);
+        setProcessedImage(null);
+        setError(null);
+        setProgress(0);
     };
 
     // Auto-process when file or main controls change
@@ -188,12 +230,10 @@ const BackgroundRemover = () => {
                 </div>
             </div>
 
-            <AnimatePresence>
+            <SafeAnimatePresence>
                 {files.length > 0 && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
+                    <SafeMotionDiv
+                        {...fadeInUp}
                         style={styles.filePreview}
                     >
                         <div style={styles.fileRow}>
@@ -234,25 +274,23 @@ const BackgroundRemover = () => {
                                 Scarica PNG
                             </a>
                         </div>
-                    </motion.div>
+                    </SafeMotionDiv>
                 )}
-            </AnimatePresence>
+            </SafeAnimatePresence>
 
             {error && (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                <SafeMotionDiv
+                    {...scaleIn}
                     style={styles.errorBox}
                 >
                     <p><strong>Errore:</strong> {error}</p>
-                </motion.div>
+                </SafeMotionDiv>
             )}
 
-            <AnimatePresence>
+            <SafeAnimatePresence>
                 {processedImage && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
+                    <SafeMotionDiv
+                        {...scaleIn}
                         style={styles.compareSection}
                     >
                         <h3 style={styles.compareTitle}>Confronto Prima/Dopo</h3>
@@ -273,9 +311,9 @@ const BackgroundRemover = () => {
                             <input type="range" min="0" max="100" value={compare} onChange={(e)=>setCompare(parseInt(e.target.value,10))} style={styles.compareSlider} />
                             <span style={styles.sliderLabel}>Dopo</span>
                         </div>
-                    </motion.div>
+                    </SafeMotionDiv>
                 )}
-            </AnimatePresence>
+            </SafeAnimatePresence>
         </div>
     );
 };

@@ -18,10 +18,14 @@ export default function EnhancedDropzone({
         
         // Validate files
         const validFiles = [];
+        const startTime = Date.now();
         for (const file of files) {
             const validation = validateFile(file, category);
             if (!validation.valid) {
-                showToast(validation.error, 'error');
+                showToast(validation.error, 'error', 5000, {
+                    details: `Tipo: ${file.type || 'sconosciuto'} • Dimensione: ${formatFileSize(file.size)}`,
+                    technical: `File: ${file.name.substring(0, 30)}${file.name.length > 30 ? '...' : ''}`
+                });
                 continue;
             }
             validFiles.push(file);
@@ -44,7 +48,15 @@ export default function EnhancedDropzone({
         setPreviews(newPreviews);
         onFilesAccepted(validFiles);
         
-        showToast(`${validFiles.length} file caricato${validFiles.length > 1 ? 'i' : ''} con successo`, 'success');
+        const totalSize = validFiles.reduce((sum, f) => sum + f.size, 0);
+        const loadTime = ((Date.now() - startTime) / 1000).toFixed(2);
+        
+        showToast(`${validFiles.length} file caricato${validFiles.length > 1 ? 'i' : ''} con successo`, 'success', 4000, {
+            details: `Dimensione totale: ${formatFileSize(totalSize)} • Tempo: ${loadTime}s`,
+            technical: validFiles.length === 1 
+                ? `${validFiles[0].name} (${validFiles[0].type})`
+                : `${validFiles.length} file processati`
+        });
     }, [category, multiple, onFilesAccepted]);
 
     const { getRootProps, getInputProps, isDragActive: dropzoneDragActive } = useDropzone({
@@ -71,7 +83,11 @@ export default function EnhancedDropzone({
             if (files.length > 0) {
                 e.preventDefault();
                 onDrop(files);
-                showToast('Immagine incollata dal clipboard', 'info');
+                const file = files[0];
+                showToast('Immagine incollata dal clipboard', 'info', 3000, {
+                    details: `Dimensione: ${formatFileSize(file.size)} • Tipo: ${file.type || 'sconosciuto'}`,
+                    technical: `Source: Clipboard • Method: Paste Event`
+                });
             }
         };
 

@@ -1,12 +1,20 @@
 import Link from 'next/link';
 import Head from 'next/head';
 import { memo, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
 import { loadTranslationsSSR } from '../lib/i18n-server';
+import { useIsMobile } from '../lib/useMediaQuery';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import SEOHead from '../components/SEOHead';
+
+// Lazy load Footer per migliorare FCP
+const Footer = dynamic(() => import('../components/Footer'), {
+  ssr: true,
+  loading: () => <div style={{ minHeight: '200px' }}></div>
+});
 
 // Memoized components for better performance
 const AnimatedBadge = memo(({ icon: Icon, text }) => (
@@ -38,6 +46,7 @@ FeatureCard.displayName = 'FeatureCard';
 
 export default function HomePage() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   
   // Memoize static data
   const stats = useMemo(() => [
@@ -57,204 +66,66 @@ export default function HomePage() {
         <div style={styles.bgGrid}></div>
       </div>
       
+      <SEOHead
+        title="MegaPixelAI - Strumenti AI Professionali per Immagini, PDF e Documenti"
+        description="Piattaforma completa di strumenti AI professionali: upscaling immagini, conversione PDF, OCR avanzato, rimozione sfondo, traduzione documenti, trascrizione audio e molto altro. Gratis, veloce e sicuro."
+        canonical="/"
+        keywords={['AI tools', 'strumenti AI', 'upscaler immagini', 'convertitore PDF', 'OCR', 'rimozione sfondo', 'traduzione documenti', 'trascrizione audio']}
+        type="website"
+      />
       <Head>
-        <title>MegaPixelAI - Analisi Documenti con Intelligenza Artificiale</title>
-        <meta name="description" content="Carica i tuoi documenti e chatta con l'AI. Analisi automatica di PDF, DOCX, immagini con OCR e ricerca semantica." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-        
-        {/* Preload risorse critiche */}
-        <link rel="preload" href="/styles.css" as="style" />
+        {/* Preload risorse critiche - CSS ora importati come moduli */}
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        
-        <style>{`
-          @keyframes float {
-            0%, 100% { transform: translateY(0px) translateZ(0); }
-            50% { transform: translateY(-20px) translateZ(0); }
-          }
-          @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.6; }
-          }
-          @keyframes fadeInUp {
-            from {
-              opacity: 0;
-              transform: translateY(30px) translateZ(0);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0) translateZ(0);
-            }
-          }
-          @keyframes slideUp {
-            from {
-              opacity: 0;
-              transform: translateY(40px) translateZ(0);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0) translateZ(0);
-            }
-          }
-          @keyframes scaleIn {
-            from {
-              opacity: 0;
-              transform: scale(0.9) translateZ(0);
-            }
-            to {
-              opacity: 1;
-              transform: scale(1) translateZ(0);
-            }
-          }
-          @keyframes retroGlow {
-            0%, 100% {
-              box-shadow: 0 0 10px rgba(102, 126, 234, 0.3), 
-                          0 0 20px rgba(102, 126, 234, 0.2),
-                          inset 0 0 10px rgba(102, 126, 234, 0.1);
-            }
-            50% {
-              box-shadow: 0 0 20px rgba(102, 126, 234, 0.5), 
-                          0 0 40px rgba(102, 126, 234, 0.3),
-                          inset 0 0 15px rgba(102, 126, 234, 0.2);
-            }
-          }
-          @keyframes scanline {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(100%); }
-          }
-          @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-          }
-          
-          .animate-fade-in-up {
-            animation: fadeInUp 0.6s ease-out forwards;
-          }
-          .animate-slide-up {
-            animation: slideUp 0.7s ease-out forwards;
-            opacity: 0;
-          }
-          .animate-slide-up[data-delay="0"] { animation-delay: 0s; }
-          .animate-slide-up[data-delay="1"] { animation-delay: 0.1s; }
-          .animate-slide-up[data-delay="2"] { animation-delay: 0.2s; }
-          .animate-slide-up[data-delay="3"] { animation-delay: 0.3s; }
-          
-          .animate-fade-in {
-            animation: scaleIn 0.5s ease-out forwards;
-            opacity: 0;
-          }
-          .animate-fade-in[data-delay="0"] { animation-delay: 0.2s; }
-          .animate-fade-in[data-delay="100"] { animation-delay: 0.3s; }
-          .animate-fade-in[data-delay="200"] { animation-delay: 0.4s; }
-          .animate-fade-in[data-delay="300"] { animation-delay: 0.5s; }
-          
-          /* Performance optimizations */
-          * {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-          }
-          
-          /* GPU acceleration for animations */
-          .animate-fade-in-up,
-          .animate-slide-up,
-          .animate-fade-in {
-            will-change: transform, opacity;
-            backface-visibility: hidden;
-            perspective: 1000px;
-          }
-          
-          /* Reduce motion for accessibility */
-          @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-              animation-duration: 0.01ms !important;
-              animation-iteration-count: 1 !important;
-              transition-duration: 0.01ms !important;
-            }
-          }
-          
-          /* Hover effects with GPU acceleration */
-          .hover-lift {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-            will-change: transform;
-          }
-          .hover-lift:hover {
-            transform: translateY(-3px) translateZ(0);
-          }
-          
-          /* PDF tool link hover effects */
-          .pdf-tool-link:hover {
-            background: rgba(96, 165, 250, 0.2) !important;
-            transform: scale(1.05);
-          }
-          
-          /* AI Documents feature hover effects */
-          .ai-feature-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          }
-          .ai-feature-hover:hover {
-            transform: translateY(-5px) translateZ(0);
-            border-color: rgba(102, 126, 234, 0.5) !important;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
-          }
-          
-          /* Tool highlight hover effects */
-          .tool-highlight-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-          }
-          .tool-highlight-hover::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            opacity: 0;
-            transition: opacity 0.3s;
-          }
-          .tool-highlight-hover:hover {
-            transform: translateY(-8px) scale(1.05) translateZ(0);
-            border-color: rgba(102, 126, 234, 0.6) !important;
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3),
-                        0 0 20px rgba(102, 126, 234, 0.2);
-          }
-          .tool-highlight-hover:hover::after {
-            opacity: 1;
-          }
-          
-          /* Mobile optimizations */
-          @media (max-width: 768px) {
-            .animate-fade-in-up,
-            .animate-slide-up,
-            .animate-fade-in {
-              animation-duration: 0.4s;
-            }
-          }
-        `}</style>
       </Head>
       
       <Navbar />
 
       {/* Nuova sezione hero principale */}
-      <div style={styles.mainHero}>
+      <div style={{
+        ...styles.mainHero,
+        ...(isMobile ? { padding: '60px 16px 40px' } : {})
+      }}>
         <div style={styles.mainHeroContent}>
           <AnimatedBadge icon={HiSparkles} text={t('home.poweredBy')} />
-          <h1 style={styles.mainHeroTitle} className="animate-fade-in-up">
+          <h1 style={{
+            ...styles.mainHeroTitle,
+            ...(isMobile ? { fontSize: 'clamp(28px, 8vw, 40px)', padding: '0 8px' } : {})
+          }} className="animate-fade-in-up">
             {t('home.heroTitle1')}<span style={styles.gradient}>{t('home.heroTitle2')}</span>
           </h1>
-          <p style={styles.mainHeroSubtitle} className="animate-fade-in-up">
+          <p style={{
+            ...styles.mainHeroSubtitle,
+            ...(isMobile ? { fontSize: '15px', padding: '0 16px' } : {})
+          }} className="animate-fade-in-up">
             {t('home.heroSubtitle')}
           </p>
-          <div style={styles.mainHeroCta} className="animate-fade-in-up">
-            <Link href="/tools" style={styles.mainPrimaryCta} className="hover-lift">
+          <div style={{
+            ...styles.mainHeroCta,
+            ...(isMobile ? { flexDirection: 'column', width: '100%', padding: '0 16px' } : {})
+          }} className="animate-fade-in-up">
+            <Link href="/tools" style={{
+              ...styles.mainPrimaryCta,
+              ...(isMobile ? { width: '100%', padding: '12px 24px', fontSize: '15px' } : {})
+            }} className="hover-lift">
               <span>{t('hero.cta')}</span>
               <HiArrowRight style={{ width: 20, height: 20 }} />
             </Link>
-            <Link href="/home" style={styles.mainSecondaryCta} className="hover-lift">
+            <Link href="/home" style={{
+              ...styles.mainSecondaryCta,
+              ...(isMobile ? { width: '100%', padding: '12px 24px', fontSize: '15px' } : {})
+            }} className="hover-lift">
               <span>{t('home.learnMore')}</span>
             </Link>
           </div>
-          <div style={styles.statsGrid}>
+          <div style={{
+            ...styles.statsGrid,
+            ...(isMobile ? { 
+              gridTemplateColumns: 'repeat(2, 1fr)', 
+              gap: '16px',
+              padding: '24px 16px 0'
+            } : {})
+          }}>
             {stats.map((stat, i) => (
               <StatItem key={i} value={stat.value} label={stat.label} delay={stat.delay} />
             ))}
@@ -263,21 +134,40 @@ export default function HomePage() {
       </div>
 
       {/* Sezione Documenti AI - Enhanced */}
-      <div style={styles.aiDocumentsSection}>
-        <div style={styles.aiDocumentsHero}>
+      <div style={{
+        ...styles.aiDocumentsSection,
+        ...(isMobile ? { padding: '50px 16px' } : {})
+      }}>
+        <div style={{
+          ...styles.aiDocumentsHero,
+          ...(isMobile ? { padding: '40px 20px', borderRadius: '24px' } : {})
+        }}>
           <div style={styles.heroBadge} className="animate-fade-in-up">
             <HiLightningBolt style={{ width: 16, height: 16 }} />
             <span>NUOVO STRUMENTO</span>
           </div>
-          <h1 style={styles.aiDocumentsTitle} className="animate-fade-in-up">
+          <h1 style={{
+            ...styles.aiDocumentsTitle,
+            ...(isMobile ? { fontSize: 'clamp(24px, 6vw, 32px)', padding: '0 8px' } : {})
+          }} className="animate-fade-in-up">
             {t('hero.title')}
           </h1>
-          <p style={styles.aiDocumentsSubtitle} className="animate-fade-in-up">
+          <p style={{
+            ...styles.aiDocumentsSubtitle,
+            ...(isMobile ? { fontSize: '15px', padding: '0 8px', marginBottom: '32px' } : {})
+          }} className="animate-fade-in-up">
             {t('hero.subtitle')}
           </p>
           
           {/* Features Grid */}
-          <div style={styles.aiDocumentsFeaturesGrid}>
+          <div style={{
+            ...styles.aiDocumentsFeaturesGrid,
+            ...(isMobile ? { 
+              gridTemplateColumns: '1fr', 
+              gap: '16px',
+              marginBottom: '32px'
+            } : {})
+          }}>
             <div style={styles.aiDocumentsFeature} className="animate-slide-up ai-feature-hover" data-delay="0">
               <div style={styles.aiDocumentsFeatureIcon}>
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -327,9 +217,18 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div style={styles.featuresSection}>
-        <h2 style={styles.featuresTitle} className="animate-fade-in-up">{t('features.title')}</h2>
-        <div style={styles.featuresGrid}>
+      <div style={{
+        ...styles.featuresSection,
+        ...(isMobile ? { padding: '50px 16px 40px' } : {})
+      }}>
+        <h2 style={{
+          ...styles.featuresTitle,
+          ...(isMobile ? { fontSize: 'clamp(24px, 6vw, 32px)', padding: '0 16px' } : {})
+        }} className="animate-fade-in-up">{t('features.title')}</h2>
+        <div style={{
+          ...styles.featuresGrid,
+          ...(isMobile ? { gridTemplateColumns: '1fr', gap: '20px' } : {})
+        }}>
           <FeatureCard
             delay={0}
             icon={<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -391,18 +290,34 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div style={styles.toolsPreview}>
+      <div style={{
+        ...styles.toolsPreview,
+        ...(isMobile ? { padding: '40px 20px', borderRadius: '24px' } : {})
+      }}>
         <div style={styles.toolsPreviewBadge} className="animate-fade-in-up">
           <HiSparkles style={{ width: 14, height: 14 }} />
           <span>9 STRUMENTI PROFESSIONALI</span>
         </div>
-        <h2 style={styles.toolsPreviewTitle} className="animate-fade-in-up">{t('additionalTools.title')}</h2>
-        <p style={styles.toolsPreviewDesc} className="animate-fade-in-up">
+        <h2 style={{
+          ...styles.toolsPreviewTitle,
+          ...(isMobile ? { fontSize: 'clamp(24px, 6vw, 28px)', padding: '0 8px' } : {})
+        }} className="animate-fade-in-up">{t('additionalTools.title')}</h2>
+        <p style={{
+          ...styles.toolsPreviewDesc,
+          ...(isMobile ? { fontSize: '14px', padding: '0 8px', marginBottom: '24px' } : {})
+        }} className="animate-fade-in-up">
           {t('additionalTools.description')}
         </p>
         
         {/* Tool highlights grid con icone SVG professionali */}
-        <div style={styles.toolHighlightsGrid}>
+        <div style={{
+          ...styles.toolHighlightsGrid,
+          ...(isMobile ? { 
+            gridTemplateColumns: 'repeat(2, 1fr)', 
+            gap: '12px',
+            maxWidth: '100%'
+          } : {})
+        }}>
           <div style={styles.toolHighlight} className="animate-slide-up tool-highlight-hover" data-delay="0">
             <div style={styles.toolHighlightIcon}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -473,7 +388,8 @@ const styles = {
   homeWrap: {
     position: 'relative',
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%)',
+    background: 'linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 50%, #0f1720 100%)',
+    backgroundAttachment: 'fixed',
     overflow: 'hidden'
   },
   heroSection: {
@@ -493,15 +409,17 @@ const styles = {
   },
   aiDocumentsHero: {
     textAlign: 'center',
-    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.08) 100%)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(102, 126, 234, 0.25)',
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.1) 100%)',
+    backdropFilter: 'blur(24px)',
+    border: '1px solid rgba(102, 126, 234, 0.3)',
     borderRadius: '32px',
     padding: '60px 40px',
-    boxShadow: '0 20px 60px rgba(102, 126, 234, 0.15)',
-    transition: 'all 0.4s ease',
+    boxShadow: '0 20px 60px rgba(102, 126, 234, 0.2), 0 0 40px rgba(102, 126, 234, 0.1)',
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     transform: 'translateZ(0)',
-    willChange: 'transform, box-shadow'
+    willChange: 'transform, box-shadow',
+    position: 'relative',
+    overflow: 'hidden'
   },
   aiDocumentsTitle: {
     fontSize: 'clamp(32px, 5vw, 52px)',
@@ -650,17 +568,18 @@ const styles = {
   },
   featureCard: {
     position: 'relative',
-    padding: '28px 20px',
-    background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(102, 126, 234, 0.15)',
-    borderRadius: '20px',
+    padding: '32px 24px',
+    background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 41, 59, 0.5) 100%)',
+    backdropFilter: 'blur(16px)',
+    border: '1px solid rgba(102, 126, 234, 0.2)',
+    borderRadius: '24px',
     textAlign: 'center',
     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     cursor: 'pointer',
     overflow: 'hidden',
-    willChange: 'transform',
-    transform: 'translateZ(0)'
+    willChange: 'transform, box-shadow',
+    transform: 'translateZ(0)',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
   },
   featureIcon: {
     fontSize: '48px',
@@ -870,18 +789,18 @@ const styles = {
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    padding: '24px 20px',
-    background: 'rgba(15, 23, 42, 0.7)',
-    backdropFilter: 'blur(12px)',
-    border: '1px solid rgba(102, 126, 234, 0.2)',
-    borderRadius: '12px',
+    padding: '28px 24px',
+    background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%)',
+    backdropFilter: 'blur(16px)',
+    border: '1px solid rgba(102, 126, 234, 0.25)',
+    borderRadius: '16px',
     textDecoration: 'none',
-    transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     overflow: 'hidden',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3), 0 0 20px rgba(102, 126, 234, 0.1)',
     cursor: 'pointer',
     height: '100%',
-    willChange: 'transform'
+    willChange: 'transform, box-shadow'
   },
   toolIconWrap: {
     position: 'relative',
@@ -1000,22 +919,26 @@ const styles = {
     justifyContent: 'center'
   },
   mainPrimaryCta: {
-    padding: '12px 28px',
+    padding: '14px 32px',
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    backgroundSize: '200% 200%',
     border: 'none',
     borderRadius: '12px',
     color: '#ffffff',
-    fontSize: '15px',
-    fontWeight: '600',
+    fontSize: '16px',
+    fontWeight: '700',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
     textDecoration: 'none',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.35)',
-    willChange: 'transform',
-    transform: 'translateZ(0)'
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4), 0 0 20px rgba(102, 126, 234, 0.2)',
+    willChange: 'transform, box-shadow',
+    transform: 'translateZ(0)',
+    letterSpacing: '0.01em',
+    position: 'relative',
+    overflow: 'hidden'
   },
   mainSecondaryCta: {
     padding: '12px 28px',

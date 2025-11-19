@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { HiSparkles, HiHome, HiMenu, HiX, HiDotsVertical } from 'react-icons/hi';
@@ -55,100 +55,118 @@ export default function Navbar() {
         };
     }, []);
 
-    // Combine AI tools and conversion tools - categorizzazione migliorata
-    const conversionToolsByCat = getToolsByCategory();
-    
-    // Categorizzazione più chiara e logica
-    const allCategories = {
-        'Immagini': [
-            ...tools.filter(t => t.category === 'Immagini'),
-            ...(conversionToolsByCat['Image'] || [])
-        ],
-        'Video': [
-            ...tools.filter(t => t.category === 'Video'),
-            ...(conversionToolsByCat['Video'] || [])
-        ],
-        'Audio': [
-            ...tools.filter(t => t.category === 'Audio'),
-            ...(conversionToolsByCat['Audio'] || [])
-        ],
-        'PDF': [
-            ...tools.filter(t => t.category === 'PDF'),
-            ...(conversionToolsByCat['Document'] || []).filter(t => 
-                t.targetFormat === 'pdf' || 
-                t.href.includes('pdf') || 
-                t.href.includes('pdf-to') ||
-                t.href.includes('to-pdf')
-            )
-        ],
-        'Documenti': [
-            ...tools.filter(t => t.category === 'Testo'),
-            ...(conversionToolsByCat['Document'] || []).filter(t => 
-                t.targetFormat !== 'pdf' && 
-                !t.href.includes('pdf') &&
-                !t.href.includes('pdf-to') &&
-                !t.href.includes('to-pdf')
-            )
-        ],
-        'Presentazioni': conversionToolsByCat['Presentation'] || [],
-        'Fogli di Calcolo': conversionToolsByCat['Spreadsheet'] || [],
-        'Vettoriali': conversionToolsByCat['Vector'] || [],
-        'Archivi': conversionToolsByCat['Archive'] || [],
-        'Ebook': conversionToolsByCat['Ebook'] || [],
-        'Font': conversionToolsByCat['Font'] || []
-    };
-    
-    // Ordina categorie per importanza e filtra quelle vuote
-    const categoryOrder = [
-        'Immagini',
-        'Video',
-        'Audio',
-        'PDF',
-        'Documenti',
-        'Presentazioni',
-        'Fogli di Calcolo',
-        'Vettoriali',
-        'Archivi',
-        'Ebook',
-        'Font'
-    ];
-    
-    const sortedCategories = categoryOrder.filter(cat => 
-        allCategories[cat] && allCategories[cat].length > 0
-    );
-    
-    const categories = Object.fromEntries(
-        sortedCategories.map(cat => [cat, allCategories[cat]])
-    );
+    // Memoize categories computation per evitare re-calcolo ad ogni render
+    const categories = useMemo(() => {
+        // Combine AI tools and conversion tools - categorizzazione migliorata
+        const conversionToolsByCat = getToolsByCategory();
+        
+        // Categorizzazione più chiara e logica
+        const allCategories = {
+            'Immagini': [
+                ...tools.filter(t => t.category === 'Immagini'),
+                ...(conversionToolsByCat['Image'] || [])
+            ],
+            'Video': [
+                ...tools.filter(t => t.category === 'Video'),
+                ...(conversionToolsByCat['Video'] || [])
+            ],
+            'Audio': [
+                ...tools.filter(t => t.category === 'Audio'),
+                ...(conversionToolsByCat['Audio'] || [])
+            ],
+            'PDF': [
+                ...tools.filter(t => t.category === 'PDF'),
+                ...(conversionToolsByCat['Document'] || []).filter(t => 
+                    t.targetFormat === 'pdf' || 
+                    t.href.includes('pdf') || 
+                    t.href.includes('pdf-to') ||
+                    t.href.includes('to-pdf')
+                )
+            ],
+            'Documenti': [
+                ...tools.filter(t => t.category === 'Testo'),
+                ...(conversionToolsByCat['Document'] || []).filter(t => 
+                    t.targetFormat !== 'pdf' && 
+                    !t.href.includes('pdf') &&
+                    !t.href.includes('pdf-to') &&
+                    !t.href.includes('to-pdf')
+                )
+            ],
+            'Presentazioni': conversionToolsByCat['Presentation'] || [],
+            'Fogli di Calcolo': conversionToolsByCat['Spreadsheet'] || [],
+            'Vettoriali': conversionToolsByCat['Vector'] || [],
+            'Archivi': conversionToolsByCat['Archive'] || [],
+            'Ebook': conversionToolsByCat['Ebook'] || [],
+            'Font': conversionToolsByCat['Font'] || []
+        };
+        
+        // Ordina i tool all'interno di ogni categoria: prima AI/Pro, poi gli altri
+        Object.keys(allCategories).forEach(cat => {
+            allCategories[cat].sort((a, b) => {
+                // Prima i tool AI/Pro
+                const aIsPro = a.pro === true || a.href?.includes('ai') || a.href?.includes('upscaler');
+                const bIsPro = b.pro === true || b.href?.includes('ai') || b.href?.includes('upscaler');
+                
+                if (aIsPro && !bIsPro) return -1;
+                if (!aIsPro && bIsPro) return 1;
+                
+                // Poi ordina alfabeticamente
+                return (a.title || '').localeCompare(b.title || '');
+            });
+        });
+        
+        // Ordina categorie per importanza e filtra quelle vuote
+        const categoryOrder = [
+            'Immagini',
+            'Video',
+            'Audio',
+            'PDF',
+            'Documenti',
+            'Presentazioni',
+            'Fogli di Calcolo',
+            'Vettoriali',
+            'Archivi',
+            'Ebook',
+            'Font'
+        ];
+        
+        const sortedCategories = categoryOrder.filter(cat => 
+            allCategories[cat] && allCategories[cat].length > 0
+        );
+        
+        return Object.fromEntries(
+            sortedCategories.map(cat => [cat, allCategories[cat]])
+        );
+    }, []);
 
-    const handleDropdownEnter = (catName) => {
+    const handleDropdownEnter = useCallback((catName) => {
         if (closeTimeoutRef.current) {
             clearTimeout(closeTimeoutRef.current);
             closeTimeoutRef.current = null;
         }
         setDropdownOpen(catName);
-    };
+    }, []);
 
-    const handleDropdownLeave = () => {
+    const handleDropdownLeave = useCallback(() => {
         if (closeTimeoutRef.current) {
             clearTimeout(closeTimeoutRef.current);
         }
         closeTimeoutRef.current = setTimeout(() => {
             setDropdownOpen(null);
         }, 300); // 0.3 secondi di ritardo prima di chiudere
-    };
+    }, []);
 
     const styles = {
         navbar: {
             position: 'sticky',
             top: 0,
             zIndex: 1000,
-            background: scrolled ? 'rgba(10, 14, 26, 0.85)' : 'rgba(10, 14, 26, 0.95)',
-            backdropFilter: 'blur(12px)',
-            borderBottom: '1px solid rgba(102, 126, 234, 0.2)',
-            padding: scrolled ? '4px 0' : '8px 0',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-            transition: 'all 0.3s ease',
+            background: scrolled ? 'rgba(10, 14, 26, 0.9)' : 'rgba(10, 14, 26, 0.95)',
+            backdropFilter: 'blur(20px)',
+            borderBottom: scrolled ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(102, 126, 234, 0.2)',
+            padding: scrolled ? '6px 0' : '10px 0',
+            boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.4), 0 0 20px rgba(102, 126, 234, 0.1)' : '0 2px 12px rgba(0,0,0,0.3)',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
             width: '100%',
             maxWidth: '100vw',
             overflow: 'visible'
@@ -241,40 +259,57 @@ export default function Navbar() {
             position: 'absolute',
             top: '100%',
             left: 0,
-            marginTop: '5px',
+            marginTop: '8px',
             background: 'rgba(15, 23, 42, 0.98)',
-            backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(102, 126, 234, 0.2)',
-            borderRadius: '12px',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
-            padding: '8px',
-            minWidth: '240px',
-            zIndex: 1001
+            backdropFilter: 'blur(24px)',
+            border: '1px solid rgba(102, 126, 234, 0.3)',
+            borderRadius: '16px',
+            boxShadow: '0 12px 48px rgba(0,0,0,0.6), 0 0 30px rgba(102, 126, 234, 0.2)',
+            padding: '12px',
+            minWidth: '280px',
+            maxWidth: '320px',
+            maxHeight: '500px',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            zIndex: 1001,
+            animation: 'fadeInUp 0.3s ease-out',
+            // Smooth scrolling
+            scrollBehavior: 'smooth',
+            // Custom scrollbar styling
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(102, 126, 234, 0.5) rgba(15, 23, 42, 0.3)'
         },
         dropdownItem: {
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            padding: '12px 14px',
+            padding: '12px 16px',
             color: '#cbd5e1',
             textDecoration: 'none',
-            borderRadius: '8px',
+            borderRadius: '10px',
             fontSize: '14px',
             fontWeight: '500',
-            transition: 'background 0.2s'
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            position: 'relative',
+            overflow: 'hidden'
         },
         signupBtn: {
             display: 'flex',
             alignItems: 'center',
-            padding: '8px 18px',
+            padding: '10px 20px',
             border: 'none',
             fontSize: '14px',
             fontWeight: '700',
             color: '#ffffff',
             cursor: 'pointer',
-            borderRadius: '8px',
-            transition: 'all 0.2s',
-            boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)'
+            borderRadius: '10px',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4), 0 0 15px rgba(102, 126, 234, 0.2)',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            backgroundSize: '200% 200%',
+            position: 'relative',
+            overflow: 'hidden',
+            willChange: 'transform, box-shadow'
         },
         hamburgerBtn: {
             display: isMobile ? 'flex' : 'none',
@@ -412,8 +447,27 @@ export default function Navbar() {
     };
 
     return (
-        <nav style={styles.navbar} ref={navRef}>
-            <div style={styles.navContent}>
+        <>
+            <style jsx>{`
+                /* Custom scrollbar per i dropdown menu */
+                .dropdown-menu-scroll::-webkit-scrollbar {
+                    width: 8px;
+                }
+                .dropdown-menu-scroll::-webkit-scrollbar-track {
+                    background: rgba(15, 23, 42, 0.3);
+                    border-radius: 10px;
+                }
+                .dropdown-menu-scroll::-webkit-scrollbar-thumb {
+                    background: rgba(102, 126, 234, 0.5);
+                    border-radius: 10px;
+                    transition: background 0.2s;
+                }
+                .dropdown-menu-scroll::-webkit-scrollbar-thumb:hover {
+                    background: rgba(102, 126, 234, 0.7);
+                }
+            `}</style>
+            <nav style={styles.navbar} ref={navRef}>
+                <div style={styles.navContent}>
                 {/* Logo */}
                 <Link href="/" style={styles.navLogo}>
                     <svg width={scrolled ? "28" : "32"} height={scrolled ? "28" : "32"} viewBox="0 0 40 40" fill="none" style={{transition: 'all 0.3s'}}>
@@ -493,46 +547,99 @@ export default function Navbar() {
                             <button
                                 style={{
                                     ...styles.dropdownBtn,
-                                    background: hoveredItem === `cat-${catName}` ? 'rgba(102, 126, 234, 0.15)' : 'transparent'
+                                    background: hoveredItem === `cat-${catName}` || dropdownOpen === catName ? 'rgba(102, 126, 234, 0.15)' : 'transparent'
                                 }}
                                 onClick={() => setDropdownOpen(dropdownOpen === catName ? null : catName)}
                                 onMouseEnter={() => setHoveredItem(`cat-${catName}`)}
                                 onMouseLeave={() => setHoveredItem(null)}
                             >
                                 {catName}
+                                <BsChevronDown 
+                                    style={{ 
+                                        marginLeft: '6px',
+                                        width: '14px',
+                                        height: '14px',
+                                        transition: 'transform 0.3s ease',
+                                        transform: dropdownOpen === catName ? 'rotate(180deg)' : 'rotate(0deg)',
+                                        opacity: 0.8
+                                    }} 
+                                />
                             </button>
                             {dropdownOpen === catName && (
-                                <div style={styles.dropdownMenu}>
-                                    {categories[catName].slice(0, 10).map(tool => (
-                                        <Link
-                                            key={tool.href}
-                                            href={tool.href}
-                                            style={{
-                                                ...styles.dropdownItem,
-                                                background: hoveredItem === `item-${tool.href}` ? 'rgba(102, 126, 234, 0.2)' : 'transparent'
-                                            }}
-                                            onClick={() => {
-                                                if (closeTimeoutRef.current) {
-                                                    clearTimeout(closeTimeoutRef.current);
-                                                }
-                                                setDropdownOpen(null);
-                                                setHoveredItem(null);
-                                            }}
-                                            onMouseEnter={() => setHoveredItem(`item-${tool.href}`)}
-                                            onMouseLeave={() => setHoveredItem(null)}
-                                        >
-                                            {tool.icon && <tool.icon style={{ width: 18, height: 18 }} />}
-                                            <span>{tool.title}</span>
-                                        </Link>
-                                    ))}
-                                    {categories[catName].length > 10 && (
+                                <div 
+                                    className="dropdown-menu-scroll"
+                                    style={styles.dropdownMenu}
+                                    onWheel={(e) => {
+                                        // Permetti lo scroll con la rotella del mouse
+                                        e.stopPropagation();
+                                    }}
+                                >
+                                    {/* Mostra i tool ordinati (AI/Pro prima) */}
+                                    {categories[catName].slice(0, 20).map((tool, index) => {
+                                        // Aggiungi separatore visivo dopo i tool AI/Pro se necessario
+                                        const isPro = tool.pro === true || tool.href?.includes('ai') || tool.href?.includes('upscaler');
+                                        const nextTool = categories[catName][index + 1];
+                                        const nextIsPro = nextTool && (nextTool.pro === true || nextTool.href?.includes('ai') || nextTool.href?.includes('upscaler'));
+                                        const showSeparator = isPro && !nextIsPro && index < categories[catName].length - 1 && index < 19;
+                                        
+                                        return (
+                                            <React.Fragment key={tool.href}>
+                                                <Link
+                                                    href={tool.href}
+                                                    style={{
+                                                        ...styles.dropdownItem,
+                                                        background: hoveredItem === `item-${tool.href}` ? 'rgba(102, 126, 234, 0.2)' : 'transparent'
+                                                    }}
+                                                    onClick={() => {
+                                                        if (closeTimeoutRef.current) {
+                                                            clearTimeout(closeTimeoutRef.current);
+                                                        }
+                                                        setDropdownOpen(null);
+                                                        setHoveredItem(null);
+                                                    }}
+                                                    onMouseEnter={() => setHoveredItem(`item-${tool.href}`)}
+                                                    onMouseLeave={() => setHoveredItem(null)}
+                                                >
+                                                    {tool.icon && <tool.icon style={{ width: 18, height: 18, flexShrink: 0 }} />}
+                                                    <span style={{ flex: 1, minWidth: 0 }}>{tool.title}</span>
+                                                    {tool.pro && (
+                                                        <span style={{
+                                                            fontSize: '10px',
+                                                            padding: '2px 6px',
+                                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                            borderRadius: '4px',
+                                                            fontWeight: '600',
+                                                            color: '#fff',
+                                                            textTransform: 'uppercase',
+                                                            letterSpacing: '0.5px'
+                                                        }}>
+                                                            PRO
+                                                        </span>
+                                                    )}
+                                                </Link>
+                                                {showSeparator && (
+                                                    <div style={{
+                                                        height: '1px',
+                                                        background: 'rgba(102, 126, 234, 0.2)',
+                                                        margin: '8px 0',
+                                                        marginLeft: '16px',
+                                                        marginRight: '16px'
+                                                    }} />
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                    {categories[catName].length > 20 && (
                                         <Link
                                             href="/tools"
                                             style={{
                                                 ...styles.dropdownItem,
                                                 background: 'rgba(102, 126, 234, 0.1)',
                                                 fontWeight: '600',
-                                                justifyContent: 'center'
+                                                justifyContent: 'center',
+                                                marginTop: '8px',
+                                                borderTop: '1px solid rgba(102, 126, 234, 0.2)',
+                                                paddingTop: '16px'
                                             }}
                                             onClick={() => {
                                                 if (closeTimeoutRef.current) {
@@ -542,6 +649,7 @@ export default function Navbar() {
                                             }}
                                         >
                                             <span>Vedi tutti ({categories[catName].length})</span>
+                                            <BsChevronRight style={{ marginLeft: '8px', width: '14px', height: '14px' }} />
                                         </Link>
                                     )}
                                 </div>
@@ -747,5 +855,6 @@ export default function Navbar() {
                 </div>
             )}
         </nav>
+        </>
     );
 }

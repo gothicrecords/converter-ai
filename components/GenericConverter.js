@@ -1,6 +1,8 @@
 import { useState, useCallback, memo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { HiUpload, HiX, HiDownload } from 'react-icons/hi';
+import * as analytics from '../lib/analytics';
+import { fetchWithErrorHandling, handleError } from '../utils/errorHandler';
 
 // Generic converter UI: upload a file, select output (currently limited), perform placeholder conversion.
 function GenericConverter({ tool }) {
@@ -29,6 +31,12 @@ function GenericConverter({ tool }) {
     if (selectedFile) {
       setFile(selectedFile);
       setError(null);
+      
+      // Track file upload
+      const fileType = selectedFile.type || selectedFile.name.split('.').pop();
+      analytics.trackFileUpload(fileType, selectedFile.size, tool?.title || tool?.name);
+      analytics.trackToolStart(tool?.title || tool?.name, fileType, selectedFile.size);
+      
       // Generate preview for images
       if (selectedFile.type.startsWith('image/')) {
         setPreview(URL.createObjectURL(selectedFile));
@@ -36,7 +44,7 @@ function GenericConverter({ tool }) {
         setPreview(null);
       }
     }
-  }, []);
+  }, [tool]);
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
@@ -66,6 +74,10 @@ function GenericConverter({ tool }) {
     setError(null); 
     setResultDataUrl(null); 
     setResultName(null);
+    
+    const startTime = Date.now();
+    const fromFormat = file.name.split('.').pop() || file.type;
+    
     try {
       const form = new FormData();
       form.append('file', file);
@@ -79,31 +91,47 @@ function GenericConverter({ tool }) {
       if (aBitrate) form.append('abitrate', aBitrate);
       if (page) form.append('page', page);
       
-      const res = await fetch(`/api/convert/${outputFormat}`, { 
+      // Use improved error handling
+      const data = await fetchWithErrorHandling(`/api/convert/${outputFormat}`, { 
         method: 'POST', 
         body: form,
-        // Timeout per file grandi
+        headers: {}, // Don't set Content-Type for FormData, browser will set it with boundary
         signal: AbortSignal.timeout(300000) // 5 minuti
       });
       
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Conversione fallita');
-      }
+      const duration = Date.now() - startTime;
       
-      const data = await res.json();
+      // Track successful conversion
+      analytics.trackConversion(
+        'file_conversion',
+        fromFormat,
+        outputFormat,
+        file.size,
+        duration
+      );
+      analytics.trackToolComplete(tool?.title || tool?.name, duration, true);
+      
       setResultName(data.name);
       setResultDataUrl(data.dataUrl);
     } catch (e) {
-      if (e.name === 'AbortError') {
-        setError('Timeout: il file è troppo grande o la conversione richiede troppo tempo.');
-      } else {
-        setError(e.message || 'Errore durante la conversione');
-      }
+      const duration = Date.now() - startTime;
+      
+      // Track failed conversion
+      analytics.trackToolComplete(tool?.title || tool?.name, duration, false);
+      analytics.trackError(
+        e.message || 'Conversion failed',
+        'GenericConverter',
+        'conversion_error'
+      );
+      
+      // Error is already handled by fetchWithErrorHandling (shows toast)
+      // But we also set local error state for UI display
+      const handledError = handleError(e);
+      setError(handledError.message);
     } finally {
       setLoading(false);
     }
-  }, [file, outputFormat, width, height, quality, vWidth, vHeight, vBitrate, aBitrate, page]);
+  }, [file, outputFormat, width, height, quality, vWidth, vHeight, vBitrate, aBitrate, page, tool]);
 
   const handleFileSelect = useCallback((e) => {
     const selectedFile = e.target.files[0];
@@ -239,7 +267,15 @@ function GenericConverter({ tool }) {
         <div style={styles.result}>
           <h3 style={styles.resultTitle}>✓ Conversione completata!</h3>
           <p style={styles.resultName}>{resultName}</p>
-          <a href={resultDataUrl} download={resultName} style={styles.downloadBtn}>
+          <a 
+            href={resultDataUrl} 
+            download={resultName} 
+            style={styles.downloadBtn}
+            onClick={() => {
+              const fileType = resultName.split('.').pop() || 'unknown';
+              analytics.trackDownload(fileType, tool?.title || tool?.name, file?.size);
+            }}
+          >
             <HiDownload style={{ width: 18, height: 18, marginRight: '8px' }} />
             Scarica file
           </a>

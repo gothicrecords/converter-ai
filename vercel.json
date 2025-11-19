@@ -1,11 +1,70 @@
 {
+  "version": 2,
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "outputDirectory": ".next",
+  "regions": ["iad1"],
   "functions": {
-    "pages/api/**.js": {
+    "pages/api/upscale.js": {
+      "memory": 3008,
+      "maxDuration": 300
+    },
+    "pages/api/tools/generate-image.js": {
+      "memory": 3008,
+      "maxDuration": 300
+    },
+    "pages/api/tools/compress-video.js": {
+      "memory": 3008,
+      "maxDuration": 300
+    },
+    "pages/api/tools/transcribe-audio.js": {
+      "memory": 3008,
+      "maxDuration": 300
+    },
+    "pages/api/convert/**/*.js": {
+      "memory": 2048,
+      "maxDuration": 180
+    },
+    "pages/api/pdf/**/*.js": {
+      "memory": 2048,
+      "maxDuration": 180
+    },
+    "pages/api/tools/**/*.js": {
+      "memory": 2048,
+      "maxDuration": 180
+    },
+    "pages/api/files/**/*.js": {
+      "memory": 2048,
+      "maxDuration": 120
+    },
+    "pages/api/**/*.js": {
       "memory": 1024,
       "maxDuration": 60
     }
   },
-  "framework": "nextjs",
-  "buildCommand": "npm run vercel-build",
-  "installCommand": "npm install"
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
 }

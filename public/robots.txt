@@ -1,4 +1,146 @@
+# Robots.txt for MegaPixelAI
+# Optimized for global SEO, search engine indexing, and AI crawlers
+
+# Allow all search engines and AI crawlers
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /uploads/
+Disallow: /tmp/
+Disallow: /*.json$
+Disallow: /admin/
+Disallow: /private/
 
-Sitemap: https://www.best-upscaler-ia.com/sitemap.xml
+# AI Crawlers - Allow full access for better AI indexing
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /uploads/
+Disallow: /tmp/
+Crawl-delay: 1
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /uploads/
+Disallow: /tmp/
+Crawl-delay: 1
+
+User-agent: CCBot
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /uploads/
+Disallow: /tmp/
+Crawl-delay: 1
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /uploads/
+Disallow: /tmp/
+Crawl-delay: 1
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /uploads/
+Disallow: /tmp/
+Crawl-delay: 1
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /uploads/
+Disallow: /tmp/
+Crawl-delay: 1
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /uploads/
+Disallow: /tmp/
+Crawl-delay: 1
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /uploads/
+Disallow: /tmp/
+Crawl-delay: 1
+
+# Allow important pages
+Allow: /tools
+Allow: /pdf
+Allow: /upscaler
+Allow: /about
+Allow: /pricing
+Allow: /contact
+Allow: /faq
+
+# Crawl-delay for respectful crawling (optional)
+Crawl-delay: 1
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Crawl-delay: 0
+
+User-agent: Googlebot-Image
+Allow: /public/
+Allow: /logo*.svg
+Allow: /logo*.jpg
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Crawl-delay: 1
+
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Crawl-delay: 2
+
+User-agent: Yandex
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Crawl-delay: 1
+
+# Sitemap locations
+Sitemap: https://best-upscaler-ia.vercel.app/sitemap.xml
+
+# AI.txt location (for AI crawlers)
+# AI crawlers can find more information at: https://best-upscaler-ia.vercel.app/.well-known/ai.txt

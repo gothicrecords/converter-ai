@@ -15,7 +15,7 @@ Le tue variabili sono già configurate:
 
 3. Clicca su **"New Query"**
 
-4. Copia e incolla TUTTO il contenuto del file `setup-database.sql` (nella root del progetto)
+4. Copia e incolla TUTTO il contenuto del file `migrations/setup-database.sql`
 
 5. Clicca su **"Run"** in basso a destra
 
@@ -112,7 +112,7 @@ Se vedi errori:
 
 ### Errore: "relation users does not exist"
 **Causa**: Tabelle non create
-**Soluzione**: Esegui `setup-database.sql` nel SQL Editor di Supabase
+**Soluzione**: Esegui `migrations/setup-database.sql` nel SQL Editor di Supabase
 
 ### Errore: "new row violates row-level security policy"
 **Causa**: RLS attivo con policy incompatibili
@@ -133,7 +133,7 @@ DELETE FROM users WHERE email = 'test@test.com';
 
 ## ✅ Checklist Finale
 
-- [ ] Eseguito `setup-database.sql` nel SQL Editor
+- [ ] Eseguito `migrations/setup-database.sql` nel SQL Editor
 - [ ] Disabilitato RLS o aggiornato le policy
 - [ ] Verificato le tabelle esistono (users, user_history, user_sessions)
 - [ ] Testato registrazione con successo

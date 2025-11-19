@@ -22,7 +22,7 @@ Client Supabase configurato per connessione database:
 - Client service role per API routes (sicuro)
 - Validazione variabili d'ambiente
 
-### 2. **setup-database.sql** (NUOVO)
+### 2. **migrations/setup-database.sql** (NUOVO)
 Script SQL completo con:
 - Tabella `users` (utenti con password hashate)
 - Tabella `user_history` (cronologia elaborazioni)
@@ -188,7 +188,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ### Passo 5: Crea Tabelle Database
 1. Dashboard Supabase > SQL Editor
 2. New Query
-3. Apri file `setup-database.sql` dal tuo progetto
+3. Apri file `migrations/setup-database.sql` dal tuo progetto
 4. Copia tutto e incolla nell'editor
 5. Clicca "Run" ✅
 
@@ -326,7 +326,7 @@ npm run dev
 ## 📚 File da Leggere
 
 1. **SETUP_DATABASE.md** - Guida completa setup (LEGGI PRIMA!)
-2. **setup-database.sql** - Script SQL da eseguire
+2. **migrations/setup-database.sql** - Script SQL da eseguire
 3. **.env.local** - Aggiorna con tue credenziali Supabase
 
 ---

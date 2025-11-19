@@ -140,18 +140,22 @@ const styles = {
   },
   dropzone: {
     border: '2px dashed rgba(102, 126, 234, 0.3)',
-    borderRadius: '16px',
-    padding: '48px 24px',
+    borderRadius: '20px',
+    padding: '56px 32px',
     textAlign: 'center',
-    background: 'rgba(255, 255, 255, 0.03)',
+    background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%)',
+    backdropFilter: 'blur(16px)',
     cursor: 'pointer',
-    transition: 'all 0.3s',
-    position: 'relative'
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    position: 'relative',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(102, 126, 234, 0.1)',
+    overflow: 'hidden'
   },
   dropzoneActive: {
     borderColor: '#667eea',
-    background: 'rgba(102, 126, 234, 0.1)',
-    transform: 'scale(1.02)'
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.12) 100%)',
+    transform: 'scale(1.02)',
+    boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3), 0 0 40px rgba(102, 126, 234, 0.2)'
   },
   dropzoneUploading: {
     opacity: 0.7,
@@ -206,11 +210,14 @@ const styles = {
   },
   fileCard: {
     position: 'relative',
-    padding: '16px',
-    background: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(102, 126, 234, 0.2)',
-    borderRadius: '12px',
-    transition: 'all 0.2s'
+    padding: '20px',
+    background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 41, 59, 0.5) 100%)',
+    backdropFilter: 'blur(12px)',
+    border: '1px solid rgba(102, 126, 234, 0.25)',
+    borderRadius: '16px',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+    overflow: 'hidden'
   },
   removeBtn: {
     position: 'absolute',

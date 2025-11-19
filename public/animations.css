@@ -1,0 +1,410 @@
+/**
+ * Sistema centralizzato di animazioni CSS
+ * Tutte le animazioni del sito sono definite qui per evitare duplicazioni
+ * e garantire coerenza e performance ottimali
+ */
+
+/* ============================================
+   KEYFRAMES - Animazioni base
+   ============================================ */
+
+@keyframes float {
+  0%, 100% { 
+    transform: translate3d(0, 0, 0) translateZ(0); 
+  }
+  50% { 
+    transform: translate3d(0, -20px, 0) translateZ(0); 
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: scale(1) translateZ(0);
+  }
+  50% { 
+    opacity: 0.6; 
+    transform: scale(1.05) translateZ(0);
+  }
+}
+
+@keyframes flowDown {
+  0% { 
+    transform: translate3d(0, -100px, 0) translateZ(0); 
+    opacity: 0; 
+  }
+  50% { 
+    opacity: 1; 
+  }
+  100% { 
+    transform: translate3d(0, 100px, 0) translateZ(0); 
+    opacity: 0; 
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) translateZ(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translate3d(-30px, 0, 0) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) translateZ(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translate3d(30px, 0, 0) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) translateZ(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 40px, 0) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) translateZ(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.3), 
+                0 0 20px rgba(102, 126, 234, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5), 
+                0 0 40px rgba(102, 126, 234, 0.3);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 5px rgba(102, 126, 234, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(102, 126, 234, 0.8));
+  }
+}
+
+@keyframes orbit {
+  0% {
+    transform: rotate(0deg) translateX(120px) rotate(0deg) translateZ(0);
+  }
+  100% {
+    transform: rotate(360deg) translateX(120px) rotate(-360deg) translateZ(0);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg) translateZ(0);
+  }
+  100% {
+    transform: rotate(360deg) translateZ(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes retroGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.3), 
+                0 0 20px rgba(102, 126, 234, 0.2),
+                inset 0 0 10px rgba(102, 126, 234, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5), 
+                0 0 40px rgba(102, 126, 234, 0.3),
+                inset 0 0 15px rgba(102, 126, 234, 0.2);
+  }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0) translateZ(0);
+  }
+  50% {
+    transform: translateY(-10px) translateZ(0);
+  }
+}
+
+/* ============================================
+   CLASSI DI ANIMAZIONE
+   ============================================ */
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.7s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-float {
+  animation: float 8s ease-in-out infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+/* ============================================
+   DELAY ANIMAZIONI
+   ============================================ */
+
+.animate-slide-up[data-delay="0"] { animation-delay: 0s; }
+.animate-slide-up[data-delay="1"] { animation-delay: 0.1s; }
+.animate-slide-up[data-delay="2"] { animation-delay: 0.2s; }
+.animate-slide-up[data-delay="3"] { animation-delay: 0.3s; }
+.animate-slide-up[data-delay="4"] { animation-delay: 0.4s; }
+
+.animate-fade-in[data-delay="0"] { animation-delay: 0.2s; }
+.animate-fade-in[data-delay="100"] { animation-delay: 0.3s; }
+.animate-fade-in[data-delay="200"] { animation-delay: 0.4s; }
+.animate-fade-in[data-delay="300"] { animation-delay: 0.5s; }
+
+/* ============================================
+   OTTIMIZZAZIONI PERFORMANCE
+   ============================================ */
+
+.animate-fade-in-up,
+.animate-slide-up,
+.animate-fade-in,
+.animate-slide-in-left,
+.animate-slide-in-right,
+.animate-scale-in {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* ============================================
+   ACCESSIBILITÀ - Reduced Motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   HOVER EFFECTS
+   ============================================ */
+
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
+  backface-visibility: hidden;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px) scale(1.02) translateZ(0);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4), 
+              0 0 30px rgba(102, 126, 234, 0.2);
+}
+
+.ai-feature-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-feature-hover:hover {
+  transform: translateY(-5px) translateZ(0);
+  border-color: rgba(102, 126, 234, 0.5) !important;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+}
+
+.tool-highlight-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.tool-highlight-hover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tool-highlight-hover:hover {
+  transform: translateY(-8px) scale(1.05) translateZ(0);
+  border-color: rgba(102, 126, 234, 0.6) !important;
+  box-shadow: 0 20px 50px rgba(102, 126, 234, 0.4),
+              0 0 30px rgba(102, 126, 234, 0.3),
+              inset 0 0 20px rgba(102, 126, 234, 0.1);
+}
+
+.tool-highlight-hover:hover::after {
+  opacity: 1;
+}
+
+.pdf-tool-link:hover {
+  background: rgba(96, 165, 250, 0.2) !important;
+  transform: scale(1.05);
+}
+
+/* ============================================
+   MOBILE OPTIMIZATIONS
+   ============================================ */
+
+@media (max-width: 768px) {
+  .animate-fade-in-up,
+  .animate-slide-up,
+  .animate-fade-in {
+    animation-duration: 0.4s;
+  }
+  
+  /* Disabilita hover effects su mobile */
+  .hover-lift:hover,
+  .ai-feature-hover:hover,
+  .tool-highlight-hover:hover {
+    transform: none;
+  }
+}
+
+/* ============================================
+   CARD HOVER EFFECTS (Desktop only)
+   ============================================ */
+
+@media (hover: hover) and (pointer: fine) {
+  a[href^="/tools/"] {
+    position: relative;
+  }
+  
+  a[href^="/tools/"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+    z-index: 1;
+  }
+  
+  a[href^="/tools/"]:hover::before {
+    transform: scaleX(1);
+  }
+}
+

@@ -77,7 +77,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ... (la tua service role key)
 
 1. Nella dashboard Supabase, vai su **SQL Editor** (icona database nel menu laterale)
 2. Clicca "New Query"
-3. Apri il file `setup-database.sql` dal tuo progetto
+3. Apri il file `migrations/setup-database.sql` dal tuo progetto
 4. **Copia tutto il contenuto** del file SQL
 5. **Incolla** nell'editor SQL di Supabase
 6. Clicca "Run" (tasto play in basso a destra)
@@ -261,7 +261,7 @@ WHERE expires_at < NOW();
 - ✅ Riavvia il server: `Ctrl+C` e poi `npm run dev`
 
 ### Errore: "Failed to create user"
-- ✅ Verifica di aver eseguito `setup-database.sql` in Supabase
+- ✅ Verifica di aver eseguito `migrations/setup-database.sql` in Supabase
 - ✅ Controlla che la tabella `users` esista in Table Editor
 
 ### Errore: "Invalid or expired session"

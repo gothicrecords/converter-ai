@@ -1,45 +1,103 @@
 import { tools } from '../lib/tools';
+import { getAllConversionTools } from '../lib/conversionRegistry';
 
-const EXTERNAL_DATA_URL = 'https://www.best-upscaler-ia.com';
+const EXTERNAL_DATA_URL = 'https://best-upscaler-ia.vercel.app';
+const SUPPORTED_LOCALES = ['en', 'it', 'es', 'fr', 'de', 'pt', 'ru', 'ja', 'zh', 'ar', 'hi', 'ko'];
+const CURRENT_DATE = new Date().toISOString().split('T')[0];
 
-function generateSiteMap(tools) {
-  return `<?xml version="1.0" encoding="UTF-8"?>
-   <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-     <!--Pagine statiche-->
-     <url>
-       <loc>${EXTERNAL_DATA_URL}</loc>
-     </url>
-     <url>
-       <loc>${EXTERNAL_DATA_URL}/upscaler</loc>
-     </url>
-     <url>
-        <loc>${EXTERNAL_DATA_URL}/pdf</loc>
-     </url>
-    <!-- PDF tool pages for SEO -->
-    <!-- Verso PDF -->
-    <url><loc>${EXTERNAL_DATA_URL}/pdf/jpg2pdf</loc></url>
-    <url><loc>${EXTERNAL_DATA_URL}/pdf/docx2pdf</loc></url>
-    <url><loc>${EXTERNAL_DATA_URL}/pdf/ppt2pdf</loc></url>
-    <url><loc>${EXTERNAL_DATA_URL}/pdf/xls2pdf</loc></url>
-    <url><loc>${EXTERNAL_DATA_URL}/pdf/html2pdf</loc></url>
-    <!-- Da PDF -->
-    <url><loc>${EXTERNAL_DATA_URL}/pdf/pdf2jpg</loc></url>
-    <url><loc>${EXTERNAL_DATA_URL}/pdf/pdf2docx</loc></url>
-    <url><loc>${EXTERNAL_DATA_URL}/pdf/pdf2pptx</loc></url>
-    <url><loc>${EXTERNAL_DATA_URL}/pdf/pdf2xlsx</loc></url>
-    <url><loc>${EXTERNAL_DATA_URL}/pdf/pdf2pdfa</loc></url>
-     <!--Pagine dinamiche degli strumenti-->
-     ${tools
-       .map(({ href }) => {
-         return `
-       <url>
-           <loc>${`${EXTERNAL_DATA_URL}${href}`}</loc>
-       </url>
-     `;
-       })
-       .join('')}
-   </urlset>
- `;
+// Static pages with their priorities and change frequencies
+const staticPages = [
+  { path: '', priority: '1.0', changefreq: 'daily' },
+  { path: '/home', priority: '0.9', changefreq: 'daily' },
+  { path: '/tools', priority: '0.9', changefreq: 'daily' },
+  { path: '/upscaler', priority: '0.9', changefreq: 'weekly' },
+  { path: '/pdf', priority: '0.9', changefreq: 'weekly' },
+  { path: '/about', priority: '0.8', changefreq: 'monthly' },
+  { path: '/pricing', priority: '0.8', changefreq: 'weekly' },
+  { path: '/contact', priority: '0.7', changefreq: 'monthly' },
+  { path: '/faq', priority: '0.7', changefreq: 'monthly' },
+  { path: '/privacy', priority: '0.5', changefreq: 'yearly' },
+  { path: '/terms', priority: '0.5', changefreq: 'yearly' },
+  { path: '/login', priority: '0.6', changefreq: 'monthly' },
+  { path: '/signup', priority: '0.6', changefreq: 'monthly' },
+  { path: '/dashboard', priority: '0.7', changefreq: 'weekly' },
+  { path: '/chat', priority: '0.8', changefreq: 'weekly' },
+];
+
+// PDF conversion pages
+const pdfPages = [
+  { path: '/pdf/jpg2pdf', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/docx2pdf', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/ppt2pdf', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/xls2pdf', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/html2pdf', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/pdf2jpg', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/pdf2docx', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/pdf2pptx', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/pdf2xlsx', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/pdf2pdfa', priority: '0.8', changefreq: 'weekly' },
+];
+
+function generateUrlEntry(path, priority = '0.8', changefreq = 'weekly', lastmod = CURRENT_DATE) {
+  return `
+    <url>
+      <loc>${EXTERNAL_DATA_URL}${path}</loc>
+      <lastmod>${lastmod}</lastmod>
+      <changefreq>${changefreq}</changefreq>
+      <priority>${priority}</priority>
+    </url>`;
+}
+
+function generateSiteMap(allTools) {
+  let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <!-- Static Pages -->`;
+
+  // Add static pages
+  staticPages.forEach(page => {
+    sitemap += generateUrlEntry(page.path, page.priority, page.changefreq);
+    
+    // Add alternate language versions
+    SUPPORTED_LOCALES.forEach(locale => {
+      if (locale !== 'en') {
+        const localePath = `${page.path}`;
+        sitemap += `
+    <url>
+      <loc>${EXTERNAL_DATA_URL}${localePath}</loc>
+      <xhtml:link rel="alternate" hreflang="${locale}" href="${EXTERNAL_DATA_URL}${localePath}" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="${EXTERNAL_DATA_URL}${page.path}" />
+      <lastmod>${CURRENT_DATE}</lastmod>
+      <changefreq>${page.changefreq}</changefreq>
+      <priority>${page.priority}</priority>
+    </url>`;
+      }
+    });
+  });
+
+  // Add PDF conversion pages
+  sitemap += `
+  <!-- PDF Conversion Pages -->`;
+  pdfPages.forEach(page => {
+    sitemap += generateUrlEntry(page.path, page.priority, page.changefreq);
+  });
+
+  // Add AI tools pages with higher priority
+  sitemap += `
+  <!-- AI Tools Pages -->`;
+  allTools.forEach(tool => {
+    if (tool.href) {
+      // Higher priority for main tools
+      const priority = tool.pro ? '0.85' : '0.8';
+      sitemap += generateUrlEntry(tool.href, priority, 'weekly');
+    }
+  });
+
+  sitemap += `
+</urlset>`;
+
+  return sitemap;
 }
 
 function SiteMap() {
@@ -47,11 +105,22 @@ function SiteMap() {
 }
 
 export async function getServerSideProps({ res }) {
-  const sitemap = generateSiteMap(tools);
+  try {
+    // Get all tools (AI tools + conversion tools)
+    const conversionTools = getAllConversionTools ? getAllConversionTools() : [];
+    const allTools = [...tools, ...conversionTools];
+    
+    const sitemap = generateSiteMap(allTools);
 
-  res.setHeader('Content-Type', 'text/xml');
-  res.write(sitemap);
-  res.end();
+    res.setHeader('Content-Type', 'text/xml');
+    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    res.write(sitemap);
+    res.end();
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    res.statusCode = 500;
+    res.end();
+  }
 
   return {
     props: {},

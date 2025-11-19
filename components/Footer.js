@@ -14,21 +14,21 @@ const Footer = () => {
         </div>
         <div style={styles.footerSection}>
           <h4 style={styles.footerTitle}>{t('footer.product')}</h4>
-          <Link href="/home" style={styles.footerLink}>{t('footer.tools')}</Link>
-          <Link href="/#features" style={styles.footerLink}>{t('footer.features')}</Link>
-          <Link href="/pricing" style={styles.footerLink}>{t('footer.pricing')}</Link>
+          <Link href="/home" style={styles.footerLink} onMouseEnter={(e) => {e.target.style.color = '#667eea'; e.target.style.transform = 'translateX(4px)';}} onMouseLeave={(e) => {e.target.style.color = '#94a3b8'; e.target.style.transform = 'translateX(0)';}}>{t('footer.tools')}</Link>
+          <Link href="/#features" style={styles.footerLink} onMouseEnter={(e) => {e.target.style.color = '#667eea'; e.target.style.transform = 'translateX(4px)';}} onMouseLeave={(e) => {e.target.style.color = '#94a3b8'; e.target.style.transform = 'translateX(0)';}}>{t('footer.features')}</Link>
+          <Link href="/pricing" style={styles.footerLink} onMouseEnter={(e) => {e.target.style.color = '#667eea'; e.target.style.transform = 'translateX(4px)';}} onMouseLeave={(e) => {e.target.style.color = '#94a3b8'; e.target.style.transform = 'translateX(0)';}}>{t('footer.pricing')}</Link>
         </div>
         <div style={styles.footerSection}>
           <h4 style={styles.footerTitle}>{t('footer.company')}</h4>
-          <Link href="/about" style={styles.footerLink}>{t('footer.aboutUs')}</Link>
-          <Link href="/blog" style={styles.footerLink}>{t('footer.blog')}</Link>
-          <Link href="/contact" style={styles.footerLink}>{t('footer.contact')}</Link>
+          <Link href="/about" style={styles.footerLink} onMouseEnter={(e) => {e.target.style.color = '#667eea'; e.target.style.transform = 'translateX(4px)';}} onMouseLeave={(e) => {e.target.style.color = '#94a3b8'; e.target.style.transform = 'translateX(0)';}}>{t('footer.aboutUs')}</Link>
+          <Link href="/blog" style={styles.footerLink} onMouseEnter={(e) => {e.target.style.color = '#667eea'; e.target.style.transform = 'translateX(4px)';}} onMouseLeave={(e) => {e.target.style.color = '#94a3b8'; e.target.style.transform = 'translateX(0)';}}>{t('footer.blog')}</Link>
+          <Link href="/contact" style={styles.footerLink} onMouseEnter={(e) => {e.target.style.color = '#667eea'; e.target.style.transform = 'translateX(4px)';}} onMouseLeave={(e) => {e.target.style.color = '#94a3b8'; e.target.style.transform = 'translateX(0)';}}>{t('footer.contact')}</Link>
         </div>
         <div style={styles.footerSection}>
           <h4 style={styles.footerTitle}>{t('footer.legal')}</h4>
-          <Link href="/privacy" style={styles.footerLink}>{t('footer.privacy')}</Link>
-          <Link href="/terms" style={styles.footerLink}>{t('footer.terms')}</Link>
-          <Link href="/cookies" style={styles.footerLink}>{t('footer.cookies')}</Link>
+          <Link href="/privacy" style={styles.footerLink} onMouseEnter={(e) => {e.target.style.color = '#667eea'; e.target.style.transform = 'translateX(4px)';}} onMouseLeave={(e) => {e.target.style.color = '#94a3b8'; e.target.style.transform = 'translateX(0)';}}>{t('footer.privacy')}</Link>
+          <Link href="/terms" style={styles.footerLink} onMouseEnter={(e) => {e.target.style.color = '#667eea'; e.target.style.transform = 'translateX(4px)';}} onMouseLeave={(e) => {e.target.style.color = '#94a3b8'; e.target.style.transform = 'translateX(0)';}}>{t('footer.terms')}</Link>
+          <Link href="/cookies" style={styles.footerLink} onMouseEnter={(e) => {e.target.style.color = '#667eea'; e.target.style.transform = 'translateX(4px)';}} onMouseLeave={(e) => {e.target.style.color = '#94a3b8'; e.target.style.transform = 'translateX(0)';}}>{t('footer.cookies')}</Link>
         </div>
       </div>
       <div style={styles.enterpriseFooter}>
@@ -45,11 +45,12 @@ export default Footer;
 
 const styles = {
   footer: {
-    background: 'rgba(15, 23, 42, 0.6)',
-    borderTop: '1px solid rgba(102, 126, 234, 0.2)',
-    padding: '40px 24px 20px',
-    marginTop: '60px',
-    marginTop: 'auto'
+    background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.8) 0%, rgba(10, 14, 26, 0.95) 100%)',
+    backdropFilter: 'blur(20px)',
+    borderTop: '1px solid rgba(102, 126, 234, 0.3)',
+    padding: '50px 24px 24px',
+    marginTop: 'auto',
+    boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(102, 126, 234, 0.1)'
   },
   footerContent: {
     maxWidth: '1200px',
@@ -80,8 +81,15 @@ const styles = {
     fontSize: '14px',
     color: '#94a3b8',
     textDecoration: 'none',
-    transition: 'color 0.2s',
-    cursor: 'pointer'
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    cursor: 'pointer',
+    padding: '4px 0',
+    position: 'relative',
+    display: 'inline-block'
+  },
+  footerLinkHover: {
+    color: '#667eea',
+    transform: 'translateX(4px)'
   },
   enterpriseFooter: {
     textAlign: 'center',

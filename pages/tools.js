@@ -92,7 +92,6 @@ ToolCard.displayName = 'ToolCard';
 
 export default function ToolsPage() {
     const [selectedCategory, setSelectedCategory] = useState('Tutti');
-    const [filtersExpanded, setFiltersExpanded] = useState(false);
     const isMobile = useIsMobile();
 
     // Combine AI tools and conversion tools
@@ -183,52 +182,37 @@ export default function ToolsPage() {
             </section>
 
             {/* Filtri per categoria */}
-            <section style={styles.filterSection}>
+            <section style={{
+                ...styles.filterSection,
+                ...(isMobile ? {
+                    padding: '0 0 20px',
+                    position: 'sticky',
+                    top: '60px',
+                    zIndex: 100,
+                    background: 'rgba(10, 14, 26, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    borderBottom: '1px solid rgba(102, 126, 234, 0.1)',
+                    marginBottom: '0'
+                } : {})
+            }}>
                 <div style={styles.filterContainer}>
                     {isMobile ? (
-                        <>
-                            <div style={styles.filterBarMobile}>
-                                <button
-                                    onClick={() => setSelectedCategory('Tutti')}
-                                    style={{
-                                        ...styles.filterButtonCenter,
-                                        ...(selectedCategory === 'Tutti' ? styles.filterButtonActive : {})
-                                    }}
-                                >
-                                    Tutti
-                                </button>
-                                <button
-                                    style={styles.filterMenuButton}
-                                    onClick={() => setFiltersExpanded(prev => !prev)}
-                                >
-                                    Filtri
-                                    {filtersExpanded ? (
-                                        <BsChevronUp style={styles.filterMenuIcon} />
-                                    ) : (
-                                        <BsChevronDown style={styles.filterMenuIcon} />
-                                    )}
-                                </button>
+                        <div style={styles.filterScrollContainer} className="filter-scroll-container">
+                            <div style={styles.filterScrollWrapper}>
+                                {categories.map((category) => (
+                                    <button
+                                        key={category}
+                                        onClick={() => setSelectedCategory(category)}
+                                        style={{
+                                            ...styles.filterButtonMobile,
+                                            ...(selectedCategory === category ? styles.filterButtonActiveMobile : {})
+                                        }}
+                                    >
+                                        {category}
+                                    </button>
+                                ))}
                             </div>
-                            {filtersExpanded && (
-                                <div style={styles.filterGrid}>
-                                    {categories.filter(cat => cat !== 'Tutti').map((category) => (
-                                        <button
-                                            key={category}
-                                            onClick={() => {
-                                                setSelectedCategory(category);
-                                                setFiltersExpanded(false);
-                                            }}
-                                            style={{
-                                                ...styles.filterButton,
-                                                ...(selectedCategory === category ? styles.filterButtonActive : {})
-                                            }}
-                                        >
-                                            {category}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </>
+                        </div>
                     ) : (
                         <div style={styles.filterContainerDesktop}>
                             {categories.map((category) => (
@@ -353,23 +337,24 @@ const styles = {
     },
     toolCard: { 
         position: 'relative', 
-        padding: '28px', 
-        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.6) 100%)', 
-        border: '1px solid rgba(102, 126, 234, 0.2)', 
-        borderRadius: '16px', 
+        padding: '32px 28px', 
+        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.7) 100%)', 
+        border: '1px solid rgba(102, 126, 234, 0.25)', 
+        borderRadius: '20px', 
         textDecoration: 'none', 
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
         cursor: 'pointer',
         overflow: 'hidden',
-        backdropFilter: 'blur(10px)',
-        willChange: 'transform',
+        backdropFilter: 'blur(16px)',
+        willChange: 'transform, box-shadow',
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
         WebkitTapHighlightColor: 'transparent',
-        touchAction: 'manipulation'
+        touchAction: 'manipulation',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3), 0 0 20px rgba(102, 126, 234, 0.1)'
     },
     proBadge: {
         position: 'absolute',
@@ -384,18 +369,20 @@ const styles = {
         letterSpacing: '0.5px'
     },
     toolIconWrapper: {
-        width: '56px',
-        height: '56px',
-        borderRadius: '14px',
+        width: '60px',
+        height: '60px',
+        borderRadius: '16px',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backgroundSize: '200% 200%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: '20px',
-        boxShadow: '0 4px 20px rgba(102, 126, 234, 0.4)',
+        marginBottom: '24px',
+        boxShadow: '0 6px 24px rgba(102, 126, 234, 0.5), 0 0 20px rgba(102, 126, 234, 0.3)',
         position: 'relative',
         overflow: 'hidden',
-        zIndex: 1
+        zIndex: 1,
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
     },
     toolIcon: {
         width: '24px',
@@ -468,17 +455,52 @@ const styles = {
         justifyContent: 'center',
         maxWidth: '100%'
     },
-    filterBarMobile: {
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
+    filterScrollContainer: {
         width: '100%',
-        maxWidth: '400px',
-        padding: '12px 20px',
-        background: 'rgba(30, 41, 59, 0.5)',
-        border: '1px solid rgba(102, 126, 234, 0.2)',
-        borderRadius: '24px',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+        padding: '12px 16px',
         position: 'relative'
+    },
+    filterScrollWrapper: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '4px 0',
+        minWidth: 'max-content'
+    },
+    filterButtonMobile: {
+        padding: '10px 20px',
+        background: 'rgba(30, 41, 59, 0.7)',
+        border: '1px solid rgba(102, 126, 234, 0.25)',
+        borderRadius: '24px',
+        color: '#cbd5e1',
+        fontSize: '14px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        outline: 'none',
+        whiteSpace: 'nowrap',
+        textAlign: 'center',
+        flexShrink: 0,
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+        WebkitTapHighlightColor: 'transparent',
+        touchAction: 'manipulation',
+        minHeight: '44px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    filterButtonActiveMobile: {
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        borderColor: 'transparent',
+        color: '#fff',
+        transform: 'scale(1.05)',
+        boxShadow: '0 6px 20px rgba(102, 126, 234, 0.5), 0 0 20px rgba(102, 126, 234, 0.3)',
+        fontWeight: '700'
     },
     filterButtonDesktop: {
         padding: '8px 20px',
@@ -498,75 +520,11 @@ const styles = {
     },
     filterButtonActiveDesktop: {
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backgroundSize: '200% 200%',
         color: '#ffffff',
-        boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-        transform: 'scale(1.05)'
-    },
-    filterButtonCenter: {
-        padding: '10px 28px',
-        background: 'transparent',
-        border: 'none',
-        borderRadius: '24px',
-        color: '#94a3b8',
-        fontSize: '15px',
-        fontWeight: '700',
-        cursor: 'pointer',
-        transition: 'all 0.3s ease',
-        outline: 'none',
-        minWidth: '100px'
-    },
-    filterMenuButton: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '8px 12px',
-        background: 'rgba(102, 126, 234, 0.15)',
-        border: '1px solid rgba(102, 126, 234, 0.3)',
-        borderRadius: '16px',
-        color: '#667eea',
-        fontSize: '13px',
-        fontWeight: '600',
-        cursor: 'pointer',
-        transition: 'all 0.3s ease',
-        outline: 'none',
-        position: 'absolute',
-        right: '16px'
-    },
-    filterMenuIcon: {
-        width: '14px',
-        height: '14px'
-    },
-    filterGrid: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        gap: '10px',
-        width: '100%',
-        maxWidth: '700px',
-        padding: '16px 0'
-    },
-    filterButton: {
-        padding: '10px 24px',
-        background: 'rgba(30, 41, 59, 0.6)',
-        border: '1px solid rgba(102, 126, 234, 0.2)',
-        borderRadius: '20px',
-        color: '#cbd5e1',
-        fontSize: '14px',
-        fontWeight: '600',
-        cursor: 'pointer',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        outline: 'none',
-        whiteSpace: 'nowrap',
-        textAlign: 'center',
-        minWidth: '100px',
-        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)'
-    },
-    filterButtonActive: {
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        borderColor: 'transparent',
-        color: '#fff',
-        transform: 'translateY(-2px)',
-        boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)'
+        boxShadow: '0 6px 20px rgba(102, 126, 234, 0.5), 0 0 20px rgba(102, 126, 234, 0.3)',
+        transform: 'scale(1.05)',
+        animation: 'gradientShift 3s ease infinite'
     },
     resultsCount: {
         textAlign: 'center',
@@ -589,60 +547,15 @@ const styles = {
     }
 };
 
-// Aggiungi animazioni CSS globali e stili per card
+// Aggiungi stili specifici per la pagina tools (non duplicati in animations.css)
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    const styleId = 'tools-page-animations';
+    const styleId = 'tools-page-specific-styles';
     if (!document.getElementById(styleId)) {
         const style = document.createElement('style');
         style.id = styleId;
         style.textContent = `
-            @keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-            
-            @keyframes slideIn {
-                from {
-                    opacity: 0;
-                    transform: translateX(-10px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
-            }
-            
-            /* Card hover effects - Desktop only */
+            /* Icon wrapper ripple effect - specifico per tools page */
             @media (hover: hover) and (pointer: fine) {
-                a[href^="/tools/"] {
-                    position: relative;
-                }
-                
-                a[href^="/tools/"]::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 3px;
-                    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-                    transform: scaleX(0);
-                    transform-origin: left;
-                    transition: transform 0.4s ease;
-                    z-index: 1;
-                }
-                
-                a[href^="/tools/"]:hover::before {
-                    transform: scaleX(1);
-                }
-                
-                /* Icon wrapper ripple effect */
                 .tool-icon-wrapper::after {
                     content: '';
                     position: absolute;
@@ -675,14 +588,13 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                     transition: transform 0.1s ease;
                 }
                 
-                /* Reduce animations on mobile for performance */
-                @keyframes fadeInUp {
-                    from {
-                        opacity: 0;
-                    }
-                    to {
-                        opacity: 1;
-                    }
+                /* Hide scrollbar for filter container */
+                .filter-scroll-container::-webkit-scrollbar {
+                    display: none;
+                }
+                .filter-scroll-container {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
                 }
             }
         `;

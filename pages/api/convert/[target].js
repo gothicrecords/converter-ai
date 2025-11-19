@@ -21,6 +21,13 @@ import ttf2eotConv from 'ttf2eot';
 import { path7za } from '7zip-bin';
 import { execFile } from 'child_process';
 import { createExtractorFromData } from 'node-unrar-js';
+import { 
+  handleApiError, 
+  ValidationError, 
+  ProcessingError,
+  FileSystemError,
+  NotFoundError
+} from '../../../errors';
 
 export const config = { api: { bodyParser: false } };
 
@@ -29,13 +36,38 @@ function toDataUrl(buffer, mime) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed', code: 'METHOD_NOT_ALLOWED' });
+  }
+  
   const { target } = req.query;
+  if (!target) {
+    return handleApiError(new ValidationError('Target format is required'), res, {
+      method: req.method,
+      url: req.url,
+      endpoint: '/api/convert/[target]',
+    });
+  }
+
   const form = formidable({ multiples: false, keepExtensions: true });
+  
   form.parse(req, async (err, fields, files) => {
-    if (err) return res.status(500).json({ error: 'Upload error' });
+    if (err) {
+      return handleApiError(
+        new ValidationError('File upload failed: ' + err.message, err),
+        res,
+        { method: req.method, url: req.url, endpoint: '/api/convert/[target]' }
+      );
+    }
+    
     const file = files.file;
-    if (!file) return res.status(400).json({ error: 'File missing' });
+    if (!file) {
+      return handleApiError(
+        new ValidationError('File missing'),
+        res,
+        { method: req.method, url: req.url, endpoint: '/api/convert/[target]' }
+      );
+    }
     try {
       const inputPath = file.filepath;
       const originalName = file.originalFilename || 'file';
@@ -685,7 +717,17 @@ export default async function handler(req, res) {
       const dataUrl = toDataUrl(outputBuffer || inputBuffer, mime);
       return res.status(200).json({ name, dataUrl });
     } catch (e) {
-      return res.status(500).json({ error: 'Conversion failed', details: e.message });
+      return handleApiError(
+        new ProcessingError('Conversion failed: ' + (e.message || 'Unknown error'), e),
+        res,
+        {
+          method: req.method,
+          url: req.url,
+          endpoint: '/api/convert/[target]',
+          target,
+          inputExt,
+        }
+      );
     }
   });
 }
