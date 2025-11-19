@@ -2,16 +2,90 @@ import '../styles/styles.css';
 import '../styles/animations.css';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, Component } from 'react';
 import Script from 'next/script';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
-import DownloadManager from '../components/DownloadManager';
-import ChatSupport from '../components/ChatSupport';
+import dynamic from 'next/dynamic';
+
+// Lazy load components to prevent initial load errors
+const DownloadManager = dynamic(() => import('../components/DownloadManager'), {
+  ssr: false,
+  loading: () => null
+});
+
+const ChatSupport = dynamic(() => import('../components/ChatSupport'), {
+  ssr: false,
+  loading: () => null
+});
+
 import * as analytics from '../lib/analytics';
+
+// Error Boundary Component
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
+    if (typeof window !== 'undefined' && analytics.trackError) {
+      analytics.trackError(
+        error.message || 'Unknown error',
+        errorInfo.componentStack || 'unknown',
+        'error_boundary',
+        error.stack
+      );
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          padding: '20px',
+          textAlign: 'center'
+        }}>
+          <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>Something went wrong</h1>
+          <p style={{ marginBottom: '16px', color: '#666' }}>
+            {this.state.error?.message || 'An unexpected error occurred'}
+          </p>
+          <button
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+              window.location.reload();
+            }}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#0070f3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Create React Query client with optimized settings
 const queryClient = new QueryClient({
@@ -120,8 +194,9 @@ function MyApp({ Component, pageProps }) {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider initialTranslations={pageProps.translations || {}}>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider initialTranslations={pageProps.translations || {}}>
         <Head>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
           <meta name="theme-color" content="#0f1720" />
@@ -225,8 +300,9 @@ function MyApp({ Component, pageProps }) {
             <Analytics />
           </>
         )}
-      </LanguageProvider>
-    </QueryClientProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
