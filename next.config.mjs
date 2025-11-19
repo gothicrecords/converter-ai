@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,7 +61,7 @@ const nextConfig = {
                 return module.size() > 160000 && /node_modules[/\\]/.test(module.identifier());
               },
               name(module) {
-                const hash = require('crypto').createHash('sha1');
+                const hash = crypto.createHash('sha1');
                 hash.update(module.identifier());
                 return hash.digest('hex').substring(0, 8);
               },
@@ -75,7 +76,7 @@ const nextConfig = {
             },
             shared: {
               name(module, chunks) {
-                return require('crypto')
+                return crypto
                   .createHash('sha1')
                   .update(chunks.reduce((acc, chunk) => acc + chunk.name, ''))
                   .digest('hex')
