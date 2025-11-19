@@ -29,6 +29,13 @@ const nextConfig = {
   
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Resolve .js extensions for ES modules
+    if (config.resolve) {
+      config.resolve.extensionAlias = {
+        '.js': ['.js', '.ts', '.tsx'],
+      };
+    }
+    
     // Production optimizations
     if (!dev && !isServer) {
       config.optimization = {
