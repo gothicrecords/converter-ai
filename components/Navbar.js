@@ -31,6 +31,8 @@ export default function Navbar() {
     }, [isMobile]);
 
     useEffect(() => {
+        if (typeof window === 'undefined' || typeof document === 'undefined') return;
+        
         const handleScroll = () => {
             setScrolled(window.scrollY > 50);
         };

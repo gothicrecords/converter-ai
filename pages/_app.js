@@ -38,18 +38,25 @@ class ErrorBoundary extends Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
-    if (typeof window !== 'undefined' && analytics.trackError) {
-      analytics.trackError(
-        error.message || 'Unknown error',
-        errorInfo.componentStack || 'unknown',
-        'error_boundary',
-        error.stack
-      );
+    console.error('Error stack:', error.stack);
+    console.error('Component stack:', errorInfo.componentStack);
+    if (typeof window !== 'undefined' && analytics && analytics.trackError) {
+      try {
+        analytics.trackError(
+          error.message || 'Unknown error',
+          errorInfo.componentStack || 'unknown',
+          'error_boundary',
+          error.stack
+        );
+      } catch (e) {
+        console.error('Failed to track error:', e);
+      }
     }
   }
 
   render() {
     if (this.state.hasError) {
+      const error = this.state.error;
       return (
         <div style={{
           display: 'flex',
@@ -58,24 +65,42 @@ class ErrorBoundary extends Component {
           justifyContent: 'center',
           minHeight: '100vh',
           padding: '20px',
-          textAlign: 'center'
+          textAlign: 'center',
+          fontFamily: 'system-ui, -apple-system, sans-serif'
         }}>
-          <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>Something went wrong</h1>
-          <p style={{ marginBottom: '16px', color: '#666' }}>
-            {this.state.error?.message || 'An unexpected error occurred'}
+          <h1 style={{ fontSize: '24px', marginBottom: '16px', color: '#333' }}>Something went wrong</h1>
+          <p style={{ marginBottom: '8px', color: '#666', fontSize: '14px' }}>
+            {error?.message || 'An unexpected error occurred'}
           </p>
+          {error?.stack && (
+            <details style={{ marginTop: '16px', textAlign: 'left', maxWidth: '600px', fontSize: '12px', color: '#999' }}>
+              <summary style={{ cursor: 'pointer', marginBottom: '8px' }}>Error Details</summary>
+              <pre style={{ 
+                background: '#f5f5f5', 
+                padding: '12px', 
+                borderRadius: '4px', 
+                overflow: 'auto',
+                maxHeight: '200px'
+              }}>
+                {error.stack}
+              </pre>
+            </details>
+          )}
           <button
             onClick={() => {
-              this.setState({ hasError: false, error: null });
-              window.location.reload();
+              if (typeof window !== 'undefined') {
+                window.location.reload();
+              }
             }}
             style={{
+              marginTop: '20px',
               padding: '10px 20px',
               backgroundColor: '#0070f3',
               color: 'white',
               border: 'none',
               borderRadius: '5px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontSize: '14px'
             }}
           >
             Reload Page
