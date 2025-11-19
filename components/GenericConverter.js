@@ -1,11 +1,16 @@
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, useMemo } from 'react';
+import { useRouter } from 'next/router';
 import { useDropzone } from 'react-dropzone';
 import { HiUpload, HiX, HiDownload } from 'react-icons/hi';
 import * as analytics from '../lib/analytics';
 import { fetchWithErrorHandling, handleError } from '../utils/errorHandler';
+import ConverterCards from './ConverterCards';
 
 // Generic converter UI: upload a file, select output (currently limited), perform placeholder conversion.
 function GenericConverter({ tool }) {
+  const router = useRouter();
+  // Estrai lo slug dall'URL o dal tool
+  const currentSlug = router.query.slug || tool?.slug || (tool?.href ? tool.href.replace('/tools/', '') : null);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [outputFormat, setOutputFormat] = useState(tool.targetFormat);
@@ -23,7 +28,12 @@ function GenericConverter({ tool }) {
   const [page, setPage] = useState('0');
   const [isDragActive, setIsDragActive] = useState(false);
 
-  const availableOutputs = [tool.targetFormat, 'pdf', 'txt', 'jpg', 'png']; // initial generic options
+  // Rimuovi duplicati dall'array degli output disponibili
+  const availableOutputs = useMemo(() => {
+    const outputs = [tool.targetFormat, 'pdf', 'txt', 'jpg', 'png'];
+    // Rimuovi duplicati mantenendo l'ordine
+    return [...new Set(outputs)];
+  }, [tool.targetFormat]);
 
   // Drag and drop handler
   const onDrop = useCallback((acceptedFiles) => {
@@ -156,6 +166,9 @@ function GenericConverter({ tool }) {
 
   return (
     <div style={styles.wrap}>
+      {/* Card dei convertitori della stessa categoria */}
+      <ConverterCards currentTool={tool} currentSlug={currentSlug} />
+      
       <div style={styles.panel}>
         <h2 style={styles.title}>Converti {tool.title}</h2>
         <p style={styles.desc}>{tool.description}</p>

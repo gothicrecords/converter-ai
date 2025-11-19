@@ -56,7 +56,9 @@ const ToolPage = ({ initialSlug, meta }) => {
 
     const renderToolComponent = () => {
         if (conversionTool) {
-            return <GenericConverter tool={conversionTool} />;
+            // Assicurati che il tool abbia lo slug per le card
+            const toolWithSlug = { ...conversionTool, slug: slug };
+            return <GenericConverter tool={toolWithSlug} />;
         }
         switch (slug) {
             case 'rimozione-sfondo-ai':

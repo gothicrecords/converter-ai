@@ -590,18 +590,27 @@ export default function Navbar() {
                                         
                                         return (
                                             <React.Fragment key={tool.href}>
-                                                <Link
-                                                    href={tool.href}
+                                                <div
                                                     style={{
                                                         ...styles.dropdownItem,
-                                                        background: hoveredItem === `item-${tool.href}` ? 'rgba(102, 126, 234, 0.2)' : 'transparent'
+                                                        background: hoveredItem === `item-${tool.href}` ? 'rgba(102, 126, 234, 0.2)' : 'transparent',
+                                                        cursor: 'pointer'
                                                     }}
-                                                    onClick={() => {
+                                                    onClick={(e) => {
+                                                        // Non fermare la propagazione per permettere la navigazione
                                                         if (closeTimeoutRef.current) {
                                                             clearTimeout(closeTimeoutRef.current);
                                                         }
                                                         setDropdownOpen(null);
                                                         setHoveredItem(null);
+                                                        // Naviga usando router.push
+                                                        if (tool.href) {
+                                                            router.push(tool.href);
+                                                        }
+                                                    }}
+                                                    onMouseDown={(e) => {
+                                                        // Previeni la chiusura del dropdown quando si clicca
+                                                        e.stopPropagation();
                                                     }}
                                                     onMouseEnter={() => setHoveredItem(`item-${tool.href}`)}
                                                     onMouseLeave={() => setHoveredItem(null)}
@@ -622,7 +631,7 @@ export default function Navbar() {
                                                             PRO
                                                         </span>
                                                     )}
-                                                </Link>
+                                                </div>
                                                 {showSeparator && (
                                                     <div style={{
                                                         height: '1px',

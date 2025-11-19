@@ -13,28 +13,55 @@ const MARGIN = 8;
  * - children: dropdown content
  */
 export default function DropdownPortal({ anchorEl, open, onClose, children, offset = 8, preferRight = false }) {
-  const [container] = useState(() => typeof document !== 'undefined' ? document.createElement('div') : null);
-  const [style, setStyle] = useState({ visibility: 'hidden' });
+  const [mounted, setMounted] = useState(false);
+  const [container, setContainer] = useState(null);
+  const [style, setStyle] = useState({ 
+    visibility: 'hidden', 
+    position: 'fixed', 
+    top: '-9999px', 
+    left: '-9999px',
+    zIndex: 10050
+  });
   const elRef = useRef(null);
 
+  // Gestisci il mounting lato client per evitare errori di hydration
   useEffect(() => {
-    if (!container) return;
-    document.body.appendChild(container);
-    return () => {
-      if (document.body.contains(container)) document.body.removeChild(container);
-    };
-  }, [container]);
+    setMounted(true);
+    if (typeof document !== 'undefined') {
+      const portalContainer = document.createElement('div');
+      setContainer(portalContainer);
+      document.body.appendChild(portalContainer);
+      return () => {
+        if (document.body.contains(portalContainer)) {
+          document.body.removeChild(portalContainer);
+        }
+      };
+    }
+  }, []);
 
   useEffect(() => {
+    if (!mounted || typeof window === 'undefined') return;
+    
     if (!open) {
-      setStyle({ visibility: 'hidden', position: 'fixed', top: 0, left: 0, zIndex: 10050 });
+      setStyle({ visibility: 'hidden', position: 'fixed', top: '-9999px', left: '-9999px', zIndex: 10050 });
       return;
     }
 
-    if (typeof window === 'undefined' || !anchorEl) return;
+    if (!anchorEl) return;
+
+    // Renderizza il dropdown fuori schermo ma visibile per poter essere misurato
+    setStyle({
+      visibility: 'visible',
+      position: 'fixed',
+      top: '-9999px',
+      left: '-9999px',
+      zIndex: 10050
+    });
 
     let active = true;
     let rafId = null;
+    let retryCount = 0;
+    const MAX_RETRIES = 10;
 
     const updatePosition = () => {
       if (!active || !anchorEl || !elRef.current) return;
@@ -43,33 +70,48 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
       const dropdownRect = elRef.current.getBoundingClientRect();
       
       // Se anchorRect ha dimensioni 0, l'elemento anchor non è ancora pronto
-      if (anchorRect.width === 0 || anchorRect.height === 0) {
+      if ((anchorRect.width === 0 || anchorRect.height === 0) && retryCount < MAX_RETRIES) {
+        retryCount++;
         rafId = window.requestAnimationFrame(updatePosition);
         return;
       }
       
-      // Se il dropdown non ha ancora dimensioni reali, aspetta un frame
-      if (dropdownRect.width === 0 || dropdownRect.height === 0) {
+      // Se il dropdown non ha ancora dimensioni reali, aspetta un frame (ma con limite)
+      if ((dropdownRect.width === 0 || dropdownRect.height === 0) && retryCount < MAX_RETRIES) {
+        retryCount++;
         rafId = window.requestAnimationFrame(updatePosition);
         return;
       }
+      
+      // Usa le dimensioni reali o fallback
+      const computedWidth = dropdownRect.width || 280;
+      const computedHeight = dropdownRect.height || 100;
+      
+      retryCount = 0; // reset retry count quando abbiamo dimensioni valide
       
       const spaceBelow = window.innerHeight - anchorRect.bottom;
       const spaceAbove = anchorRect.top;
 
       // Calcola la posizione verticale
       let top = anchorRect.bottom + offset;
-      if (spaceBelow < dropdownRect.height && spaceAbove > dropdownRect.height) {
-        top = anchorRect.top - dropdownRect.height - offset;
+      if (spaceBelow < computedHeight && spaceAbove > computedHeight) {
+        top = anchorRect.top - computedHeight - offset;
       }
-      top = Math.min(Math.max(top, MARGIN), Math.max(window.innerHeight - dropdownRect.height - MARGIN, MARGIN));
+      top = Math.min(Math.max(top, MARGIN), Math.max(window.innerHeight - computedHeight - MARGIN, MARGIN));
 
-      // Calcola la posizione orizzontale: allinea il bordo sinistro del dropdown al bordo sinistro del bottone
-      let left = anchorRect.left;
+      // Calcola la posizione orizzontale
+      let left;
+      if (preferRight) {
+        // Allinea il bordo destro del dropdown al bordo destro del bottone
+        left = anchorRect.right - computedWidth;
+      } else {
+        // Allinea il bordo sinistro del dropdown al bordo sinistro del bottone
+        left = anchorRect.left;
+      }
       
       // Se il dropdown esce dallo schermo a destra, spostalo a sinistra
-      if (left + dropdownRect.width > window.innerWidth - MARGIN) {
-        left = window.innerWidth - dropdownRect.width - MARGIN;
+      if (left + computedWidth > window.innerWidth - MARGIN) {
+        left = window.innerWidth - computedWidth - MARGIN;
       }
       
       // Se il dropdown esce dallo schermo a sinistra, allinealo al margine sinistro
@@ -100,21 +142,40 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition, true);
     };
-  }, [open, anchorEl, offset, preferRight]);
+  }, [open, anchorEl, offset, preferRight, mounted]);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+    
     const onDocClick = (e) => {
       if (!open) return;
-      if (anchorEl && anchorEl.contains(e.target)) return;
-      if (elRef.current && elRef.current.contains(e.target)) return;
+      
+      const target = e.target;
+      
+      // Non chiudere se si clicca sull'elemento anchor
+      if (anchorEl && anchorEl.contains(target)) return;
+      
+      // Non chiudere se si clicca all'interno del dropdown
+      if (elRef.current && elRef.current.contains(target)) {
+        return;
+      }
+      
+      // Chiudi solo se si clicca fuori
       onClose && onClose();
     };
 
-    if (open) document.addEventListener('mousedown', onDocClick);
+    if (open) {
+      // Usa 'mousedown' invece di 'click' per chiudere il dropdown
+      // così il 'click' può arrivare agli elementi interni per la navigazione
+      document.addEventListener('mousedown', onDocClick);
+    }
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [open, anchorEl, onClose]);
 
-  if (!container) return null;
+  // Non renderizzare nulla durante SSR o se il container non è ancora montato
+  if (!mounted || !container || typeof document === 'undefined') {
+    return null;
+  }
 
   return createPortal(
     <div ref={elRef} style={style} className="dropdown-portal">
