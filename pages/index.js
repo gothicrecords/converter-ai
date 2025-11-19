@@ -54,7 +54,6 @@ export default function HomePage() {
         title={t('seo.home.title')}
         description={t('seo.home.description')}
       />
-      <Navbar />
       
       {/* Animated background elements */}
       <div style={styles.bgOverlay}>
@@ -64,13 +63,6 @@ export default function HomePage() {
         <div style={styles.bgGrid}></div>
       </div>
       
-      <SEOHead
-        title="MegaPixelAI - Strumenti AI Professionali per Immagini, PDF e Documenti"
-        description="Piattaforma completa di strumenti AI professionali: upscaling immagini, conversione PDF, OCR avanzato, rimozione sfondo, traduzione documenti, trascrizione audio e molto altro. Gratis, veloce e sicuro."
-        canonical="/"
-        keywords={['AI tools', 'strumenti AI', 'upscaler immagini', 'convertitore PDF', 'OCR', 'rimozione sfondo', 'traduzione documenti', 'trascrizione audio']}
-        type="website"
-      />
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {/* Preload risorse critiche - CSS ora importati come moduli */}
