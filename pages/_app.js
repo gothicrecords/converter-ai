@@ -2,7 +2,7 @@ import '../styles/styles.css';
 import '../styles/animations.css';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, Component } from 'react';
+import { useEffect, Component, useState } from 'react';
 import Script from 'next/script';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
@@ -10,8 +10,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
 import dynamic from 'next/dynamic';
-import { useAnimation } from '../lib/useAnimation';
-
 // Lazy load components to prevent initial load errors
 const DownloadManager = dynamic(() => import('../components/DownloadManager'), {
   ssr: false,
@@ -127,11 +125,15 @@ const queryClient = new QueryClient({
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
-  const canAnimate = useAnimation();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Applica classe per abilitare animazioni solo lato client
   useEffect(() => {
-    if (!canAnimate) return;
+    if (!mounted) return;
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
     try {
       document.documentElement.classList.add('animations-ready');
@@ -147,7 +149,7 @@ function MyApp({ Component, pageProps }) {
     } catch (error) {
       console.warn('Animation setup failed:', error);
     }
-  }, [canAnimate]);
+  }, [mounted]);
 
   useEffect(() => {
     // Previeni scroll orizzontale (solo client-side)
