@@ -4,7 +4,7 @@ import SEOHead from '../components/SEOHead';
 
 export default function TermsPage() {
     return (
-        <div style={styles.pageWrap}>
+        <div style={styles.pageWrap} suppressHydrationWarning>
             <SEOHead
                 title="Termini e Condizioni - Regole d'Uso dei Servizi"
                 description="Termini e condizioni d'uso di MegaPixelAI: scopri le regole, i diritti e le responsabilità quando utilizzi i nostri strumenti AI."
