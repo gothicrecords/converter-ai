@@ -127,31 +127,27 @@ const queryClient = new QueryClient({
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
-  // Temporarily disable animations to isolate the issue
-  // const canAnimate = useAnimation();
+  const canAnimate = useAnimation();
   
   // Applica classe per abilitare animazioni solo lato client
   useEffect(() => {
-    // Animations temporarily disabled for debugging
-    /*
-    if (canAnimate && typeof window !== 'undefined' && typeof document !== 'undefined') {
-      try {
-        document.documentElement.classList.add('animations-ready');
-        // Applica animazioni a tutti gli elementi con classi animate-*
-        const animatedElements = document.querySelectorAll('[class*="animate-"]');
-        if (animatedElements && animatedElements.length > 0) {
-          animatedElements.forEach((el) => {
-            if (el && el.classList) {
-              el.classList.add('animate-ready');
-            }
-          });
-        }
-      } catch (error) {
-        console.warn('Animation setup failed:', error);
+    if (!canAnimate) return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    try {
+      document.documentElement.classList.add('animations-ready');
+      // Applica animazioni a tutti gli elementi con classi animate-*
+      const animatedElements = document.querySelectorAll('[class*="animate-"]');
+      if (animatedElements && animatedElements.length > 0) {
+        animatedElements.forEach((el) => {
+          if (el && el.classList) {
+            el.classList.add('animate-ready');
+          }
+        });
       }
+    } catch (error) {
+      console.warn('Animation setup failed:', error);
     }
-    */
-  }, []);
+  }, [canAnimate]);
 
   useEffect(() => {
     // Previeni scroll orizzontale (solo client-side)
