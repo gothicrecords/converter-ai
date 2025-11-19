@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
-import { loadTranslationsSSR } from '../lib/i18n-server';
 import { useIsMobile } from '../lib/useMediaQuery';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
@@ -1049,6 +1048,7 @@ const styles = {
 };
 
 export async function getServerSideProps({ locale }) {
+  const { loadTranslationsSSR } = await import('../lib/i18n-server');
   const translations = await loadTranslationsSSR(locale || 'en');
   
   return {

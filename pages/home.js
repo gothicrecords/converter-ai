@@ -5,7 +5,6 @@ import {
     HiUsers, HiCheckCircle, HiArrowRight, HiStar 
 } from 'react-icons/hi';
 import { useTranslation } from '../lib/i18n';
-import { loadTranslationsSSR } from '../lib/i18n-server';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import Footer from '../components/Footer';
@@ -453,6 +452,7 @@ const getStyles = (isMobile) => ({
 });
 
 export async function getServerSideProps({ locale }) {
+    const { loadTranslationsSSR } = await import('../lib/i18n-server');
     const translations = await loadTranslationsSSR(locale || 'en');
     
     return {
