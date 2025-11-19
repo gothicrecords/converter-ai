@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Head from 'next/head';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState, useEffect } from 'react';
 import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
@@ -38,7 +38,17 @@ FeatureCard.displayName = 'FeatureCard';
 
 export default function HomePage() {
   const { t } = useTranslation();
-  const isMobile = false; // Always render desktop version, CSS handles responsive
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Safe client-side mobile detection (no hydration mismatch)
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Memoize static data
   const stats = useMemo(() => [

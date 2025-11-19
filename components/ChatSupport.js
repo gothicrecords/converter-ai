@@ -4,7 +4,6 @@ import {
   HiChevronDown, HiChevronUp, HiPaperAirplane, HiSparkles
 } from 'react-icons/hi';
 import { searchKnowledgeBase, getSuggestions, getRelatedFAQs } from '../lib/supportKnowledgeBase';
-import { useIsMobile } from '../lib/useMediaQuery';
 
 export default function ChatSupport() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +17,15 @@ export default function ChatSupport() {
   const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'faq'
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const isMobile = useIsMobile();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Safe client-side mobile detection
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Messaggio iniziale
   useEffect(() => {

@@ -10,11 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
 import DownloadManager from '../components/DownloadManager';
-
-// const ChatSupport = dynamic(() => import('../components/ChatSupport'), {
-//   ssr: false,
-//   loading: () => null
-// });
+import ChatSupport from '../components/ChatSupport';
 
 import * as analytics from '../lib/analytics';
 
@@ -341,7 +337,7 @@ function MyApp({ Component, pageProps }) {
         <ToastContainer />
         <Component {...pageProps} />
         <DownloadManager />
-        {/* <ChatSupport /> */}
+        {mounted && <ChatSupport />}
         {process.env.NODE_ENV === 'production' && (
           <>
             <SpeedInsights />

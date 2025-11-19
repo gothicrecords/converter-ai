@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
     HiSparkles, HiLightningBolt, HiShieldCheck, HiTrendingUp, 
     HiUsers, HiCheckCircle, HiArrowRight, HiStar 
@@ -13,7 +13,15 @@ import { tools as allTools } from '../lib/tools';
 export default function LandingPage() {
     const [email, setEmail] = useState('');
     const { t } = useTranslation();
-    const isMobile = false; // Always render desktop version, CSS handles responsive
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Safe client-side mobile detection
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const features = [
         { icon: HiLightningBolt, title: t('features.fastProcessing'), description: t('home.feature1Desc') },
