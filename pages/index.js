@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import Head from 'next/head';
-import dynamic from 'next/dynamic';
 import { memo, useMemo, useState, useEffect } from 'react';
 import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
@@ -8,11 +7,7 @@ import { useTranslation } from '../lib/i18n';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 
-// Lazy load Footer for better initial performance
-const Footer = dynamic(() => import('../components/Footer'), {
-  ssr: true,
-  loading: () => null,
-});
+import Footer from '../components/Footer';
 
 // Memoized components for better performance
 const AnimatedBadge = memo(({ icon: Icon, text }) => (
@@ -397,7 +392,7 @@ const styles = {
     minHeight: '100vh',
     background: 'linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 50%, #0f1720 100%)',
     backgroundAttachment: 'fixed',
-    overflow: 'hidden'
+    overflow: 'visible'
   },
   heroSection: {
     textAlign: 'center',
