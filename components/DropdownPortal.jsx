@@ -50,7 +50,7 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
 
       let left = preferRight
         ? anchorRect.right - dropdownRect.width
-        : anchorRect.left + anchorRect.width / 2 - dropdownRect.width / 2;
+        : anchorRect.left;
       const maxLeft = Math.max(window.innerWidth - dropdownRect.width - MARGIN, MARGIN);
       left = Math.min(Math.max(left, MARGIN), maxLeft);
 
