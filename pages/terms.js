@@ -1,6 +1,9 @@
 import React from 'react';
-import Navbar from '../components/Navbar';
+import dynamic from 'next/dynamic';
 import SEOHead from '../components/SEOHead';
+
+// Load Navbar client-side only to avoid hydration issues
+const Navbar = dynamic(() => import('../components/Navbar'), { ssr: false });
 
 export default function TermsPage() {
     return (
