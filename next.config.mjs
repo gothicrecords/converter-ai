@@ -12,9 +12,6 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   
-  // SWC Minify for better performance
-  swcMinify: true,
-  
   // Image optimization
   images: {
     formats: ['image/avif', 'image/webp'],
