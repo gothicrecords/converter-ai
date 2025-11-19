@@ -1,11 +1,8 @@
 // pages/upscaler.js - Professional Upscaler UI
 import { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
-import dynamic from 'next/dynamic';
+import Navbar from '../components/Navbar';
 import { HiSparkles, HiUpload, HiDownload, HiPhotograph } from 'react-icons/hi';
-
-// Load Navbar client-side only to avoid any SSR hydration edge cases here
-const Navbar = dynamic(() => import('../components/Navbar'), { ssr: false });
 
 // Safe analytics loader: defers import to client and no-ops if unavailable
 function useSafeAnalytics() {

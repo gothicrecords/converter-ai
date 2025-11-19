@@ -9,12 +9,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
-import dynamic from 'next/dynamic';
-// Lazy load components to prevent initial load errors
-const DownloadManager = dynamic(() => import('../components/DownloadManager'), {
-  ssr: false,
-  loading: () => null
-});
+import DownloadManager from '../components/DownloadManager';
 
 // const ChatSupport = dynamic(() => import('../components/ChatSupport'), {
 //   ssr: false,

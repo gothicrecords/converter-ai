@@ -1,18 +1,12 @@
 import Link from 'next/link';
 import Head from 'next/head';
 import { memo, useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
-
-// Lazy load Footer per migliorare FCP
-const Footer = dynamic(() => import('../components/Footer'), {
-  ssr: true,
-  loading: () => <div style={{ minHeight: '200px' }}></div>
-});
+import Footer from '../components/Footer';
 
 // Memoized components for better performance
 const AnimatedBadge = memo(({ icon: Icon, text }) => (

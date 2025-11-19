@@ -2,18 +2,11 @@ import Link from 'next/link';
 import { useState, useMemo, memo, useCallback, useEffect } from 'react';
 import { HiArrowRight } from 'react-icons/hi';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
-import dynamic from 'next/dynamic';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import Footer from '../components/Footer';
 import { tools as aiTools } from '../lib/tools';
 import { getAllConversionTools } from '../lib/conversionRegistry';
-
-// Lazy load Footer per performance
-const LazyFooter = dynamic(() => import('../components/Footer'), {
-  ssr: true,
-  loading: () => <div style={{ minHeight: '200px' }}></div>
-});
 
 // Memoized Tool Card Component per performance
 const ToolCard = memo(({ tool, isMobile, getCardPadding, getIconSize, getIconInnerSize }) => {
@@ -323,18 +316,16 @@ export default function ToolsPage() {
                                         getIconInnerSize={getIconInnerSize}
                                     />
                                 </div>
-                            ))}
+                                ))}
                         </div>
                     </>
                 )}
             </section>
 
-            <LazyFooter />
+            <Footer />
         </div>
     );
-}
-
-const styles = {
+}const styles = {
     pageWrap: { minHeight: '100vh', background: '#0a0e1a', color: '#e6eef8' },
     hero: { 
         maxWidth: '1200px', 
