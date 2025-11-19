@@ -1,5 +1,5 @@
-import ProceduralImageGenerator from '../../utils/proceduralImageGenerator';
-import AdvancedUpscaler from '../../utils/advancedUpscaler';
+import ProceduralImageGenerator from '../../../utils/proceduralImageGenerator';
+import AdvancedUpscaler from '../../../utils/advancedUpscaler';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
