@@ -12,6 +12,9 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   
+  // SWC Minify for better performance
+  swcMinify: true,
+  
   // Image optimization
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -21,10 +24,13 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Performance optimizations
+    unoptimized: false,
+    remotePatterns: [],
   },
 
   experimental: {
-    optimizePackageImports: ['react-icons', 'framer-motion', 'lodash'],
+    optimizePackageImports: ['react-icons', 'framer-motion', 'lodash', '@tanstack/react-query'],
     scrollRestoration: true,
   },
   
@@ -131,6 +137,15 @@ const nextConfig = {
         ],
       },
       {
+        source: '/_next/image',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
         source: '/:path*',
         headers: [
           {
@@ -149,8 +164,28 @@ const nextConfig = {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
           },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()'
+          },
+          // Performance headers
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
         ],
       },
+    ];
+  },
+  
+  // Redirects for SEO
+  async redirects() {
+    return [
+      // Add any redirects here if needed
     ];
   },
 };

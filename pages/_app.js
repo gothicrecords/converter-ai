@@ -11,6 +11,7 @@ import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
 import DownloadManager from '../components/DownloadManager';
 import ChatSupport from '../components/ChatSupport';
+import { optimizeCoreWebVitals, setupLazyImages } from '../lib/performance';
 
 import * as analytics from '../lib/analytics';
 
@@ -137,6 +138,18 @@ function MyApp({ Component, pageProps }) {
           }
         });
       }
+      
+      // Setup lazy loading and Core Web Vitals optimizations
+      try {
+        if (typeof optimizeCoreWebVitals === 'function') {
+          optimizeCoreWebVitals();
+        }
+        if (typeof setupLazyImages === 'function') {
+          setupLazyImages();
+        }
+      } catch (error) {
+        console.warn('Performance optimization setup failed:', error);
+      }
     } catch (error) {
       console.warn('Animation setup failed:', error);
     }
@@ -192,6 +205,37 @@ function MyApp({ Component, pageProps }) {
     };
   }, [router]);
 
+  // Register Service Worker for performance
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+      // Use requestIdleCallback for non-critical registration
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          navigator.serviceWorker
+            .register('/sw.js')
+            .then((registration) => {
+              console.log('Service Worker registered:', registration.scope);
+            })
+            .catch((error) => {
+              // Silently fail - service worker is optional
+              if (process.env.NODE_ENV === 'development') {
+                console.log('Service Worker registration failed:', error);
+              }
+            });
+        });
+      } else {
+        // Fallback for browsers without requestIdleCallback
+        setTimeout(() => {
+          navigator.serviceWorker
+            .register('/sw.js')
+            .catch(() => {
+              // Silently fail
+            });
+        }, 2000);
+      }
+    }
+  }, []);
+
   // Web Vitals Tracking
   useEffect(() => {
     if (typeof window === 'undefined' || process.env.NODE_ENV !== 'production') return;
@@ -244,23 +288,44 @@ function MyApp({ Component, pageProps }) {
           <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
           <link rel="alternate icon" href="/logo.svg" type="image/svg+xml" />
           <link rel="apple-touch-icon" href="/logo-with-text.jpg" />
-          <link rel="preconnect" href="https://www.googletagmanager.com" />
-          <link rel="preconnect" href="https://www.google-analytics.com" />
+          
+          {/* Performance: Preconnect to external domains */}
+          <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          
+          {/* DNS Prefetch for faster resolution */}
           <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
           <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+          <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+          <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+          
+          {/* Preload critical resources */}
+          <link rel="preload" href="/styles/styles.css" as="style" />
+          <link rel="preload" href="/styles/animations.css" as="style" />
+          
+          {/* Prefetch important routes */}
+          <link rel="prefetch" href="/tools" />
+          <link rel="prefetch" href="/upscaler" />
+          <link rel="prefetch" href="/pdf" />
+          
           <title>Tool Suite - Upscaler AI & PDF Converter</title>
           <style>{`
             html {
               overflow-y: scroll;
               overflow-x: hidden;
               width: 100%;
+              max-width: 100%;
             }
             body {
               overflow-x: hidden;
-              max-width: 100vw;
+              max-width: 100%;
+              width: 100%;
               position: relative;
               margin: 0;
               padding: 0;
+              box-sizing: border-box;
             }
             * {
               box-sizing: border-box;
@@ -268,7 +333,16 @@ function MyApp({ Component, pageProps }) {
             /* Force scrollbar to always show to prevent layout shift */
             :root {
               overflow-y: scroll;
+              overflow-x: hidden;
               scrollbar-gutter: stable;
+              width: 100%;
+              max-width: 100%;
+            }
+            /* Prevent horizontal scroll */
+            #__next {
+              overflow-x: hidden;
+              max-width: 100%;
+              width: 100%;
             }
             /* Ottimizzazioni performance */
             * {

@@ -1,12 +1,18 @@
 import Link from 'next/link';
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
 import { memo, useMemo, useState, useEffect } from 'react';
 import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
-import Footer from '../components/Footer';
+
+// Lazy load Footer for better initial performance
+const Footer = dynamic(() => import('../components/Footer'), {
+  ssr: true,
+  loading: () => null,
+});
 
 // Memoized components for better performance
 const AnimatedBadge = memo(({ icon: Icon, text }) => (
@@ -61,8 +67,9 @@ export default function HomePage() {
   return (
     <div style={styles.homeWrap}>
       <SEOHead 
-        title={t('seo.home.title')}
-        description={t('seo.home.description')}
+        title={t('seo.homeTitle') || 'Strumenti AI Professionali per Immagini, PDF e Audio'}
+        description={t('seo.homeDesc') || 'Piattaforma all-in-one con oltre 15 strumenti AI: rimozione sfondo, upscaling 4K, generazione immagini, OCR, conversione PDF e molto altro. Gratis e professionale.'}
+        canonical="/"
       />
       
       {/* Animated background elements */}

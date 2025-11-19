@@ -8,34 +8,34 @@ const CURRENT_DATE = new Date().toISOString().split('T')[0];
 // Static pages with their priorities and change frequencies
 const staticPages = [
   { path: '', priority: '1.0', changefreq: 'daily' },
-  { path: '/home', priority: '0.9', changefreq: 'daily' },
-  { path: '/tools', priority: '0.9', changefreq: 'daily' },
-  { path: '/upscaler', priority: '0.9', changefreq: 'weekly' },
-  { path: '/pdf', priority: '0.9', changefreq: 'weekly' },
+  { path: '/home', priority: '0.95', changefreq: 'daily' },
+  { path: '/tools', priority: '0.95', changefreq: 'daily' },
+  { path: '/upscaler', priority: '0.9', changefreq: 'daily' },
+  { path: '/pdf', priority: '0.9', changefreq: 'daily' },
+  { path: '/chat', priority: '0.85', changefreq: 'daily' },
+  { path: '/pricing', priority: '0.85', changefreq: 'weekly' },
   { path: '/about', priority: '0.8', changefreq: 'monthly' },
-  { path: '/pricing', priority: '0.8', changefreq: 'weekly' },
-  { path: '/contact', priority: '0.7', changefreq: 'monthly' },
-  { path: '/faq', priority: '0.7', changefreq: 'monthly' },
-  { path: '/privacy', priority: '0.5', changefreq: 'yearly' },
-  { path: '/terms', priority: '0.5', changefreq: 'yearly' },
+  { path: '/contact', priority: '0.75', changefreq: 'monthly' },
+  { path: '/faq', priority: '0.75', changefreq: 'weekly' },
+  { path: '/dashboard', priority: '0.7', changefreq: 'weekly' },
   { path: '/login', priority: '0.6', changefreq: 'monthly' },
   { path: '/signup', priority: '0.6', changefreq: 'monthly' },
-  { path: '/dashboard', priority: '0.7', changefreq: 'weekly' },
-  { path: '/chat', priority: '0.8', changefreq: 'weekly' },
+  { path: '/privacy', priority: '0.5', changefreq: 'yearly' },
+  { path: '/terms', priority: '0.5', changefreq: 'yearly' },
 ];
 
-// PDF conversion pages
+// PDF conversion pages - Higher priority for SEO
 const pdfPages = [
-  { path: '/pdf/jpg2pdf', priority: '0.8', changefreq: 'weekly' },
-  { path: '/pdf/docx2pdf', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/jpg2pdf', priority: '0.85', changefreq: 'daily' },
+  { path: '/pdf/pdf2jpg', priority: '0.85', changefreq: 'daily' },
+  { path: '/pdf/docx2pdf', priority: '0.85', changefreq: 'daily' },
+  { path: '/pdf/pdf2docx', priority: '0.85', changefreq: 'daily' },
   { path: '/pdf/ppt2pdf', priority: '0.8', changefreq: 'weekly' },
-  { path: '/pdf/xls2pdf', priority: '0.8', changefreq: 'weekly' },
-  { path: '/pdf/html2pdf', priority: '0.8', changefreq: 'weekly' },
-  { path: '/pdf/pdf2jpg', priority: '0.8', changefreq: 'weekly' },
-  { path: '/pdf/pdf2docx', priority: '0.8', changefreq: 'weekly' },
   { path: '/pdf/pdf2pptx', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/xls2pdf', priority: '0.8', changefreq: 'weekly' },
   { path: '/pdf/pdf2xlsx', priority: '0.8', changefreq: 'weekly' },
-  { path: '/pdf/pdf2pdfa', priority: '0.8', changefreq: 'weekly' },
+  { path: '/pdf/html2pdf', priority: '0.75', changefreq: 'weekly' },
+  { path: '/pdf/pdf2pdfa', priority: '0.75', changefreq: 'weekly' },
 ];
 
 function generateUrlEntry(path, priority = '0.8', changefreq = 'weekly', lastmod = CURRENT_DATE) {
@@ -88,9 +88,18 @@ function generateSiteMap(allTools) {
   <!-- AI Tools Pages -->`;
   allTools.forEach(tool => {
     if (tool.href) {
-      // Higher priority for main tools
-      const priority = tool.pro ? '0.85' : '0.8';
-      sitemap += generateUrlEntry(tool.href, priority, 'weekly');
+      // Higher priority for main tools and popular tools
+      let priority = tool.pro ? '0.9' : '0.85';
+      let changefreq = 'daily';
+      
+      // Boost priority for popular tools
+      const popularTools = ['rimozione-sfondo-ai', 'generazione-immagini-ai', 'upscaler'];
+      if (popularTools.some(pop => tool.href.includes(pop))) {
+        priority = '0.95';
+        changefreq = 'daily';
+      }
+      
+      sitemap += generateUrlEntry(tool.href, priority, changefreq);
     }
   });
 
@@ -107,8 +116,17 @@ function SiteMap() {
 export async function getServerSideProps({ res }) {
   try {
     // Get all tools (AI tools + conversion tools)
-    const conversionTools = getAllConversionTools ? getAllConversionTools() : [];
-    const allTools = [...tools, ...conversionTools];
+    let conversionTools = [];
+    try {
+      if (typeof getAllConversionTools === 'function') {
+        conversionTools = getAllConversionTools();
+      }
+    } catch (err) {
+      console.warn('Error getting conversion tools:', err);
+      conversionTools = [];
+    }
+    
+    const allTools = [...(tools || []), ...conversionTools];
     
     const sitemap = generateSiteMap(allTools);
 
@@ -119,6 +137,8 @@ export async function getServerSideProps({ res }) {
   } catch (error) {
     console.error('Error generating sitemap:', error);
     res.statusCode = 500;
+    res.setHeader('Content-Type', 'text/xml');
+    res.write('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
     res.end();
   }
 

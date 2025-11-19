@@ -145,7 +145,7 @@ export default function Navbar() {
         navbar: {
             position: 'sticky',
             top: 0,
-            zIndex: 10000,
+            zIndex: 100000,
             background: scrolled ? 'rgba(10, 14, 26, 0.9)' : 'rgba(10, 14, 26, 0.95)',
             backdropFilter: 'blur(20px)',
             borderBottom: scrolled ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(102, 126, 234, 0.2)',
@@ -153,9 +153,10 @@ export default function Navbar() {
             boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.4), 0 0 20px rgba(102, 126, 234, 0.1)' : '0 2px 12px rgba(0,0,0,0.3)',
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
             width: '100%',
-            maxWidth: '100vw',
+            maxWidth: '100%',
             overflowX: 'hidden',
-            overflowY: 'visible'
+            overflowY: 'visible',
+            boxSizing: 'border-box'
         },
         navContent: {
             width: '100%',
@@ -166,7 +167,9 @@ export default function Navbar() {
             alignItems: 'center',
             justifyContent: 'space-between',
             position: 'relative',
-            overflow: 'visible'
+            overflow: 'visible',
+            zIndex: 100000,
+            boxSizing: 'border-box'
         },
         navLogo: {
             display: 'flex',
@@ -207,7 +210,9 @@ export default function Navbar() {
             flexWrap: 'nowrap',
             whiteSpace: 'nowrap',
             flexShrink: 1,
-            overflow: 'visible'
+            overflow: 'visible',
+            position: 'relative',
+            zIndex: 100001
         },
         homeBtn: {
             position: 'absolute',
@@ -228,7 +233,8 @@ export default function Navbar() {
             transition: 'background 0.2s'
         },
         dropdown: {
-            position: 'relative'
+            position: 'relative',
+            zIndex: 100002
         },
         dropdownBtn: {
             display: 'flex',
@@ -260,11 +266,12 @@ export default function Navbar() {
             maxHeight: '500px',
             overflowY: 'auto',
             overflowX: 'hidden',
-            zIndex: 10001,
+            zIndex: 100003,
             animation: 'fadeInUp 0.3s ease-out',
             scrollBehavior: 'smooth',
             scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(102, 126, 234, 0.5) rgba(15, 23, 42, 0.3)'
+            scrollbarColor: 'rgba(102, 126, 234, 0.5) rgba(15, 23, 42, 0.3)',
+            isolation: 'isolate'
         },
         dropdownItem: {
             display: 'flex',

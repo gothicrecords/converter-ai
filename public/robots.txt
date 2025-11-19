@@ -144,3 +144,24 @@ Sitemap: https://best-upscaler-ia.vercel.app/sitemap.xml
 
 # AI.txt location (for AI crawlers)
 # AI crawlers can find more information at: https://best-upscaler-ia.vercel.app/.well-known/ai.txt
+
+# Performance optimization hints
+# Allow crawling of static assets for better indexing
+Allow: /_next/static/
+Allow: /public/
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.svg$
+Allow: /*.jpg$
+Allow: /*.png$
+Allow: /*.webp$
+
+# Disallow crawling of unnecessary paths
+Disallow: /api/auth/
+Disallow: /api/files/upload
+Disallow: /api/files/process
+Disallow: /_next/data/
+Disallow: /admin/
+Disallow: /private/
+Disallow: /tmp/
+Disallow: /uploads/
