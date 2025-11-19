@@ -34,9 +34,8 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (window.location.pathname.includes('/pdf/') && !window.location.pathname.match(/index$/)){
-      // If we're on a per-tool page, do not override pathname
       return;
     }
     try { window.location.hash = active; } catch {}

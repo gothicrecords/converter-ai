@@ -1,10 +1,23 @@
+import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 export default function ChatMessage({ message, onFileClick }) {
+  const [formattedTime, setFormattedTime] = useState('');
   const isUser = message.role === 'user';
   const isSystem = message.role === 'system';
+
+  useEffect(() => {
+    if (message.created_at) {
+      setFormattedTime(
+        new Date(message.created_at).toLocaleTimeString('it-IT', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      );
+    }
+  }, [message.created_at]);
 
   if (isSystem) {
     return (
@@ -55,12 +68,9 @@ export default function ChatMessage({ message, onFileClick }) {
           <span style={{ fontSize: '14px', fontWeight: '500', color: '#f1f5f9' }}>
             {isUser ? 'You' : 'AI Assistant'}
           </span>
-          {message.created_at && (
+          {formattedTime && (
             <span style={{ fontSize: '12px', color: '#64748b' }}>
-              {new Date(message.created_at).toLocaleTimeString('it-IT', {
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+              {formattedTime}
             </span>
           )}
         </div>
