@@ -91,10 +91,6 @@ const nextConfig = {
     return config;
   },
   
-  // Turbopack root per evitare warning
-  turbopack: {
-    root: process.cwd(),
-  },
   
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { 
