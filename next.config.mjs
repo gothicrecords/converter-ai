@@ -31,6 +31,7 @@ const nextConfig = {
   webpack: (config, { dev, isServer }) => {
     // Resolve .js extensions for ES modules
     if (config.resolve) {
+      config.resolve.extensions = ['.js', '.jsx', '.ts', '.tsx', '.json'];
       config.resolve.extensionAlias = {
         '.js': ['.js', '.ts', '.tsx'],
       };
