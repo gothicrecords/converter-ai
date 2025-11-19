@@ -145,7 +145,7 @@ export default function ToolsPage() {
         document.head.appendChild(style);
     }, []);
 
-    const mobile = mounted && isMobile;
+    const mobile = isMobile; // Always false in static mode
 
     // Combine AI tools and conversion tools
     const conversionTools = getAllConversionTools();
