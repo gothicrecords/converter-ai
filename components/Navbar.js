@@ -699,7 +699,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Mobile buttons - show only on mobile */}
-                {mounted && isMobile && (
+                {isMobile && (
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <button 
                             style={styles.hamburgerBtn}
@@ -725,7 +725,7 @@ export default function Navbar() {
             </div>
 
             {/* Overlay per chiudere menu mobile */}
-            {mounted && isMobile && (mobileMenuOpen || mobileSecondaryMenuOpen) && (
+            {isMobile && (mobileMenuOpen || mobileSecondaryMenuOpen) && (
                 <div 
                     style={styles.mobileOverlay}
                     onClick={() => {
@@ -736,7 +736,7 @@ export default function Navbar() {
             )}
 
             {/* Mobile menu principale (categorie e strumenti) */}
-            {mounted && isMobile && (
+            {isMobile && (
                 <div style={styles.mobileMenu}>
                     <div style={styles.mobileMenuHeader}>
                         <h3 style={styles.mobileMenuTitle}>Menu</h3>
@@ -807,7 +807,7 @@ export default function Navbar() {
             )}
 
             {/* Mobile menu secondario (login, pricing, faq, lingua) */}
-            {mounted && isMobile && (
+            {isMobile && (
                 <div style={styles.mobileSecondaryMenu}>
                     <div style={styles.mobileMenuHeader}>
                         <h3 style={styles.mobileMenuTitle}>Account</h3>

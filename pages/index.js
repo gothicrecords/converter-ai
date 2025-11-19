@@ -62,15 +62,6 @@ export default function HomePage() {
       />
       <Navbar />
       
-      {!mounted ? (
-        <div style={{ ...styles.mainHero, visibility: 'hidden' }}>
-          <div style={styles.mainHeroContent}>
-            <div style={styles.mainHeroBadge}>&nbsp;</div>
-            <h1 style={styles.mainHeroTitle}>&nbsp;</h1>
-          </div>
-        </div>
-      ) : (
-        <>
       {/* Animated background elements */}
       <div style={styles.bgOverlay}>
         <div style={styles.bgCircle1}></div>
@@ -393,8 +384,6 @@ export default function HomePage() {
       </div>
 
       <Footer />
-      </>
-      )}
     </div>
   );
 }
