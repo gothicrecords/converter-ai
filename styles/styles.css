@@ -25,6 +25,8 @@
 
 html,body{
   overflow-x:hidden;
+  overflow-y:scroll; /* Reserve vertical scrollbar space to prevent width shift */
+  scrollbar-gutter: stable; /* Reserve scrollbar gutter in modern browsers */
   max-width:100vw;
   position:relative;
   scroll-behavior:smooth;

@@ -7,6 +7,7 @@ import { tools } from '../lib/tools';
 import { getAllCategories, getToolsByCategory } from '../lib/conversionRegistry';
 import { useTranslation } from '../lib/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
+import DropdownPortal from './DropdownPortal';
 
 export default function Navbar() {
     const { t } = useTranslation();
@@ -19,6 +20,8 @@ export default function Navbar() {
     const [mobileSecondaryMenuOpen, setMobileSecondaryMenuOpen] = useState(false);
     const [expandedCategory, setExpandedCategory] = useState(null);
     const navRef = useRef(null);
+    // refs for dropdown buttons
+    const buttonRefs = useRef({});
     const closeTimeoutRef = useRef(null);
     
     // Safe client-side mobile detection
@@ -543,6 +546,7 @@ export default function Navbar() {
                                     ...styles.dropdownBtn,
                                     background: hoveredItem === `cat-${catName}` || dropdownOpen === catName ? 'rgba(102, 126, 234, 0.15)' : 'transparent'
                                 }}
+                                ref={(el) => (buttonRefs.current[catName] = el)}
                                 onClick={() => setDropdownOpen(dropdownOpen === catName ? null : catName)}
                                 onMouseEnter={() => setHoveredItem(`cat-${catName}`)}
                                 onMouseLeave={() => setHoveredItem(null)}
@@ -560,14 +564,18 @@ export default function Navbar() {
                                 />
                             </button>
                             {dropdownOpen === catName && (
-                                <div 
-                                    className="dropdown-menu-scroll"
-                                    style={styles.dropdownMenu}
-                                    onWheel={(e) => {
-                                        // Permetti lo scroll con la rotella del mouse
-                                        e.stopPropagation();
-                                    }}
+                                <DropdownPortal
+                                    anchorRef={{ current: buttonRefs.current[catName] }}
+                                    open={dropdownOpen === catName}
+                                    onClose={() => setDropdownOpen(null)}
                                 >
+                                    <div 
+                                        className="dropdown-menu-scroll"
+                                        style={{ ...styles.dropdownMenu, maxWidth: 'calc(100vw - 32px)' }}
+                                        onWheel={(e) => {
+                                            e.stopPropagation();
+                                        }}
+                                    >
                                     {/* Mostra i tool ordinati (AI/Pro prima) */}
                                     {categories[catName].slice(0, 20).map((tool, index) => {
                                         // Aggiungi separatore visivo dopo i tool AI/Pro se necessario
@@ -646,7 +654,8 @@ export default function Navbar() {
                                             <BsChevronRight style={{ marginLeft: '8px', width: '14px', height: '14px' }} />
                                         </Link>
                                     )}
-                                </div>
+                                    </div>
+                                </DropdownPortal>
                             )}
                         </div>
                     ))}
