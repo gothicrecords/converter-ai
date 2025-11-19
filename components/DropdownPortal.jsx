@@ -42,6 +42,10 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
       const anchorRect = anchorEl.getBoundingClientRect();
       const dropdownRect = elRef.current.getBoundingClientRect();
       
+      // Debug: verifica che stiamo usando l'elemento giusto
+      console.log('DropdownPortal - Anchor element:', anchorEl);
+      console.log('DropdownPortal - Anchor rect:', anchorRect);
+      
       // Se anchorRect ha dimensioni 0, l'elemento anchor non è ancora pronto
       if (anchorRect.width === 0 || anchorRect.height === 0) {
         rafId = window.requestAnimationFrame(updatePosition);
@@ -62,6 +66,8 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
         : anchorRect.left;
       const maxLeft = Math.max(window.innerWidth - dropdownRect.width - MARGIN, MARGIN);
       left = Math.min(Math.max(left, MARGIN), maxLeft);
+      
+      console.log('DropdownPortal - Calculated position:', { top, left });
 
       setStyle({
         top: `${top}px`,
