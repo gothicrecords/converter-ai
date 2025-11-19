@@ -1,11 +1,10 @@
 import Link from 'next/link';
 import Head from 'next/head';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
 import { useTranslation } from '../lib/i18n';
-import { useIsMobile } from '../lib/useMediaQuery';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 
@@ -45,7 +44,16 @@ FeatureCard.displayName = 'FeatureCard';
 
 export default function HomePage() {
   const { t } = useTranslation();
-  const isMobile = useIsMobile();
+  const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Memoize static data
   const stats = useMemo(() => [
@@ -57,6 +65,21 @@ export default function HomePage() {
   
   return (
     <div style={styles.homeWrap} suppressHydrationWarning>
+      <SEOHead 
+        title={t('seo.home.title')}
+        description={t('seo.home.description')}
+      />
+      <Navbar />
+      
+      {!mounted ? (
+        <div style={{ ...styles.mainHero, visibility: 'hidden' }}>
+          <div style={styles.mainHeroContent}>
+            <div style={styles.mainHeroBadge}>&nbsp;</div>
+            <h1 style={styles.mainHeroTitle}>&nbsp;</h1>
+          </div>
+        </div>
+      ) : (
+        <>
       {/* Animated background elements */}
       <div style={styles.bgOverlay}>
         <div style={styles.bgCircle1}></div>
@@ -379,6 +402,8 @@ export default function HomePage() {
       </div>
 
       <Footer />
+      </>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
     HiSparkles, HiLightningBolt, HiShieldCheck, HiTrendingUp, 
     HiUsers, HiCheckCircle, HiArrowRight, HiStar 
@@ -9,12 +9,20 @@ import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import Footer from '../components/Footer';
 import { tools as allTools } from '../lib/tools';
-import { useIsMobile } from '../lib/useMediaQuery';
 
 export default function LandingPage() {
     const [email, setEmail] = useState('');
     const { t } = useTranslation();
-    const isMobile = useIsMobile();
+    const [mounted, setMounted] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const features = [
         { icon: HiLightningBolt, title: t('features.fastProcessing'), description: t('home.feature1Desc') },

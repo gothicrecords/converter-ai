@@ -8,7 +8,6 @@ import SEOHead from '../components/SEOHead';
 import Footer from '../components/Footer';
 import { tools as aiTools } from '../lib/tools';
 import { getAllConversionTools } from '../lib/conversionRegistry';
-import { useIsMobile } from '../lib/useMediaQuery';
 
 // Lazy load Footer per performance
 const LazyFooter = dynamic(() => import('../components/Footer'), {
@@ -92,10 +91,69 @@ ToolCard.displayName = 'ToolCard';
 
 export default function ToolsPage() {
     const [selectedCategory, setSelectedCategory] = useState('Tutti');
-    const isMobile = useIsMobile();
     const [mounted, setMounted] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
-    useEffect(() => { setMounted(true); }, []);
+    useEffect(() => {
+        setMounted(true);
+        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    // Inject tool-specific styles client-side only
+    useEffect(() => {
+        const styleId = 'tools-page-specific-styles';
+        if (document.getElementById(styleId)) return;
+
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+            @media (hover: hover) and (pointer: fine) {
+                .tool-icon-wrapper::after {
+                    content: '';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    width: 0;
+                    height: 0;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.2);
+                    transform: translate(-50%, -50%);
+                    transition: width 0.6s ease, height 0.6s ease;
+                    pointer-events: none;
+                }
+                
+                a[href^="/tools/"]:hover .tool-icon-wrapper::after {
+                    width: 200px;
+                    height: 200px;
+                }
+            }
+            
+            @media (max-width: 768px) {
+                a[href^="/tools/"] {
+                    -webkit-tap-highlight-color: transparent;
+                    touch-action: manipulation;
+                }
+                
+                a[href^="/tools/"]:active {
+                    transform: scale(0.98);
+                    transition: transform 0.1s ease;
+                }
+                
+                .filter-scroll-container::-webkit-scrollbar {
+                    display: none;
+                }
+                .filter-scroll-container {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }, []);
+
     const mobile = mounted && isMobile;
 
     // Combine AI tools and conversion tools
@@ -559,61 +617,6 @@ const styles = {
         margin: 0
     }
 };
-
-// Aggiungi stili specifici per la pagina tools (non duplicati in animations.css)
-if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    const styleId = 'tools-page-specific-styles';
-    if (!document.getElementById(styleId)) {
-        const style = document.createElement('style');
-        style.id = styleId;
-        style.textContent = `
-            /* Icon wrapper ripple effect - specifico per tools page */
-            @media (hover: hover) and (pointer: fine) {
-                .tool-icon-wrapper::after {
-                    content: '';
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    width: 0;
-                    height: 0;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.2);
-                    transform: translate(-50%, -50%);
-                    transition: width 0.6s ease, height 0.6s ease;
-                    pointer-events: none;
-                }
-                
-                a[href^="/tools/"]:hover .tool-icon-wrapper::after {
-                    width: 200px;
-                    height: 200px;
-                }
-            }
-            
-            /* Mobile touch optimizations */
-            @media (max-width: 768px) {
-                a[href^="/tools/"] {
-                    -webkit-tap-highlight-color: transparent;
-                    touch-action: manipulation;
-                }
-                
-                a[href^="/tools/"]:active {
-                    transform: scale(0.98);
-                    transition: transform 0.1s ease;
-                }
-                
-                /* Hide scrollbar for filter container */
-                .filter-scroll-container::-webkit-scrollbar {
-                    display: none;
-                }
-                .filter-scroll-container {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-}
 
 export async function getServerSideProps() {
     return {
