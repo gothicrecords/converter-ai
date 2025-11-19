@@ -178,12 +178,14 @@ export default function Navbar() {
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
             width: '100%',
             maxWidth: '100vw',
-            overflow: 'visible'
+            overflowX: 'hidden',
+            overflowY: 'visible'
         },
         navContent: {
             width: '100%',
-            maxWidth: '100%',
-            padding: '0',
+            maxWidth: '1400px',
+            margin: '0 auto',
+            padding: '0 16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -199,7 +201,7 @@ export default function Navbar() {
             color: '#e2e8f0',
             textDecoration: 'none',
             transition: 'all 0.3s ease',
-            paddingLeft: '20px'
+            flexShrink: 0
         },
         logoText: {
             display: 'flex',
@@ -224,11 +226,12 @@ export default function Navbar() {
         },
         navMenu: {
             display: isMobile ? 'none' : 'flex',
-            gap: '2px',
+            gap: '4px',
             alignItems: 'center',
-            paddingRight: '20px',
             flexWrap: 'nowrap',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            flexShrink: 1,
+            overflow: 'visible'
         },
         homeBtn: {
             position: 'absolute',
@@ -254,20 +257,22 @@ export default function Navbar() {
         dropdownBtn: {
             display: 'flex',
             alignItems: 'center',
-            padding: '8px 14px',
+            padding: '8px 10px',
             background: 'transparent',
             border: 'none',
-            fontSize: '14px',
+            fontSize: '13px',
             fontWeight: '600',
             color: '#cbd5e1',
             cursor: 'pointer',
             borderRadius: '6px',
-            transition: 'background 0.2s'
+            transition: 'background 0.2s',
+            whiteSpace: 'nowrap'
         },
         dropdownMenu: {
             position: 'absolute',
             top: '100%',
-            left: 0,
+            left: 'auto',
+            right: 0,
             marginTop: '8px',
             background: 'rgba(15, 23, 42, 0.98)',
             backdropFilter: 'blur(24px)',
@@ -282,9 +287,7 @@ export default function Navbar() {
             overflowX: 'hidden',
             zIndex: 1001,
             animation: 'fadeInUp 0.3s ease-out',
-            // Smooth scrolling
             scrollBehavior: 'smooth',
-            // Custom scrollbar styling
             scrollbarWidth: 'thin',
             scrollbarColor: 'rgba(102, 126, 234, 0.5) rgba(15, 23, 42, 0.3)'
         },
