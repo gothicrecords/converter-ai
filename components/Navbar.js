@@ -145,7 +145,7 @@ export default function Navbar() {
         navbar: {
             position: 'sticky',
             top: 0,
-            zIndex: 1000,
+            zIndex: 10000,
             background: scrolled ? 'rgba(10, 14, 26, 0.9)' : 'rgba(10, 14, 26, 0.95)',
             backdropFilter: 'blur(20px)',
             borderBottom: scrolled ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(102, 126, 234, 0.2)',
@@ -247,8 +247,7 @@ export default function Navbar() {
         dropdownMenu: {
             position: 'absolute',
             top: '100%',
-            left: 'auto',
-            right: 0,
+            left: 0,
             marginTop: '8px',
             background: 'rgba(15, 23, 42, 0.98)',
             backdropFilter: 'blur(24px)',
@@ -261,7 +260,7 @@ export default function Navbar() {
             maxHeight: '500px',
             overflowY: 'auto',
             overflowX: 'hidden',
-            zIndex: 1001,
+            zIndex: 10001,
             animation: 'fadeInUp 0.3s ease-out',
             scrollBehavior: 'smooth',
             scrollbarWidth: 'thin',

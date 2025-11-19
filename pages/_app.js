@@ -250,6 +250,10 @@ function MyApp({ Component, pageProps }) {
           <link rel="dns-prefetch" href="https://www.google-analytics.com" />
           <title>Tool Suite - Upscaler AI & PDF Converter</title>
           <style>{`
+            html {
+              overflow-y: scroll;
+              overflow-x: hidden;
+            }
             html, body {
               overflow-x: hidden;
               max-width: 100vw;
