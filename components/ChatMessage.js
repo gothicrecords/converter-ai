@@ -1,39 +1,5 @@
 import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import ReactMarkdown from 'react-markdown';
-
-// Client-only code block highlighter to avoid "require is not defined"
-const CodeBlock = dynamic(
-  () => import('react-syntax-highlighter').then(async (mod) => {
-    const { vscDarkPlus } = await import('react-syntax-highlighter/dist/cjs/styles/prism');
-    return ({ language, children, ...props }) => (
-      <mod.Prism
-        style={vscDarkPlus}
-        language={language}
-        PreTag="div"
-        customStyle={{ borderRadius: '8px', margin: '8px 0' }}
-        {...props}
-      >
-        {children}
-      </mod.Prism>
-    );
-  }),
-  { 
-    ssr: false, 
-    loading: () => (
-      <pre style={{ 
-        background: '#1e1e1e', 
-        color: '#d4d4d4',
-        padding: '12px', 
-        borderRadius: '8px', 
-        overflow: 'auto',
-        margin: '8px 0'
-      }}>
-        <code>Loading...</code>
-      </pre>
-    ) 
-  }
-);
 
 export default function ChatMessage({ message, onFileClick }) {
   const [formattedTime, setFormattedTime] = useState('');
@@ -122,9 +88,18 @@ export default function ChatMessage({ message, onFileClick }) {
                 code({ node, inline, className, children, ...props }) {
                   const match = /language-(\w+)/.exec(className || '');
                   return !inline && match ? (
-                    <CodeBlock language={match[1]} {...props}>
-                      {String(children).replace(/\n$/, '')}
-                    </CodeBlock>
+                    <pre style={{
+                      background: '#1e1e1e',
+                      color: '#d4d4d4',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      overflow: 'auto',
+                      margin: '8px 0',
+                      fontSize: '14px',
+                      fontFamily: 'monospace'
+                    }}>
+                      <code>{String(children).replace(/\n$/, '')}</code>
+                    </pre>
                   ) : (
                     <code style={{
                       background: isUser ? 'rgba(255,255,255,0.2)' : 'rgba(102, 126, 234, 0.2)',
