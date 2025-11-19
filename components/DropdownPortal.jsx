@@ -42,9 +42,11 @@ export default function DropdownPortal({ anchorRef, open, onClose, children, off
         top = Math.max(anchorRect.top - dropdownRect.height - offset, 8);
       }
 
-      // Fit horizontally
-      if (left + dropdownRect.width > window.innerWidth - 8) {
-        left = Math.max(window.innerWidth - dropdownRect.width - 8, 8);
+      // Fit horizontally - align to left edge of button by default
+      // Only adjust if it would overflow the viewport
+      if (left + dropdownRect.width > window.innerWidth - 16) {
+        // Align to right edge if overflowing
+        left = Math.max(anchorRect.right - dropdownRect.width, 8);
       }
 
       if (preferRight) {
@@ -56,15 +58,20 @@ export default function DropdownPortal({ anchorRef, open, onClose, children, off
     }
 
     if (open) {
+      // Initial position calculation
       handle();
+      // Recalculate after a brief delay to ensure dimensions are correct
+      const timer = setTimeout(handle, 10);
+      
       window.addEventListener('resize', handle);
       window.addEventListener('scroll', handle, true);
+      
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', handle);
+        window.removeEventListener('scroll', handle, true);
+      };
     }
-
-    return () => {
-      window.removeEventListener('resize', handle);
-      window.removeEventListener('scroll', handle, true);
-    };
   }, [open, anchorRef, container, offset, preferRight]);
 
   useEffect(() => {

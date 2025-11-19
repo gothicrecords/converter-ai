@@ -1,5 +1,6 @@
 import '../styles/styles.css';
 import '../styles/animations.css';
+import '../styles/dropdown.css';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, Component, useState } from 'react';
