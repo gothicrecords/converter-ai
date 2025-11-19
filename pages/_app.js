@@ -110,28 +110,30 @@ function MyApp({ Component, pageProps }) {
     }
     
     // Prefetch ottimizzato solo dopo idle per non bloccare FCP
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => {
-        // Prefetch solo le route più comuni
-        const commonRoutes = [
-          '/tools/rimozione-sfondo-ai',
-          '/tools/generazione-immagini-ai',
-          '/upscaler',
-          '/pdf',
-          '/tools'
-        ];
-        // Prefetch con delay per non sovraccaricare
-        commonRoutes.forEach((route, index) => {
-          setTimeout(() => {
-            router.prefetch(route).catch(() => {}); // Ignora errori
-          }, index * 100);
-        });
-      }, { timeout: 2000 });
-    } else {
-      // Fallback per browser senza requestIdleCallback
-      setTimeout(() => {
-        router.prefetch('/tools').catch(() => {});
-      }, 2000);
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          // Prefetch solo le route più comuni
+          const commonRoutes = [
+            '/tools/rimozione-sfondo-ai',
+            '/tools/generazione-immagini-ai',
+            '/upscaler',
+            '/pdf',
+            '/tools'
+          ];
+          // Prefetch con delay per non sovraccaricare
+          commonRoutes.forEach((route, index) => {
+            setTimeout(() => {
+              router.prefetch(route).catch(() => {}); // Ignora errori
+            }, index * 100);
+          });
+        }, { timeout: 2000 });
+      } else {
+        // Fallback per browser senza requestIdleCallback
+        setTimeout(() => {
+          router.prefetch('/tools').catch(() => {});
+        }, 2000);
+      }
     }
 
     // Track pageviews con Google Analytics e GTM

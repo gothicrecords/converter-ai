@@ -65,6 +65,9 @@ Dockerfile
 # PDF converter subdirectory (if not needed)
 pdf-converter/
 
+# API directory (Next.js uses pages/api instead)
+api/
+
 # Training data (if large)
 *.traineddata
 
