@@ -57,7 +57,7 @@ export default function HomePage() {
   ], [t]);
   
   return (
-    <div style={styles.homeWrap}>
+    <div style={styles.homeWrap} suppressHydrationWarning>
       {/* Animated background elements */}
       <div style={styles.bgOverlay}>
         <div style={styles.bgCircle1}></div>

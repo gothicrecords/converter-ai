@@ -127,10 +127,13 @@ const queryClient = new QueryClient({
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
-  const canAnimate = useAnimation();
+  // Temporarily disable animations to isolate the issue
+  // const canAnimate = useAnimation();
   
   // Applica classe per abilitare animazioni solo lato client
   useEffect(() => {
+    // Animations temporarily disabled for debugging
+    /*
     if (canAnimate && typeof window !== 'undefined' && typeof document !== 'undefined') {
       try {
         document.documentElement.classList.add('animations-ready');
@@ -147,7 +150,8 @@ function MyApp({ Component, pageProps }) {
         console.warn('Animation setup failed:', error);
       }
     }
-  }, [canAnimate]);
+    */
+  }, []);
 
   useEffect(() => {
     // Previeni scroll orizzontale (solo client-side)

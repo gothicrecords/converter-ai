@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useState, useMemo, memo, useCallback } from 'react';
+import { useState, useMemo, memo, useCallback, useEffect } from 'react';
 import { HiArrowRight } from 'react-icons/hi';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import dynamic from 'next/dynamic';

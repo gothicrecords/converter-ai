@@ -13,6 +13,7 @@ export default function Navbar() {
     const { t } = useTranslation();
     const router = useRouter();
     const isMobile = useIsMobile();
+    const [mounted, setMounted] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(null);
     const [scrolled, setScrolled] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
@@ -21,6 +22,10 @@ export default function Navbar() {
     const [expandedCategory, setExpandedCategory] = useState(null);
     const navRef = useRef(null);
     const closeTimeoutRef = useRef(null);
+    
+    useEffect(() => {
+        setMounted(true);
+    }, []);
     
     useEffect(() => {
         if (!isMobile) {
@@ -468,7 +473,7 @@ export default function Navbar() {
                     background: rgba(102, 126, 234, 0.7);
                 }
             `}</style>
-            <nav style={styles.navbar} ref={navRef}>
+            <nav style={styles.navbar} ref={navRef} suppressHydrationWarning>
                 <div style={styles.navContent}>
                 {/* Logo */}
                 <Link href="/" style={styles.navLogo}>
@@ -700,7 +705,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Mobile buttons - show only on mobile */}
-                {isMobile && (
+                {mounted && isMobile && (
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <button 
                             style={styles.hamburgerBtn}
@@ -726,7 +731,7 @@ export default function Navbar() {
             </div>
 
             {/* Overlay per chiudere menu mobile */}
-            {isMobile && (mobileMenuOpen || mobileSecondaryMenuOpen) && (
+            {mounted && isMobile && (mobileMenuOpen || mobileSecondaryMenuOpen) && (
                 <div 
                     style={styles.mobileOverlay}
                     onClick={() => {
@@ -737,7 +742,7 @@ export default function Navbar() {
             )}
 
             {/* Mobile menu principale (categorie e strumenti) */}
-            {isMobile && (
+            {mounted && isMobile && (
                 <div style={styles.mobileMenu}>
                     <div style={styles.mobileMenuHeader}>
                         <h3 style={styles.mobileMenuTitle}>Menu</h3>
@@ -808,7 +813,7 @@ export default function Navbar() {
             )}
 
             {/* Mobile menu secondario (login, pricing, faq, lingua) */}
-            {isMobile && (
+            {mounted && isMobile && (
                 <div style={styles.mobileSecondaryMenu}>
                     <div style={styles.mobileMenuHeader}>
                         <h3 style={styles.mobileMenuTitle}>Account</h3>
