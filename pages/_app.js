@@ -131,13 +131,21 @@ function MyApp({ Component, pageProps }) {
   
   // Applica classe per abilitare animazioni solo lato client
   useEffect(() => {
-    if (canAnimate && typeof document !== 'undefined') {
-      document.documentElement.classList.add('animations-ready');
-      // Applica animazioni a tutti gli elementi con classi animate-*
-      const animatedElements = document.querySelectorAll('[class*="animate-"]');
-      animatedElements.forEach((el) => {
-        el.classList.add('animate-ready');
-      });
+    if (canAnimate && typeof window !== 'undefined' && typeof document !== 'undefined') {
+      try {
+        document.documentElement.classList.add('animations-ready');
+        // Applica animazioni a tutti gli elementi con classi animate-*
+        const animatedElements = document.querySelectorAll('[class*="animate-"]');
+        if (animatedElements && animatedElements.length > 0) {
+          animatedElements.forEach((el) => {
+            if (el && el.classList) {
+              el.classList.add('animate-ready');
+            }
+          });
+        }
+      } catch (error) {
+        console.warn('Animation setup failed:', error);
+      }
     }
   }, [canAnimate]);
 
