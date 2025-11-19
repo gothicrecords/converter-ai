@@ -1,13 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import dynamic from 'next/dynamic';
 import ChatInput from '../components/ChatInput';
+import ChatMessage from '../components/ChatMessage';
 import Navbar from '../components/Navbar';
 import FileUploadZone from '../components/FileUploadZone';
 import Footer from '../components/Footer';
-
-const ChatMessage = dynamic(() => import('../components/ChatMessage'), { ssr: false });
 
 function ChatPage() {
   const router = useRouter();
