@@ -7,13 +7,12 @@ import { tools } from '../lib/tools';
 import { getAllCategories, getToolsByCategory } from '../lib/conversionRegistry';
 import { useTranslation } from '../lib/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
-import { useIsMobile } from '../lib/useMediaQuery';
 
 export default function Navbar() {
     const { t } = useTranslation();
     const router = useRouter();
-    const isMobile = useIsMobile();
     const [mounted, setMounted] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(null);
     const [scrolled, setScrolled] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
@@ -25,6 +24,10 @@ export default function Navbar() {
     
     useEffect(() => {
         setMounted(true);
+        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
     }, []);
     
     useEffect(() => {
