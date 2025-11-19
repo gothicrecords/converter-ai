@@ -253,14 +253,22 @@ function MyApp({ Component, pageProps }) {
             html {
               overflow-y: scroll;
               overflow-x: hidden;
+              width: 100%;
             }
-            html, body {
+            body {
               overflow-x: hidden;
               max-width: 100vw;
               position: relative;
+              margin: 0;
+              padding: 0;
             }
             * {
-              max-width: 100%;
+              box-sizing: border-box;
+            }
+            /* Force scrollbar to always show to prevent layout shift */
+            :root {
+              overflow-y: scroll;
+              scrollbar-gutter: stable;
             }
             /* Ottimizzazioni performance */
             * {
