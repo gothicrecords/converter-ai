@@ -36,21 +36,25 @@ jobs:
         env:
           NODE_ENV: production
 
-      - name: Deploy to Vercel (Preview)
-        if: github.event_name == 'pull_request'
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod=false'
-
-      - name: Deploy to Vercel (Production)
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+      # Deploy to Vercel is handled automatically by Vercel when project is connected via Vercel Dashboard
+      # Uncomment below and configure secrets if you want to deploy via GitHub Actions instead
+      # Secrets needed: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+      #
+      # - name: Deploy to Vercel (Preview)
+      #   if: github.event_name == 'pull_request'
+      #   uses: amondnet/vercel-action@v25
+      #   with:
+      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+      #     vercel-args: '--prod=false'
+      #
+      # - name: Deploy to Vercel (Production)
+      #   if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      #   uses: amondnet/vercel-action@v25
+      #   with:
+      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+      #     vercel-args: '--prod'
 
