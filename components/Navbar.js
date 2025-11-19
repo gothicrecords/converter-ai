@@ -69,44 +69,38 @@ export default function Navbar() {
         // Combine AI tools and conversion tools - categorizzazione migliorata
         const conversionToolsByCat = getToolsByCategory();
         
-        // Categorizzazione più chiara e logica
+        // Unisco categorie simili per semplificare la navbar
+        const pdfAndDocs = [
+            ...tools.filter(t => t.category === 'PDF' || t.category === 'Testo'),
+            ...(conversionToolsByCat['Document'] || []),
+            ...(conversionToolsByCat['Presentation'] || []),
+            ...(conversionToolsByCat['Spreadsheet'] || [])
+        ];
+        
+        const mediaTools = [
+            ...(conversionToolsByCat['Video'] || []),
+            ...(conversionToolsByCat['Audio'] || [])
+        ];
+        
+        // Categorizzazione semplificata e intuitiva
         const allCategories = {
-            'Immagini': [
+            'AI & Immagini': [
                 ...tools.filter(t => t.category === 'Immagini'),
                 ...(conversionToolsByCat['Image'] || [])
             ],
-            'Video': [
-                ...tools.filter(t => t.category === 'Video'),
-                ...(conversionToolsByCat['Video'] || [])
+            'Documenti & PDF': pdfAndDocs,
+            'Video & Audio': [
+                ...tools.filter(t => t.category === 'Video' || t.category === 'Audio'),
+                ...mediaTools
             ],
-            'Audio': [
-                ...tools.filter(t => t.category === 'Audio'),
-                ...(conversionToolsByCat['Audio'] || [])
+            'Grafica': [
+                ...(conversionToolsByCat['Vector'] || []),
+                ...(conversionToolsByCat['Font'] || [])
             ],
-            'PDF': [
-                ...tools.filter(t => t.category === 'PDF'),
-                ...(conversionToolsByCat['Document'] || []).filter(t => 
-                    t.targetFormat === 'pdf' || 
-                    t.href.includes('pdf') || 
-                    t.href.includes('pdf-to') ||
-                    t.href.includes('to-pdf')
-                )
-            ],
-            'Documenti': [
-                ...tools.filter(t => t.category === 'Testo'),
-                ...(conversionToolsByCat['Document'] || []).filter(t => 
-                    t.targetFormat !== 'pdf' && 
-                    !t.href.includes('pdf') &&
-                    !t.href.includes('pdf-to') &&
-                    !t.href.includes('to-pdf')
-                )
-            ],
-            'Presentazioni': conversionToolsByCat['Presentation'] || [],
-            'Fogli di Calcolo': conversionToolsByCat['Spreadsheet'] || [],
-            'Vettoriali': conversionToolsByCat['Vector'] || [],
-            'Archivi': conversionToolsByCat['Archive'] || [],
-            'Ebook': conversionToolsByCat['Ebook'] || [],
-            'Font': conversionToolsByCat['Font'] || []
+            'Archivi & Ebook': [
+                ...(conversionToolsByCat['Archive'] || []),
+                ...(conversionToolsByCat['Ebook'] || [])
+            ]
         };
         
         // Ordina i tool all'interno di ogni categoria: prima AI/Pro, poi gli altri
@@ -124,27 +118,9 @@ export default function Navbar() {
             });
         });
         
-        // Ordina categorie per importanza e filtra quelle vuote
-        const categoryOrder = [
-            'Immagini',
-            'Video',
-            'Audio',
-            'PDF',
-            'Documenti',
-            'Presentazioni',
-            'Fogli di Calcolo',
-            'Vettoriali',
-            'Archivi',
-            'Ebook',
-            'Font'
-        ];
-        
-        const sortedCategories = categoryOrder.filter(cat => 
-            allCategories[cat] && allCategories[cat].length > 0
-        );
-        
+        // Filtra categorie vuote
         return Object.fromEntries(
-            sortedCategories.map(cat => [cat, allCategories[cat]])
+            Object.entries(allCategories).filter(([_, tools]) => tools && tools.length > 0)
         );
     }, []);
 
