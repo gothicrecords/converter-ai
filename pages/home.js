@@ -39,7 +39,7 @@ export default function LandingPage() {
     const styles = getStyles(isMobile);
     
     return (
-        <div style={styles.pageWrap}>
+        <div style={styles.pageWrap} suppressHydrationWarning>
             <SEOHead
                 title={t('seo.homeTitle')}
                 description={t('seo.homeDesc')}

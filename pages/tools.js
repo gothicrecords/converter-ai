@@ -161,7 +161,7 @@ export default function ToolsPage() {
     const getIconInnerSize = () => isMobile ? 20 : 28;
 
     return (
-        <div style={styles.pageWrap}>
+        <div style={styles.pageWrap} suppressHydrationWarning>
             <SEOHead
                 title="Tutti gli Strumenti - MegaPixelAI"
                 description={`Esplora tutti i nostri strumenti AI professionali e convertitori. ${allTools.length}+ strumenti disponibili per immagini, PDF, audio, video, documenti e molto altro.`}

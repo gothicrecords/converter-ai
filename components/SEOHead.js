@@ -207,8 +207,8 @@ export default function SEOHead({
                     "url": `${siteUrl}/logo-large.svg`
                 }
             },
-            "datePublished": articleData.datePublished || new Date().toISOString(),
-            "dateModified": articleData.dateModified || new Date().toISOString(),
+            ...(articleData.datePublished ? { "datePublished": articleData.datePublished } : {}),
+            ...(articleData.dateModified ? { "dateModified": articleData.dateModified } : {}),
             "mainEntityOfPage": {
                 "@type": "WebPage",
                 "@id": fullUrl
@@ -225,7 +225,7 @@ export default function SEOHead({
             "name": title,
             "description": description,
             "thumbnailUrl": videoData.thumbnailUrl || ogImage,
-            "uploadDate": videoData.uploadDate || new Date().toISOString(),
+            ...(videoData.uploadDate ? { "uploadDate": videoData.uploadDate } : {}),
             "duration": videoData.duration,
             "contentUrl": videoData.contentUrl,
             "embedUrl": videoData.embedUrl
