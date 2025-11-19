@@ -42,12 +42,14 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
       const anchorRect = anchorEl.getBoundingClientRect();
       const dropdownRect = elRef.current.getBoundingClientRect();
       
-      // Debug: verifica che stiamo usando l'elemento giusto
-      console.log('DropdownPortal - Anchor element:', anchorEl);
-      console.log('DropdownPortal - Anchor rect:', anchorRect);
-      
       // Se anchorRect ha dimensioni 0, l'elemento anchor non è ancora pronto
       if (anchorRect.width === 0 || anchorRect.height === 0) {
+        rafId = window.requestAnimationFrame(updatePosition);
+        return;
+      }
+      
+      // Se il dropdown non ha ancora dimensioni reali, aspetta un frame
+      if (dropdownRect.width === 0 || dropdownRect.height === 0) {
         rafId = window.requestAnimationFrame(updatePosition);
         return;
       }
@@ -55,19 +57,25 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
       const spaceBelow = window.innerHeight - anchorRect.bottom;
       const spaceAbove = anchorRect.top;
 
+      // Calcola la posizione verticale
       let top = anchorRect.bottom + offset;
       if (spaceBelow < dropdownRect.height && spaceAbove > dropdownRect.height) {
         top = anchorRect.top - dropdownRect.height - offset;
       }
       top = Math.min(Math.max(top, MARGIN), Math.max(window.innerHeight - dropdownRect.height - MARGIN, MARGIN));
 
-      let left = preferRight
-        ? anchorRect.right - dropdownRect.width
-        : anchorRect.left;
-      const maxLeft = Math.max(window.innerWidth - dropdownRect.width - MARGIN, MARGIN);
-      left = Math.min(Math.max(left, MARGIN), maxLeft);
+      // Calcola la posizione orizzontale: allinea il bordo sinistro del dropdown al bordo sinistro del bottone
+      let left = anchorRect.left;
       
-      console.log('DropdownPortal - Calculated position:', { top, left });
+      // Se il dropdown esce dallo schermo a destra, spostalo a sinistra
+      if (left + dropdownRect.width > window.innerWidth - MARGIN) {
+        left = window.innerWidth - dropdownRect.width - MARGIN;
+      }
+      
+      // Se il dropdown esce dallo schermo a sinistra, allinealo al margine sinistro
+      if (left < MARGIN) {
+        left = MARGIN;
+      }
 
       setStyle({
         top: `${top}px`,
