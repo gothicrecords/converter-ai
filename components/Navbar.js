@@ -534,7 +534,9 @@ export default function Navbar() {
                         Tutti i Tool
                     </Link>
 
-                    {Object.keys(categories).map(catName => (
+                    {Object.keys(categories).map(catName => {
+                        const isOpen = dropdownOpen === catName;
+                        return (
                         <div
                             key={catName}
                             style={styles.dropdown}
@@ -544,10 +546,12 @@ export default function Navbar() {
                             <button
                                 style={{
                                     ...styles.dropdownBtn,
-                                    background: hoveredItem === `cat-${catName}` || dropdownOpen === catName ? 'rgba(102, 126, 234, 0.15)' : 'transparent'
+                                    background: hoveredItem === `cat-${catName}` || isOpen ? 'rgba(102, 126, 234, 0.15)' : 'transparent'
                                 }}
-                                ref={(el) => (buttonRefs.current[catName] = el)}
-                                onClick={() => setDropdownOpen(dropdownOpen === catName ? null : catName)}
+                                ref={(el) => {
+                                    if (el) buttonRefs.current[catName] = el;
+                                }}
+                                onClick={() => setDropdownOpen(isOpen ? null : catName)}
                                 onMouseEnter={() => setHoveredItem(`cat-${catName}`)}
                                 onMouseLeave={() => setHoveredItem(null)}
                             >
@@ -558,15 +562,15 @@ export default function Navbar() {
                                         width: '14px',
                                         height: '14px',
                                         transition: 'transform 0.3s ease',
-                                        transform: dropdownOpen === catName ? 'rotate(180deg)' : 'rotate(0deg)',
+                                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                                         opacity: 0.8
                                     }} 
                                 />
                             </button>
-                            {dropdownOpen === catName && (
+                            {isOpen && buttonRefs.current[catName] && (
                                 <DropdownPortal
                                     anchorEl={buttonRefs.current[catName]}
-                                    open={dropdownOpen === catName}
+                                    open={isOpen}
                                     onClose={() => setDropdownOpen(null)}
                                 >
                                     <div 
@@ -658,7 +662,8 @@ export default function Navbar() {
                                 </DropdownPortal>
                             )}
                         </div>
-                    ))}
+                    );
+                    })}
                     
                     <Link 
                         href="/pricing" 
