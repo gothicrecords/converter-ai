@@ -93,6 +93,10 @@ ToolCard.displayName = 'ToolCard';
 export default function ToolsPage() {
     const [selectedCategory, setSelectedCategory] = useState('Tutti');
     const isMobile = useIsMobile();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => { setMounted(true); }, []);
+    const mobile = mounted && isMobile;
 
     // Combine AI tools and conversion tools
     const conversionTools = getAllConversionTools();
@@ -156,9 +160,9 @@ export default function ToolsPage() {
     const memoizedFilteredTools = useMemo(() => filteredTools, [filteredTools]);
     
     // Stili dinamici basati su mobile
-    const getCardPadding = () => isMobile ? '16px' : '28px';
-    const getIconSize = () => isMobile ? 40 : 56;
-    const getIconInnerSize = () => isMobile ? 20 : 28;
+    const getCardPadding = () => (mobile ? '16px' : '28px');
+    const getIconSize = () => (mobile ? 40 : 56);
+    const getIconInnerSize = () => (mobile ? 20 : 28);
 
     return (
         <div style={styles.pageWrap} suppressHydrationWarning>
@@ -175,26 +179,35 @@ export default function ToolsPage() {
                     <h1 style={styles.heroTitle}>
                         Tutti gli Strumenti AI
                     </h1>
-                    <p style={styles.heroSubtitle}>
-                        Esplora la nostra suite completa di strumenti AI e convertitori professionali
+                    <p
+                        style={{
+                            ...styles.heroSubtitle,
+                            ...(mobile ? { fontSize: '15px', padding: '0 16px' } : {})
+                        }}
+                    >
+                        Esplora strumenti AI e convertitori per immagini, PDF, audio, video e documenti.
                     </p>
                 </div>
             </section>
 
             {/* Filtri per categoria */}
-            <section style={{
-                ...styles.filterSection,
-                ...(isMobile ? {
-                    padding: '0 0 20px',
-                    position: 'sticky',
-                    top: '60px',
-                    zIndex: 100,
-                    background: 'rgba(10, 14, 26, 0.95)',
-                    backdropFilter: 'blur(10px)',
-                    borderBottom: '1px solid rgba(102, 126, 234, 0.1)',
-                    marginBottom: '0'
-                } : {})
-            }}>
+            <section
+                style={{
+                    ...styles.filterSection,
+                    ...(isMobile
+                        ? {
+                            padding: '0 0 20px',
+                            position: 'sticky',
+                            top: '60px',
+                            background: 'rgba(10, 14, 26, 0.95)',
+                            backdropFilter: 'blur(10px)',
+                            borderBottom: '1px solid rgba(102, 126, 234, 0.1)',
+                            marginBottom: '0',
+                            zIndex: 10,
+                          }
+                        : {})
+                }}
+            >
                 <div style={styles.filterContainer}>
                     {isMobile ? (
                         <div style={styles.filterScrollContainer} className="filter-scroll-container">
