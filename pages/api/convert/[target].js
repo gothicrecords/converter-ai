@@ -417,6 +417,234 @@ export default async function handler(req, res) {
         }
       }
 
+      // AUDIO/VIDEO CONVERSIONS via FFmpeg
+      const audioFormats = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'weba', 'opus', 'ac3', 'aif', 'aiff', 'aifc', 'amr', 'au', 'caf', 'dss', 'oga', 'voc', 'wma'];
+      const videoFormats = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', '3gp', '3g2', '3gpp', 'cavs', 'dv', 'dvr', 'm2ts', 'm4v', 'mod', 'mpeg', 'mpg', 'mts', 'mxf', 'ogg', 'ogv', 'rm', 'rmvb', 'swf', 'ts', 'vob', 'wmv', 'wtv'];
+      
+      if (!outputBuffer && (audioFormats.includes(lowerTarget) || videoFormats.includes(lowerTarget))) {
+        try {
+          // Configura ffmpeg
+          if (ffmpegStatic) {
+            ffmpeg.setFfmpegPath(ffmpegStatic);
+          }
+          
+          const outputDir = path.dirname(inputPath);
+          const outputFilename = `output_${Date.now()}.${lowerTarget}`;
+          const outputPath = path.join(outputDir, outputFilename);
+          
+          await new Promise((resolve, reject) => {
+            let command = ffmpeg(inputPath);
+            
+            // Configurazioni specifiche per audio
+            if (audioFormats.includes(lowerTarget)) {
+              // Estrai solo audio
+              command = command.noVideo();
+              
+              // Bitrate audio se specificato
+              if (abitrate) {
+                command = command.audioBitrate(abitrate);
+              } else {
+                // Bitrate default RIDOTTI per velocità
+                const defaultBitrates = {
+                  'mp3': '128k',   // Ridotto da 192k
+                  'aac': '128k',   // Ridotto da 192k
+                  'm4a': '128k',   // Ridotto da 192k
+                  'flac': '1411k', // lossless
+                  'wav': '1411k',  // lossless
+                  'ogg': '128k',   // Ridotto da 192k
+                  'opus': '96k',   // Ridotto da 128k
+                  'weba': '96k'    // Ridotto da 128k
+                };
+                const bitrate = defaultBitrates[lowerTarget] || '128k';
+                command = command.audioBitrate(bitrate);
+              }
+              
+              // Codec specifici per formato
+              const audioCodecs = {
+                'mp3': 'libmp3lame',
+                'aac': 'aac',
+                'm4a': 'aac',
+                'flac': 'flac',
+                'wav': 'pcm_s16le',
+                'ogg': 'libvorbis',
+                'opus': 'libopus',
+                'weba': 'libopus',
+                'ac3': 'ac3',
+                'wma': 'wmav2'
+              };
+              
+              if (audioCodecs[lowerTarget]) {
+                command = command.audioCodec(audioCodecs[lowerTarget]);
+              }
+              
+              // Frequenza campionamento ridotta per velocità
+              command = command.audioFrequency(44100);
+              command = command.audioChannels(2);
+              
+              // Opzioni di velocità per codec specifici
+              if (lowerTarget === 'mp3') {
+                command = command.outputOptions([
+                  '-q:a', '5' // Qualità veloce per MP3 (0-9, 5 = buon compromesso)
+                ]);
+              } else if (lowerTarget === 'opus' || lowerTarget === 'weba') {
+                command = command.outputOptions([
+                  '-compression_level', '0' // Massima velocità per Opus
+                ]);
+              }
+            }
+            
+            // Configurazioni specifiche per video
+            if (videoFormats.includes(lowerTarget)) {
+              // Codec video in base al formato
+              const videoCodecs = {
+                'mp4': 'libx264',
+                'webm': 'libvpx',
+                'mkv': 'libx264',
+                'avi': 'libxvid',
+                'mov': 'libx264',
+                'flv': 'flv',
+                'ogv': 'libtheora',
+                '3gp': 'h263',
+                'wmv': 'wmv2'
+              };
+              
+              if (videoCodecs[lowerTarget]) {
+                command = command.videoCodec(videoCodecs[lowerTarget]);
+              }
+              
+              // Bitrate video se specificato
+              if (vbitrate) {
+                command = command.videoBitrate(vbitrate);
+              } else {
+                command = command.videoBitrate('1500k'); // Ridotto da 2500k per velocità
+              }
+              
+              // Dimensioni video se specificate
+              if (vwidth && vheight) {
+                command = command.size(`${vwidth}x${vheight}`);
+              } else if (vwidth) {
+                command = command.size(`${vwidth}x?`);
+              } else if (vheight) {
+                command = command.size(`?x${vheight}`);
+              }
+              
+              // Codec audio per video
+              const audioCodecs = {
+                'mp4': 'aac',
+                'webm': 'libvorbis',
+                'mkv': 'aac',
+                'avi': 'libmp3lame',
+                'mov': 'aac',
+                'flv': 'libmp3lame',
+                'ogv': 'libvorbis',
+                '3gp': 'aac',
+                'wmv': 'wmav2'
+              };
+              
+              if (audioCodecs[lowerTarget]) {
+                command = command.audioCodec(audioCodecs[lowerTarget]);
+              }
+              
+              if (abitrate) {
+                command = command.audioBitrate(abitrate);
+              } else {
+                command = command.audioBitrate('128k'); // Ridotto da 192k per velocità
+              }
+              
+              // Frame rate ridotto per velocità
+              command = command.fps(24); // Ridotto da 30
+              
+              // Formato specifico con preset ULTRA VELOCI
+              if (lowerTarget === 'mp4') {
+                command = command.format('mp4');
+                command = command.outputOptions([
+                  '-movflags', 'faststart',
+                  '-preset', 'ultrafast', // CAMBIATO: massima velocità
+                  '-crf', '28' // CAMBIATO: qualità inferiore ma velocissimo
+                ]);
+              } else if (lowerTarget === 'webm') {
+                command = command.format('webm');
+                command = command.outputOptions([
+                  '-deadline', 'realtime', // Real-time encoding
+                  '-cpu-used', '8' // Massima velocità CPU
+                ]);
+              } else if (lowerTarget === 'mkv') {
+                command = command.format('matroska');
+                command = command.outputOptions([
+                  '-preset', 'ultrafast',
+                  '-crf', '28'
+                ]);
+              } else if (lowerTarget === 'avi') {
+                command = command.format('avi');
+                command = command.outputOptions([
+                  '-q:v', '10' // Qualità veloce
+                ]);
+              } else if (lowerTarget === 'mov') {
+                command = command.format('mov');
+                command = command.outputOptions([
+                  '-preset', 'ultrafast',
+                  '-crf', '28'
+                ]);
+              } else if (lowerTarget === 'flv') {
+                command = command.format('flv');
+              }
+            }
+            
+            // Esegui conversione
+            command
+              .output(outputPath)
+              .on('end', () => resolve())
+              .on('error', (err) => reject(err))
+              .run();
+          });
+          
+          // Leggi file convertito
+          if (fs.existsSync(outputPath)) {
+            outputBuffer = fs.readFileSync(outputPath);
+            
+            // MIME types
+            const mimeTypes = {
+              // Audio
+              'mp3': 'audio/mpeg',
+              'wav': 'audio/wav',
+              'aac': 'audio/aac',
+              'm4a': 'audio/mp4',
+              'flac': 'audio/flac',
+              'ogg': 'audio/ogg',
+              'oga': 'audio/ogg',
+              'opus': 'audio/opus',
+              'weba': 'audio/webm',
+              'wma': 'audio/x-ms-wma',
+              'ac3': 'audio/ac3',
+              // Video
+              'mp4': 'video/mp4',
+              'webm': 'video/webm',
+              'mkv': 'video/x-matroska',
+              'avi': 'video/x-msvideo',
+              'mov': 'video/quicktime',
+              'flv': 'video/x-flv',
+              'ogv': 'video/ogg',
+              '3gp': 'video/3gpp',
+              'wmv': 'video/x-ms-wmv',
+              'mpeg': 'video/mpeg',
+              'mpg': 'video/mpeg'
+            };
+            
+            mime = mimeTypes[lowerTarget] || 'application/octet-stream';
+            
+            // Cleanup: elimina file temporaneo
+            try {
+              fs.unlinkSync(outputPath);
+            } catch (e) {
+              console.warn('Failed to delete temp output file:', e);
+            }
+          }
+        } catch (ffmpegError) {
+          console.error('FFmpeg conversion error:', ffmpegError);
+          // Continua con altre logiche di conversione se FFmpeg fallisce
+        }
+      }
+
       // PDF generation
       if (!outputBuffer && lowerTarget === 'pdf') {
         // Handle HTML with pdfkit (no Puppeteer dependency)
@@ -1684,54 +1912,6 @@ export default async function handler(req, res) {
         const eot = ttf2eotConv(new Uint8Array(inputBuffer)).buffer;
         outputBuffer = Buffer.from(eot);
         mime = 'application/vnd.ms-fontobject';
-      }
-
-      // AUDIO/VIDEO via ffmpeg (best effort)
-      const audioTargets = ['mp3','wav','m4a','flac','ogg','weba','aac'];
-      const videoTargets = ['mp4','webm','avi','mkv','mov','flv'];
-      if (!outputBuffer && (audioTargets.includes(lowerTarget) || videoTargets.includes(lowerTarget))) {
-        try {
-          ffmpeg.setFfmpegPath(ffmpegStatic);
-          const tmpDir = path.dirname(inputPath);
-          const outPath = path.join(tmpDir, `out_${Date.now()}.${lowerTarget}`);
-          await new Promise((resolve, reject) => {
-            let cmd = ffmpeg(inputPath).output(outPath).on('end', resolve).on('error', reject);
-            if (videoTargets.includes(lowerTarget)) {
-              if (lowerTarget === 'mp4') cmd = cmd.videoCodec('libx264').audioCodec('aac').outputOptions(['-movflags faststart']);
-              if (lowerTarget === 'webm') cmd = cmd.videoCodec('libvpx-vp9').audioCodec('libopus');
-              if (vwidth || vheight) {
-                const w = vwidth || -1; const h = vheight || -1;
-                cmd = cmd.outputOptions([`-vf`, `scale=${w}:${h}:force_original_aspect_ratio=decrease`]);
-              }
-              if (vbitrate) cmd = cmd.videoBitrate(vbitrate);
-              if (abitrate) cmd = cmd.audioBitrate(abitrate);
-            } else {
-              if (lowerTarget === 'mp3') cmd = cmd.audioCodec('libmp3lame').audioBitrate('192k');
-              if (lowerTarget === 'm4a' || lowerTarget === 'aac') cmd = cmd.audioCodec('aac').audioBitrate('192k');
-              if (lowerTarget === 'flac') cmd = cmd.audioCodec('flac');
-              if (lowerTarget === 'wav') cmd = cmd.audioCodec('pcm_s16le');
-              if (lowerTarget === 'ogg' || lowerTarget === 'weba') cmd = cmd.audioCodec('libopus');
-              if (abitrate) cmd = cmd.audioBitrate(abitrate);
-            }
-            cmd.run();
-          });
-          outputBuffer = fs.readFileSync(outPath);
-          try { fs.unlinkSync(outPath); } catch {}
-          if (audioTargets.includes(lowerTarget)) {
-            if (lowerTarget === 'mp3') mime = 'audio/mpeg';
-            else if (lowerTarget === 'wav') mime = 'audio/wav';
-            else if (lowerTarget === 'm4a' || lowerTarget === 'aac') mime = 'audio/aac';
-            else if (lowerTarget === 'flac') mime = 'audio/flac';
-            else if (lowerTarget === 'ogg' || lowerTarget === 'weba') mime = 'audio/ogg';
-          } else {
-            if (lowerTarget === 'mp4') mime = 'video/mp4';
-            else if (lowerTarget === 'webm') mime = 'video/webm';
-            else if (lowerTarget === 'avi') mime = 'video/x-msvideo';
-            else if (lowerTarget === 'mkv') mime = 'video/x-matroska';
-            else if (lowerTarget === 'mov') mime = 'video/quicktime';
-            else if (lowerTarget === 'flv') mime = 'video/x-flv';
-          }
-        } catch {}
       }
 
       // SVG → PNG
