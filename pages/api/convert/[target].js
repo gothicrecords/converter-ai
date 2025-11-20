@@ -331,11 +331,13 @@ export default async function handler(req, res) {
       );
     }
     
+    let inputExt = ''; // Inizializza prima del try block
+    
     try {
       const inputPath = file.filepath;
       const originalName = file.originalFilename || 'file';
       const inputBuffer = fs.readFileSync(inputPath);
-      const inputExt = (path.extname(originalName) || '').replace('.', '').toLowerCase();
+      inputExt = (path.extname(originalName) || '').replace('.', '').toLowerCase();
       const lowerTarget = String(target).toLowerCase();
 
       function finalizeName(name) {

@@ -156,9 +156,11 @@ function GenericConverter({ tool }) {
       try {
         timeoutId = setTimeout(() => {
           controller.abort();
-          setError('Timeout: l\'operazione ha richiesto troppo tempo. Riprova con un file più piccolo.');
-          setLoading(false);
+          console.warn('Timeout raggiunto dopo 5 minuti');
         }, 300000); // 5 minuti
+        
+        console.log('Chiamata API:', apiUrl, 'con file:', file.name);
+        
         // Use improved error handling
         response = await fetch(apiUrl, { 
           method: 'POST', 
@@ -167,12 +169,14 @@ function GenericConverter({ tool }) {
           signal: controller.signal
         });
         
+        console.log('Risposta ricevuta:', response.status, response.statusText);
+        
         // Pulisci il timeout se la richiesta è completata
         clearTimeout(timeoutId);
         
         // Se la richiesta è stata abortita, esci
         if (controller.signal.aborted) {
-          return;
+          throw new Error('Operazione annullata per timeout');
         }
       } catch (fetchError) {
         // Pulisci sempre il timeout in caso di errore
