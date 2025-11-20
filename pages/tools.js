@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useState, useMemo, memo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, memo, useCallback, useEffect, useRef, startTransition } from 'react';
 import { HiArrowRight } from 'react-icons/hi';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import Navbar from '../components/Navbar';
@@ -218,18 +218,31 @@ export default function ToolsPage() {
     // Memoize categories per evitare ricalcoli
     const memoizedCategories = useMemo(() => categories, [categories]);
     
-    // Scroll automatico del filtro selezionato su mobile
+    // Scroll automatico del filtro selezionato su mobile - ottimizzato
     const activeFilterRef = useRef(null);
     
     useEffect(() => {
         if (isMobile && activeFilterRef.current) {
-            activeFilterRef.current.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest',
-                inline: 'center'
+            // Usa requestAnimationFrame per scroll più veloce
+            requestAnimationFrame(() => {
+                if (activeFilterRef.current) {
+                    activeFilterRef.current.scrollIntoView({
+                        behavior: 'auto',
+                        block: 'nearest',
+                        inline: 'center'
+                    });
+                }
             });
         }
     }, [selectedCategory, isMobile]);
+    
+    // Handler memoizzato per click sui filtri - ottimizzato per performance
+    const handleFilterClick = useCallback((category) => {
+        // Usa startTransition per renderizzare il cambio in modo non-blocking
+        startTransition(() => {
+            setSelectedCategory(category);
+        });
+    }, []);
     
     // Stili dinamici basati su mobile
     const getCardPadding = () => (mobile ? '16px' : '28px');
@@ -288,8 +301,13 @@ export default function ToolsPage() {
                                     <button
                                         key={category}
                                         ref={selectedCategory === category ? activeFilterRef : null}
-                                        onClick={() => {
-                                            setSelectedCategory(category);
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleFilterClick(category);
+                                        }}
+                                        onTouchStart={(e) => {
+                                            e.stopPropagation();
                                         }}
                                         style={{
                                             ...styles.filterButtonMobile,
@@ -305,10 +323,13 @@ export default function ToolsPage() {
                         </div>
                     ) : (
                         <div style={styles.filterContainerDesktop}>
-                            {memoizedCategories.map((category) => (
+                                {memoizedCategories.map((category) => (
                                 <button
                                     key={category}
-                                    onClick={() => setSelectedCategory(category)}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleFilterClick(category);
+                                    }}
                                     style={{
                                         ...styles.filterButtonDesktop,
                                         ...(selectedCategory === category ? styles.filterButtonActiveDesktop : {})
@@ -590,7 +611,7 @@ export default function ToolsPage() {
         fontSize: '14px',
         fontWeight: '600',
         cursor: 'pointer',
-        transition: 'all 0.2s ease',
+        transition: 'background 0.1s ease, transform 0.1s ease',
         outline: 'none',
         whiteSpace: 'nowrap',
         textAlign: 'center',
@@ -607,13 +628,15 @@ export default function ToolsPage() {
         userSelect: 'none',
         WebkitUserSelect: 'none',
         position: 'relative',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        willChange: 'background, transform',
+        transform: 'translateZ(0)'
     },
     filterButtonActiveMobile: {
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         borderColor: 'transparent',
         color: '#fff',
-        transform: 'scale(1.02)',
+        transform: 'translateZ(0) scale(1.02)',
         boxShadow: '0 4px 16px rgba(102, 126, 234, 0.4), 0 0 16px rgba(102, 126, 234, 0.2)',
         fontWeight: '700'
     },
