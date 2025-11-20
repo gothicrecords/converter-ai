@@ -313,10 +313,26 @@ export default async function handler(req, res) {
       );
     }
     
-    const file = files.file;
+    // Formidable v3 restituisce array, v2 restituisce oggetto singolo
+    let file = files.file;
+    if (Array.isArray(file)) {
+      file = file[0]; // Prendi il primo file dall'array
+    }
+    
     if (!file) {
       return handleApiError(
         new ValidationError('File missing'),
+        res,
+        { method: req.method, url: req.url, endpoint: '/api/convert/[target]' }
+      );
+    }
+    
+    // Supporta sia filepath (v2/v3) che path (v1) di formidable
+    const inputPath = file.filepath || file.path;
+    if (!inputPath) {
+      console.error('File object received:', JSON.stringify(file, null, 2));
+      return handleApiError(
+        new ValidationError('File path non valido - il file potrebbe non essere stato caricato correttamente'),
         res,
         { method: req.method, url: req.url, endpoint: '/api/convert/[target]' }
       );
@@ -334,8 +350,7 @@ export default async function handler(req, res) {
     let inputExt = ''; // Inizializza prima del try block
     
     try {
-      const inputPath = file.filepath;
-      const originalName = file.originalFilename || 'file';
+      const originalName = file.originalFilename || file.name || 'file';
       const inputBuffer = fs.readFileSync(inputPath);
       inputExt = (path.extname(originalName) || '').replace('.', '').toLowerCase();
       const lowerTarget = String(target).toLowerCase();
