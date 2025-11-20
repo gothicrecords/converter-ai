@@ -6,18 +6,39 @@ export const config = { api: { bodyParser: false } };
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const form = formidable({ multiples: true });
+  const form = formidable({ 
+    multiples: true,
+    allowEmptyFiles: false // Non permettere file vuoti
+  });
   try {
     const { files } = await new Promise((resolve, reject) => {
-      form.parse(req, (err, fields, files) => (err ? reject(err) : resolve({ fields, files })));
+      form.parse(req, (err, fields, files) => {
+        if (err) {
+          // Gestisci errori specifici di formidable
+          if (err.message && err.message.includes('file size should be greater than 0')) {
+            return reject(new Error('Il file è vuoto. Carica un file valido.'));
+          }
+          if (err.message && err.message.includes('options.allowEmptyFiles')) {
+            return reject(new Error('Il file caricato è vuoto. Carica un file con contenuto.'));
+          }
+          return reject(err);
+        }
+        resolve({ fields, files });
+      });
     });
 
     if (!files?.file) return res.status(400).json({ error: 'Nessun file PDF caricato' });
-
-    const list = Array.isArray(files.file) ? files.file : [files.file];
+    
+    // Valida che il file non sia vuoto
+    const fileList = Array.isArray(files.file) ? files.file : [files.file];
+    for (const f of fileList) {
+      if (f.size === 0) {
+        return res.status(400).json({ error: 'Il file è vuoto. Carica un file valido.' });
+      }
+    }
     const results = [];
 
-    for (const f of list) {
+    for (const f of fileList) {
       const { PDFDocument } = await import('pdf-lib');
       const existingPdfBytes = readFileSync(f.filepath);
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
@@ -47,7 +68,7 @@ export default async function handler(req, res) {
       try { unlinkSync(f.filepath); } catch {}
     }
 
-    if (results.length === 1) return res.status(200).json({ url: results[0].url });
+    if (results.length === 1) return res.status(200).json({ url: results[0].url, name: results[0].name });
     return res.status(200).json({ urls: results });
   } catch (e) {
     console.error('pdf-to-pdfa error', e);

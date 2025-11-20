@@ -79,7 +79,17 @@ function GenericConverter({ tool }) {
   });
 
   const handleConvert = useCallback(async () => {
-    if (!file) return;
+    if (!file) {
+      setError('Seleziona un file prima di convertire.');
+      return;
+    }
+    
+    // Valida che il file non sia vuoto
+    if (file.size === 0) {
+      setError('Il file è vuoto. Carica un file valido.');
+      return;
+    }
+    
     setLoading(true); 
     setError(null); 
     setResultDataUrl(null); 
@@ -89,6 +99,11 @@ function GenericConverter({ tool }) {
     const fromFormat = file.name.split('.').pop() || file.type;
     
     try {
+      // Verifica che il file esista e abbia una dimensione valida
+      if (!file || file.size === 0) {
+        throw new Error('Il file è vuoto o non valido. Carica un file valido.');
+      }
+      
       const form = new FormData();
       form.append('file', file);
       form.append('target', outputFormat);
@@ -101,15 +116,208 @@ function GenericConverter({ tool }) {
       if (aBitrate) form.append('abitrate', aBitrate);
       if (page) form.append('page', page);
       
-      // Use improved error handling
-      const data = await fetchWithErrorHandling(`/api/convert/${outputFormat}`, { 
-        method: 'POST', 
-        body: form,
-        headers: {}, // Don't set Content-Type for FormData, browser will set it with boundary
-        signal: AbortSignal.timeout(300000) // 5 minuti
-      });
+      // Determina quale API chiamare in base allo slug del tool
+      let apiUrl = `/api/convert/${outputFormat}`;
+      const toolSlug = tool?.slug || currentSlug;
+      
+      // Mappa dei convertitori PDF agli endpoint dedicati
+      const pdfConverterMap = {
+        'pdf-to-docx': '/api/pdf/pdf-to-docx',
+        'pdf-to-pptx': '/api/pdf/pdf-to-pptx',
+        'pdf-to-powerpoint': '/api/pdf/pdf-to-pptx',
+        'pdf-to-xlsx': '/api/pdf/pdf-to-xlsx',
+        'pdf-to-excel': '/api/pdf/pdf-to-xlsx',
+        'pdf-to-jpg': '/api/pdf/pdf-to-jpg',
+        'pdf-to-png': '/api/pdf/pdf-to-jpg', // PDF to PNG usa lo stesso endpoint
+        'pdf-to-txt': '/api/pdf/pdf-to-txt',
+        'pdf-to-html': '/api/pdf/pdf-to-html',
+        'pdf-to-pdfa': '/api/pdf/pdf-to-pdfa',
+        'docx-to-pdf': '/api/pdf/docx-to-pdf',
+        'powerpoint-to-pdf': '/api/pdf/ppt-to-pdf',
+        'excel-to-pdf': '/api/pdf/xls-to-pdf',
+        'html-to-pdf': '/api/pdf/html-to-pdf'
+      };
+      
+      // Se è un convertitore PDF, usa l'endpoint dedicato
+      if (toolSlug && pdfConverterMap[toolSlug]) {
+        apiUrl = pdfConverterMap[toolSlug];
+      }
+      
+      // Verifica che l'URL sia valido
+      if (!apiUrl || !apiUrl.startsWith('/')) {
+        throw new Error(`URL API non valido: ${apiUrl}`);
+      }
+      
+      // Crea un AbortController per gestire timeout
+      const controller = new AbortController();
+      let timeoutId;
+      let response;
+      
+      try {
+        timeoutId = setTimeout(() => {
+          controller.abort();
+          setError('Timeout: l\'operazione ha richiesto troppo tempo. Riprova con un file più piccolo.');
+          setLoading(false);
+        }, 300000); // 5 minuti
+        // Use improved error handling
+        response = await fetch(apiUrl, { 
+          method: 'POST', 
+          body: form,
+          headers: {}, // Don't set Content-Type for FormData, browser will set it with boundary
+          signal: controller.signal
+        });
+        
+        // Pulisci il timeout se la richiesta è completata
+        clearTimeout(timeoutId);
+        
+        // Se la richiesta è stata abortita, esci
+        if (controller.signal.aborted) {
+          return;
+        }
+      } catch (fetchError) {
+        // Pulisci sempre il timeout in caso di errore
+        clearTimeout(timeoutId);
+        
+        // Gestisci errori di rete
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Timeout: l\'operazione ha richiesto troppo tempo. Riprova con un file più piccolo.');
+        }
+        
+        if (fetchError instanceof TypeError && fetchError.message.includes('fetch')) {
+          throw new Error('Errore di connessione. Controlla la tua connessione internet e riprova.');
+        }
+        
+        // Rilancia altri errori
+        throw new Error(`Errore durante la richiesta: ${fetchError.message || 'Errore sconosciuto'}`);
+      }
+      
+      if (!response.ok) {
+        let errorMessage = `Errore HTTP ${response.status}`;
+        try {
+          const errorData = await response.json();
+          // Gestisci diversi formati di errore
+          if (errorData.error) {
+            errorMessage = errorData.error;
+            // Se c'è un hint, aggiungilo al messaggio
+            if (errorData.hint) {
+              errorMessage += `. ${errorData.hint}`;
+            }
+          } else if (errorData.details) {
+            errorMessage = errorData.details;
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (e) {
+          // Se la risposta non è JSON, usa il messaggio di default
+          errorMessage = `Errore durante l'upload: il file potrebbe essere vuoto o non valido`;
+        }
+        
+        // Messaggi di errore più specifici per errori comuni
+        if (response.status === 400) {
+          errorMessage = errorMessage.includes('vuoto') || errorMessage.includes('empty') 
+            ? errorMessage 
+            : 'File non valido o formato non supportato. ' + (errorMessage !== `Errore HTTP ${response.status}` ? errorMessage : '');
+        } else if (response.status === 413) {
+          errorMessage = 'File troppo grande. Dimensione massima: 50MB per file';
+        } else if (response.status === 500) {
+          errorMessage = errorMessage !== `Errore HTTP ${response.status}` ? errorMessage : 'Errore del server durante la conversione';
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      // Verifica che la risposta sia JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        // Prova a leggere come testo per vedere cosa c'è
+        const text = await response.text();
+        console.error('Risposta non JSON ricevuta:', text.substring(0, 200));
+        throw new Error('Il server ha restituito una risposta non valida. Riprova più tardi.');
+      }
+      
+      // Parsing della risposta JSON con gestione errori
+      let data;
+      try {
+        const text = await response.text();
+        if (!text || text.trim().length === 0) {
+          throw new Error('Risposta vuota dal server');
+        }
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('Errore parsing JSON:', parseError);
+        throw new Error('Errore nel parsing della risposta dal server. La conversione potrebbe essere fallita.');
+      }
       
       const duration = Date.now() - startTime;
+      
+      // Verifica che i dati siano validi
+      if (!data || (typeof data !== 'object')) {
+        throw new Error('Formato risposta non valido dal server');
+      }
+      
+      // Gestisci due tipi di risposta:
+      // 1. { name, dataUrl } - da /api/convert/[target]
+      // 2. { url } - da /api/pdf/pdf-to-* (ConvertAPI o altro)
+      let resultName = null;
+      let resultDataUrl = null;
+      
+      if (data.dataUrl) {
+        // Formato standard { name, dataUrl }
+        if (typeof data.dataUrl !== 'string' || data.dataUrl.trim().length === 0) {
+          throw new Error('Data URL non valido nella risposta');
+        }
+        resultName = data.name || `converted.${outputFormat}`;
+        resultDataUrl = data.dataUrl;
+      } else if (data.url) {
+        // Formato PDF converter { url, name? }
+        if (typeof data.url !== 'string' || data.url.trim().length === 0) {
+          throw new Error('URL non valido nella risposta');
+        }
+        
+        // Gestisci diversi tipi di URL:
+        // 1. Data URL già presente (es. pdf-to-pptx, pdf-to-xlsx)
+        // 2. URL esterno (es. ConvertAPI per pdf-to-docx)
+        if (data.url.startsWith('data:')) {
+          // Data URL già presente - usa direttamente
+          resultDataUrl = data.url;
+        } else if (data.url.startsWith('http://') || data.url.startsWith('https://')) {
+          // URL esterno (es. ConvertAPI) - scarica il file e convertilo in data URL
+          try {
+            const fileResponse = await fetch(data.url, { 
+              signal: controller.signal 
+            });
+            if (!fileResponse.ok) {
+              throw new Error(`Errore nel download del file convertito: HTTP ${fileResponse.status}`);
+            }
+            const blob = await fileResponse.blob();
+            if (!blob || blob.size === 0) {
+              throw new Error('File scaricato è vuoto');
+            }
+            const reader = new FileReader();
+            resultDataUrl = await new Promise((resolve, reject) => {
+              reader.onloadend = () => {
+                if (reader.result) {
+                  resolve(reader.result);
+                } else {
+                  reject(new Error('Errore nella lettura del file'));
+                }
+              };
+              reader.onerror = () => reject(new Error('Errore nella lettura del file'));
+              reader.readAsDataURL(blob);
+            });
+          } catch (downloadError) {
+            console.error('Errore download file:', downloadError);
+            throw new Error(`Errore nel download del file convertito: ${downloadError.message}`);
+          }
+        } else {
+          // Altro formato - prova a usarlo come data URL
+          resultDataUrl = data.url;
+        }
+        resultName = data.name || file.name.replace(/\.[^.]+$/, `.${outputFormat}`);
+      } else {
+        console.error('Risposta non riconosciuta:', data);
+        throw new Error('Formato risposta non riconosciuto dal server. Risposta: ' + JSON.stringify(data).substring(0, 100));
+      }
       
       // Track successful conversion
       analytics.trackConversion(
@@ -121,8 +329,8 @@ function GenericConverter({ tool }) {
       );
       analytics.trackToolComplete(tool?.title || tool?.name, duration, true);
       
-      setResultName(data.name);
-      setResultDataUrl(data.dataUrl);
+      setResultName(resultName);
+      setResultDataUrl(resultDataUrl);
     } catch (e) {
       const duration = Date.now() - startTime;
       
@@ -134,14 +342,18 @@ function GenericConverter({ tool }) {
         'conversion_error'
       );
       
-      // Error is already handled by fetchWithErrorHandling (shows toast)
-      // But we also set local error state for UI display
+      // Error handling
       const handledError = handleError(e);
       setError(handledError.message);
+      console.error('Errore conversione:', e);
     } finally {
+      // Assicurati che il timeout venga sempre pulito
+      if (typeof timeoutId !== 'undefined') {
+        clearTimeout(timeoutId);
+      }
       setLoading(false);
     }
-  }, [file, outputFormat, width, height, quality, vWidth, vHeight, vBitrate, aBitrate, page, tool]);
+  }, [file, outputFormat, width, height, quality, vWidth, vHeight, vBitrate, aBitrate, page, tool, currentSlug]);
 
   const handleFileSelect = useCallback((e) => {
     const selectedFile = e.target.files[0];

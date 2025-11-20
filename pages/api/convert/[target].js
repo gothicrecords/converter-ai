@@ -21,6 +21,10 @@ import ttf2eotConv from 'ttf2eot';
 import { path7za } from '7zip-bin';
 import { execFile } from 'child_process';
 import { createExtractorFromData } from 'node-unrar-js';
+// Le librerie docx e rtf-parser verranno importate dinamicamente quando necessarie
+import { exec } from 'child_process';
+import { promisify } from 'util';
+const execAsync = promisify(exec);
 import { 
   handleApiError, 
   ValidationError, 
@@ -29,10 +33,248 @@ import {
   NotFoundError
 } from '../../../errors';
 
+// Helper per verificare se un comando è disponibile (cross-platform)
+async function commandExists(command) {
+  const isWindows = process.platform === 'win32';
+  const checkCmd = isWindows ? `where ${command} 2>nul` : `which ${command}`;
+  try {
+    const { stdout } = await execAsync(checkCmd);
+    return stdout.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
+// Helper per trovare soffice su Windows in percorsi comuni
+function findLibreOfficeWindows() {
+  const possiblePaths = [
+    process.env.PROGRAMFILES + '\\LibreOffice\\program\\soffice.exe',
+    process.env['PROGRAMFILES(X86)'] + '\\LibreOffice\\program\\soffice.exe',
+    'C:\\Program Files\\LibreOffice\\program\\soffice.exe',
+    'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe',
+    process.env.LOCALAPPDATA + '\\Programs\\LibreOffice\\program\\soffice.exe'
+  ];
+  
+  for (const p of possiblePaths) {
+    if (p && fs.existsSync(p)) {
+      return p;
+    }
+  }
+  return null;
+}
+
+// Helper per convertire tramite LibreOffice (se disponibile)
+async function convertViaLibreOffice(inputPath, outputDir, outputFormat) {
+  const isWindows = process.platform === 'win32';
+  let soffice = null;
+  
+  // Su Windows, LibreOffice può essere in percorsi comuni
+  if (isWindows) {
+    // Cerca in percorsi comuni
+    soffice = findLibreOfficeWindows();
+    
+    // Se non trovato, verifica nel PATH
+    if (!soffice) {
+      try {
+        if (await commandExists('soffice.exe')) {
+          soffice = 'soffice.exe';
+        }
+      } catch {}
+    }
+    
+    if (!soffice) {
+      console.warn('LibreOffice non trovato. Per installarlo: https://www.libreoffice.org/download/');
+      return null;
+    }
+  } else {
+    // Linux/Mac
+    try {
+      if (await commandExists('soffice')) {
+        soffice = 'soffice';
+      } else if (await commandExists('/usr/bin/soffice')) {
+        soffice = '/usr/bin/soffice';
+      } else if (await commandExists('/Applications/LibreOffice.app/Contents/MacOS/soffice')) {
+        soffice = '/Applications/LibreOffice.app/Contents/MacOS/soffice';
+      } else {
+        console.warn('LibreOffice non trovato. Installa LibreOffice per usare questa funzione.');
+        return null;
+      }
+    } catch {}
+    
+    if (!soffice) {
+      return null;
+    }
+  }
+  
+  try {
+    // LibreOffice comando: soffice --headless --convert-to <format> --outdir <dir> <file>
+    const cmd = isWindows 
+      ? `"${soffice}" --headless --convert-to ${outputFormat} --outdir "${outputDir}" "${inputPath}"`
+      : `soffice --headless --convert-to ${outputFormat} --outdir "${outputDir}" "${inputPath}"`;
+    
+    await execAsync(cmd, { timeout: 60000 }); // 60 secondi timeout
+    
+    // LibreOffice genera il file con lo stesso nome base dell'input ma con estensione diversa
+    const inputBaseName = path.basename(inputPath, path.extname(inputPath));
+    const expectedOutput = path.join(outputDir, `${inputBaseName}.${outputFormat}`);
+    
+    // Verifica che il file di output esista
+    if (fs.existsSync(expectedOutput)) {
+      return fs.readFileSync(expectedOutput);
+    }
+    
+    // Fallback: cerca qualsiasi file PDF nella directory di output
+    try {
+      const files = fs.readdirSync(outputDir);
+      const pdfFile = files.find(f => f.endsWith('.pdf') || f.endsWith(`.${outputFormat}`));
+      if (pdfFile) {
+        const pdfPath = path.join(outputDir, pdfFile);
+        return fs.readFileSync(pdfPath);
+      }
+    } catch {}
+    
+    return null;
+  } catch (e) {
+    console.error('Errore conversione LibreOffice:', e);
+    return null;
+  }
+}
+
+// Helper per trovare Pandoc su Windows in percorsi comuni
+function findPandocWindows() {
+  const possiblePaths = [
+    'C:\\Program Files\\Pandoc\\pandoc.exe',
+    process.env.PROGRAMFILES + '\\Pandoc\\pandoc.exe',
+    process.env.LOCALAPPDATA + '\\Pandoc\\pandoc.exe',
+    'C:\\Users\\' + process.env.USERNAME + '\\AppData\\Local\\Pandoc\\pandoc.exe'
+  ];
+  
+  for (const p of possiblePaths) {
+    if (p && fs.existsSync(p)) {
+      return p;
+    }
+  }
+  return null;
+}
+
+// Helper per convertire tramite Pandoc (se disponibile)
+async function convertViaPandoc(inputPath, outputPath, inputFormat, outputFormat) {
+  const isWindows = process.platform === 'win32';
+  let pandoc = null;
+  
+  if (isWindows) {
+    // Cerca in percorsi comuni
+    pandoc = findPandocWindows();
+    
+    // Verifica anche nel PATH
+    if (!pandoc && await commandExists('pandoc.exe')) {
+      pandoc = 'pandoc.exe';
+    }
+    
+    if (!pandoc) {
+      console.warn('Pandoc non trovato. Per installarlo: https://pandoc.org/installing.html');
+      return null;
+    }
+  } else {
+    // Linux/Mac
+    if (await commandExists('pandoc')) {
+      pandoc = 'pandoc';
+    } else {
+      console.warn('Pandoc non trovato. Installa Pandoc per usare questa funzione.');
+      return null;
+    }
+  }
+  
+  try {
+    const cmd = isWindows 
+      ? `"${pandoc}" -f ${inputFormat} -t ${outputFormat} -o "${outputPath}" "${inputPath}"`
+      : `${pandoc} -f ${inputFormat} -t ${outputFormat} -o "${outputPath}" "${inputPath}"`;
+    await execAsync(cmd, { timeout: 60000 });
+    
+    if (fs.existsSync(outputPath)) {
+      return fs.readFileSync(outputPath);
+    }
+    return null;
+  } catch (e) {
+    console.error('Errore conversione Pandoc:', e);
+    return null;
+  }
+}
+
+// Helper per trovare ddjvu su Windows in percorsi comuni
+function findDjvuLibreWindows() {
+  const possiblePaths = [
+    'C:\\Program Files\\djvulibre\\bin\\ddjvu.exe',
+    'C:\\Program Files (x86)\\djvulibre\\bin\\ddjvu.exe',
+    process.env.PROGRAMFILES + '\\djvulibre\\bin\\ddjvu.exe',
+    process.env['PROGRAMFILES(X86)'] + '\\djvulibre\\bin\\ddjvu.exe'
+  ];
+  
+  for (const p of possiblePaths) {
+    if (p && fs.existsSync(p)) {
+      return p;
+    }
+  }
+  return null;
+}
+
+// Helper per convertire DJVU tramite djvulibre (se disponibile)
+async function convertDjvuToPdf(inputPath, outputPath) {
+  const isWindows = process.platform === 'win32';
+  let ddjvu = null;
+  
+  if (isWindows) {
+    // Su Windows, djvulibre potrebbe essere in percorsi comuni
+    ddjvu = findDjvuLibreWindows();
+    
+    // Verifica anche nel PATH
+    if (!ddjvu && await commandExists('ddjvu.exe')) {
+      ddjvu = 'ddjvu.exe';
+    }
+    
+    if (!ddjvu) {
+      console.warn('djvulibre non trovato. Per installarlo: https://sourceforge.net/projects/djvu/files/');
+      return null;
+    }
+  } else {
+    // Linux/Mac
+    if (await commandExists('ddjvu')) {
+      ddjvu = 'ddjvu';
+    } else if (fs.existsSync('/usr/bin/ddjvu')) {
+      ddjvu = '/usr/bin/ddjvu';
+    } else {
+      console.warn('djvulibre non trovato. Installa djvulibre per usare questa funzione.');
+      return null;
+    }
+  }
+  
+  try {
+    // ddjvu comando: ddjvu -format=pdf <djvu-file> <pdf-file>
+    const cmd = isWindows 
+      ? `"${ddjvu}" -format=pdf "${inputPath}" "${outputPath}"`
+      : `${ddjvu} -format=pdf "${inputPath}" "${outputPath}"`;
+    await execAsync(cmd, { timeout: 60000 });
+    
+    if (fs.existsSync(outputPath)) {
+      return fs.readFileSync(outputPath);
+    }
+    return null;
+  } catch (e) {
+    console.error('Errore conversione DJVU:', e);
+    return null;
+  }
+}
+
 export const config = { api: { bodyParser: false } };
 
 function toDataUrl(buffer, mime) {
-  return `data:${mime};base64,${buffer.toString('base64')}`;
+  // Verifica che il buffer non sia vuoto o null
+  if (!buffer || buffer.length === 0) {
+    // Restituisci un buffer vuoto come fallback
+    buffer = Buffer.from('');
+  }
+  const base64 = buffer.toString('base64');
+  return `data:${mime};base64,${base64}`;
 }
 
 export default async function handler(req, res) {
@@ -49,12 +291,23 @@ export default async function handler(req, res) {
     });
   }
 
-  const form = formidable({ multiples: false, keepExtensions: true });
+  const form = formidable({ 
+    multiples: false, 
+    keepExtensions: true,
+    allowEmptyFiles: false // Non permettere file vuoti
+  });
   
   form.parse(req, async (err, fields, files) => {
     if (err) {
+      // Gestisci errori specifici di formidable
+      let errorMessage = err.message || 'File upload failed';
+      if (err.message && err.message.includes('file size should be greater than 0')) {
+        errorMessage = 'Il file è vuoto. Carica un file valido.';
+      } else if (err.message && err.message.includes('options.allowEmptyFiles')) {
+        errorMessage = 'Il file caricato è vuoto. Carica un file con contenuto.';
+      }
       return handleApiError(
-        new ValidationError('File upload failed: ' + err.message, err),
+        new ValidationError(errorMessage, err),
         res,
         { method: req.method, url: req.url, endpoint: '/api/convert/[target]' }
       );
@@ -68,6 +321,16 @@ export default async function handler(req, res) {
         { method: req.method, url: req.url, endpoint: '/api/convert/[target]' }
       );
     }
+    
+    // Valida che il file non sia vuoto
+    if (file.size === 0) {
+      return handleApiError(
+        new ValidationError('Il file è vuoto. Carica un file valido.'),
+        res,
+        { method: req.method, url: req.url, endpoint: '/api/convert/[target]' }
+      );
+    }
+    
     try {
       const inputPath = file.filepath;
       const originalName = file.originalFilename || 'file';
@@ -138,11 +401,31 @@ export default async function handler(req, res) {
 
       // PDF generation
       if (!outputBuffer && lowerTarget === 'pdf') {
-        // Handle HTML with headless Chrome, else basic PDF with pdfkit
+        // Handle HTML with pdfkit (no Puppeteer dependency)
         if (inputExt === 'html' || inputExt === 'htm') {
-          const fileObj = { content: inputBuffer.toString('utf8') };
-          const pdfBuffer = await htmlPdf.generatePdf(fileObj, { format: 'A4' });
-          outputBuffer = Buffer.from(pdfBuffer);
+          const html = inputBuffer.toString('utf8');
+          // Estrai testo dall'HTML
+          let text = html
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          const doc = new PDFDocument({ margin: 48 });
+          const chunks = [];
+          doc.on('data', d => chunks.push(d));
+          doc.on('end', () => {});
+          doc.fontSize(12).text(text);
+          doc.end();
+          await new Promise(resolve => doc.on('end', resolve));
+          outputBuffer = Buffer.concat(chunks);
           mime = 'application/pdf';
         } else if (inputExt === 'csv') {
           // Simple table rendering from CSV using pdfkit
@@ -231,26 +514,418 @@ export default async function handler(req, res) {
         }
       }
 
-      // TXT extraction
+      // DJVU -> PDF (via djvulibre)
+      if (!outputBuffer && lowerTarget === 'pdf' && inputExt === 'djvu') {
+        const tmpOut = path.join(path.dirname(inputPath), `djvu_${Date.now()}.pdf`);
+        const result = await convertDjvuToPdf(inputPath, tmpOut);
+        if (result) {
+          outputBuffer = result;
+          mime = 'application/pdf';
+          try { fs.unlinkSync(tmpOut); } catch {}
+        }
+      }
+
+      // Document formats to PDF via LibreOffice
+      const libreOfficeDocFormats = ['pub', 'xps', 'abw', 'zabw', 'doc', 'docm', 'dot', 'dotx', 'hwp', 'lwp', 'wpd', 'wps', 'pages', 'odt', 'ods', 'odp', 'odg', 'rtf', 'rst'];
+      if (!outputBuffer && lowerTarget === 'pdf' && libreOfficeDocFormats.includes(inputExt)) {
+        const tmpDir = path.dirname(inputPath);
+        const result = await convertViaLibreOffice(inputPath, tmpDir, 'pdf');
+        if (result) {
+          outputBuffer = result;
+          mime = 'application/pdf';
+        } else {
+          // LibreOffice non disponibile, informiamo l'utente
+          return handleApiError(
+            new ProcessingError(`Conversione ${inputExt.toUpperCase()} → PDF richiede LibreOffice. Per favore, installa LibreOffice per usare questa funzionalità. Download: https://www.libreoffice.org/download/`),
+            res,
+            {
+              method: req.method,
+              url: req.url,
+              endpoint: '/api/convert/[target]',
+              target,
+              inputExt,
+              hint: 'LibreOffice non è installato sul server'
+            }
+          );
+        }
+      }
+
+      // TXT extraction/conversion
       if (!outputBuffer && lowerTarget === 'txt') {
-        if (inputExt === 'pdf') {
+        if (inputExt === 'txt') {
+          // TXT → TXT: pass-through, ma normalizziamo l'encoding
+          try {
+            outputBuffer = Buffer.from(inputBuffer.toString('utf8'), 'utf8');
+            mime = 'text/plain';
+          } catch (e) {
+            outputBuffer = Buffer.from(inputBuffer.toString('binary'), 'utf8');
+            mime = 'text/plain';
+          }
+        } else if (inputExt === 'pdf') {
           try {
             const parsed = await pdfParse(inputBuffer);
-            outputBuffer = Buffer.from(parsed.text || '');
+            outputBuffer = Buffer.from(parsed.text || '', 'utf8');
+            mime = 'text/plain';
           } catch (e) {
-            outputBuffer = Buffer.from('');
+            outputBuffer = Buffer.from('', 'utf8');
+            mime = 'text/plain';
           }
-        } else if (inputExt === 'docx') {
+        } else if (inputExt === 'docx' || inputExt === 'docm' || inputExt === 'dotx') {
           try {
             const { value } = await mammoth.extractRawText({ buffer: inputBuffer });
-            outputBuffer = Buffer.from(value || '');
+            outputBuffer = Buffer.from(value || '', 'utf8');
+            mime = 'text/plain';
           } catch {
-            outputBuffer = Buffer.from('');
+            outputBuffer = Buffer.from('', 'utf8');
+            mime = 'text/plain';
           }
+        } else if (inputExt === 'doc' || inputExt === 'dot') {
+          // DOC/DOT legacy: prova con mammoth, altrimenti parsing base
+          try {
+            const { value } = await mammoth.extractRawText({ buffer: inputBuffer });
+            outputBuffer = Buffer.from(value || '', 'utf8');
+            mime = 'text/plain';
+          } catch (e) {
+            // Fallback: estrai testo grezzo
+            const text = inputBuffer.toString('utf8', 0, Math.min(50000, inputBuffer.length));
+            const cleanText = text.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, ' ').trim();
+            outputBuffer = Buffer.from(cleanText || 'Contenuto non estraibile da formato DOC legacy', 'utf8');
+            mime = 'text/plain';
+          }
+        } else if (inputExt === 'html' || inputExt === 'htm') {
+          // HTML → TXT: estrai solo il testo, rimuovendo i tag HTML
+          try {
+            const html = inputBuffer.toString('utf8');
+            // Rimuovi script e style
+            let text = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+            text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+            // Sostituisci i tag HTML con spazi
+            text = text.replace(/<[^>]+>/g, ' ');
+            // Decodifica entità HTML
+            text = text.replace(/&nbsp;/g, ' ');
+            text = text.replace(/&amp;/g, '&');
+            text = text.replace(/&lt;/g, '<');
+            text = text.replace(/&gt;/g, '>');
+            text = text.replace(/&quot;/g, '"');
+            text = text.replace(/&#39;/g, "'");
+            // Rimuovi spazi multipli e newline
+            text = text.replace(/\s+/g, ' ').trim();
+            outputBuffer = Buffer.from(text, 'utf8');
+          } catch (e) {
+            // Fallback: restituisci HTML come testo
+            outputBuffer = Buffer.from(inputBuffer.toString('utf8'), 'utf8');
+          }
+        } else if (inputExt === 'md') {
+          // MD → TXT: Markdown è già testo, ma rimuoviamo la sintassi markdown di base
+          try {
+            const md = inputBuffer.toString('utf8');
+            let text = md;
+            // Rimuovi sintassi Markdown comune
+            text = text.replace(/#{1,6}\s+/g, ''); // Headers
+            text = text.replace(/\*\*([^*]+)\*\*/g, '$1'); // Bold
+            text = text.replace(/\*([^*]+)\*/g, '$1'); // Italic
+            text = text.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1'); // Links
+            text = text.replace(/`([^`]+)`/g, '$1'); // Inline code
+            text = text.replace(/```[\s\S]*?```/g, ''); // Code blocks
+            outputBuffer = Buffer.from(text, 'utf8');
+          } catch (e) {
+            outputBuffer = Buffer.from(inputBuffer.toString('utf8'), 'utf8');
+          }
+        } else if (inputExt === 'rtf') {
+          // RTF → TXT: già gestito sopra, ma assicuriamoci che funzioni
+          try {
+            const rtfText = inputBuffer.toString('utf8');
+            let plainText = rtfText;
+            plainText = plainText.replace(/\\[a-z]+\d*\s?/gi, ' ');
+            plainText = plainText.replace(/\{[^}]*\}/g, '');
+            plainText = plainText.replace(/\\[{}]/g, '');
+            plainText = plainText.replace(/\s+/g, ' ').trim();
+            outputBuffer = Buffer.from(plainText, 'utf8');
+            mime = 'text/plain';
+          } catch (e) {
+            outputBuffer = Buffer.from('', 'utf8');
+            mime = 'text/plain';
+          }
+        } else if (inputExt === 'odt') {
+          // ODT → TXT: estrai da content.xml
+          try {
+            const zip = await JSZip.loadAsync(inputBuffer);
+            let content = '';
+            if (zip.files['content.xml']) {
+              const xmlContent = await zip.files['content.xml'].async('string');
+              const textMatches = xmlContent.match(/<text:[^>]*>([^<]*)<\/text:[^>]*>/gi) || [];
+              const texts = textMatches.map(m => {
+                const match = m.match(/>([^<]+)</i);
+                return match ? match[1] : '';
+              }).filter(t => t.trim().length > 0);
+              content = texts.join('\n');
+              if (!content) {
+                content = xmlContent.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+              }
+            }
+            outputBuffer = Buffer.from(content || 'Contenuto non estraibile', 'utf8');
+            mime = 'text/plain';
+          } catch (e) {
+            outputBuffer = Buffer.from('', 'utf8');
+            mime = 'text/plain';
+          }
+        } else if (inputExt === 'abw' || inputExt === 'zabw') {
+          // ABW/ZABW → TXT
+          try {
+            let content = '';
+            if (inputExt === 'zabw') {
+              const zip = await JSZip.loadAsync(inputBuffer);
+              const file = zip.files['content.xml'] || zip.files['AbiWord'];
+              if (file) {
+                const text = await file.async('string');
+                content = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+              }
+            } else {
+              const text = inputBuffer.toString('utf8');
+              content = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            }
+            outputBuffer = Buffer.from(content || 'Contenuto non estraibile', 'utf8');
+            mime = 'text/plain';
+          } catch (e) {
+            outputBuffer = Buffer.from('', 'utf8');
+            mime = 'text/plain';
+          }
+        } else if (inputExt === 'tex' || inputExt === 'rst') {
+          // TEX/RST → TXT: sono formati testuali
+          try {
+            const text = inputBuffer.toString('utf8');
+            outputBuffer = Buffer.from(text, 'utf8');
+            mime = 'text/plain';
+          } catch (e) {
+            outputBuffer = Buffer.from('', 'utf8');
+            mime = 'text/plain';
+          }
+        } else if (['pub', 'xps', 'hwp', 'lwp', 'pages', 'wpd', 'wps'].includes(inputExt)) {
+          // Formati complessi → TXT: prova parsing base
+          try {
+            // Prova come archivio ZIP (XPS, PAGES potrebbero essere ZIP)
+            if (inputExt === 'xps' || inputExt === 'pages') {
+              try {
+                const zip = await JSZip.loadAsync(inputBuffer);
+                let content = '';
+                for (const [path, file] of Object.entries(zip.files)) {
+                  if (path.endsWith('.xml') || path.endsWith('.txt')) {
+                    const text = await file.async('string');
+                    content += text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() + '\n';
+                  }
+                }
+                outputBuffer = Buffer.from(content || 'Contenuto non estraibile', 'utf8');
+                mime = 'text/plain';
+              } catch (e) {
+                // Non è un ZIP, prova parsing diretto
+                const text = inputBuffer.toString('utf8', 0, Math.min(10000, inputBuffer.length));
+                const cleanText = text.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, ' ').trim();
+                outputBuffer = Buffer.from(cleanText || 'Contenuto non estraibile', 'utf8');
+                mime = 'text/plain';
+              }
+            } else {
+              // Altri formati binari: estrazione base
+              const text = inputBuffer.toString('utf8', 0, Math.min(10000, inputBuffer.length));
+              const cleanText = text.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, ' ').trim();
+              outputBuffer = Buffer.from(cleanText || `Formato ${inputExt.toUpperCase()} richiede tool specializzati per estrazione completa`, 'utf8');
+              mime = 'text/plain';
+            }
+          } catch (e) {
+            outputBuffer = Buffer.from('', 'utf8');
+            mime = 'text/plain';
+          }
+        } else if (inputExt === 'djvu') {
+          // DJVU → TXT: formato binario complesso
+          outputBuffer = Buffer.from('DJVU è un formato binario complesso. Per estrarre testo serve djvulibre.', 'utf8');
+          mime = 'text/plain';
         } else {
-          outputBuffer = Buffer.from(inputBuffer.toString('utf8'));
+          // Per altri formati testuali, converti in UTF-8
+          try {
+            outputBuffer = Buffer.from(inputBuffer.toString('utf8'), 'utf8');
+          } catch (e) {
+            // Se fallisce, prova a leggere come binary e convertire
+            outputBuffer = Buffer.from(inputBuffer.toString('binary'), 'utf8');
+          }
         }
         mime = 'text/plain';
+      }
+
+      // HTML conversion
+      if (!outputBuffer && lowerTarget === 'html') {
+        if (inputExt === 'html' || inputExt === 'htm') {
+          // HTML → HTML: pass-through ma normalizziamo
+          try {
+            outputBuffer = Buffer.from(inputBuffer.toString('utf8'), 'utf8');
+            mime = 'text/html';
+          } catch (e) {
+            outputBuffer = Buffer.from(inputBuffer.toString('binary'), 'utf8');
+            mime = 'text/html';
+          }
+        } else if (inputExt === 'md') {
+          // MD → HTML: già gestito sopra
+          try {
+            const html = marked.parse(inputBuffer.toString('utf8'));
+            outputBuffer = Buffer.from(html, 'utf8');
+            mime = 'text/html';
+          } catch (e) {
+            // Fallback: incapsula il markdown come pre
+            const escaped = inputBuffer.toString('utf8').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            outputBuffer = Buffer.from(`<!DOCTYPE html>\n<html><head><meta charset="UTF-8"></head><body><pre>${escaped}</pre></body></html>`, 'utf8');
+            mime = 'text/html';
+          }
+        } else if (inputExt === 'txt') {
+          // TXT → HTML: formatta il testo in HTML
+          try {
+            const text = inputBuffer.toString('utf8');
+            // Converti newline in <br> e paragrafi in <p>
+            const lines = text.split(/\r?\n/);
+            let html = '<!DOCTYPE html>\n<html lang="it">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>Documento convertito</title>\n<style>\nbody { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }\np { margin-bottom: 1em; }\n</style>\n</head>\n<body>\n';
+            
+            let paragraph = '';
+            lines.forEach(line => {
+              const trimmed = line.trim();
+              if (trimmed === '') {
+                if (paragraph) {
+                  html += `<p>${paragraph.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>\n`;
+                  paragraph = '';
+                }
+              } else {
+                if (paragraph) paragraph += ' ';
+                paragraph += trimmed;
+              }
+            });
+            if (paragraph) {
+              html += `<p>${paragraph.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>\n`;
+            }
+            
+            html += '</body>\n</html>';
+            outputBuffer = Buffer.from(html, 'utf8');
+            mime = 'text/html';
+          } catch (e) {
+            // Fallback: incapsula il testo in un HTML base
+            const escaped = inputBuffer.toString('utf8').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const html = `<!DOCTYPE html>\n<html><head><meta charset="UTF-8"></head><body><pre>${escaped}</pre></body></html>`;
+            outputBuffer = Buffer.from(html, 'utf8');
+            mime = 'text/html';
+          }
+        } else if (inputExt === 'docx') {
+          // DOCX → HTML: già gestito sopra
+          try {
+            const { value: html } = await mammoth.convertToHtml({ buffer: inputBuffer });
+            outputBuffer = Buffer.from(html, 'utf8');
+            mime = 'text/html';
+          } catch (e) {
+            outputBuffer = Buffer.from('<html><body><p>Errore nella conversione DOCX</p></body></html>', 'utf8');
+            mime = 'text/html';
+          }
+        }
+      }
+
+      // Markdown (MD) conversion
+      if (!outputBuffer && lowerTarget === 'md') {
+        if (inputExt === 'md') {
+          // MD → MD: pass-through
+          try {
+            outputBuffer = Buffer.from(inputBuffer.toString('utf8'), 'utf8');
+            mime = 'text/markdown';
+          } catch (e) {
+            outputBuffer = Buffer.from(inputBuffer.toString('binary'), 'utf8');
+            mime = 'text/markdown';
+          }
+        } else if (inputExt === 'html' || inputExt === 'htm') {
+          // HTML → MD: conversione base HTML a Markdown
+          try {
+            const html = inputBuffer.toString('utf8');
+            let md = html;
+            // Rimuovi script e style
+            md = md.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+            md = md.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+            // Converti headers
+            md = md.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n');
+            md = md.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n');
+            md = md.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n');
+            md = md.replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n');
+            md = md.replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1\n\n');
+            md = md.replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1\n\n');
+            // Converti link
+            md = md.replace(/<a[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi, '[$2]($1)');
+            // Converti bold e italic
+            md = md.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**');
+            md = md.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**');
+            md = md.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*');
+            md = md.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*');
+            // Converti paragrafi
+            md = md.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n');
+            // Rimuovi tutti gli altri tag
+            md = md.replace(/<[^>]+>/g, '');
+            // Decodifica entità HTML
+            md = md.replace(/&nbsp;/g, ' ');
+            md = md.replace(/&amp;/g, '&');
+            md = md.replace(/&lt;/g, '<');
+            md = md.replace(/&gt;/g, '>');
+            md = md.replace(/&quot;/g, '"');
+            md = md.replace(/&#39;/g, "'");
+            // Pulisci spazi multipli e newline
+            md = md.replace(/\n{3,}/g, '\n\n').trim();
+            outputBuffer = Buffer.from(md, 'utf8');
+            mime = 'text/markdown';
+          } catch (e) {
+            // Fallback: estrai solo testo
+            let text = inputBuffer.toString('utf8').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            outputBuffer = Buffer.from(text, 'utf8');
+            mime = 'text/markdown';
+          }
+        } else if (inputExt === 'txt') {
+          // TXT → MD: principalmente pass-through, ma possiamo formattare meglio
+          try {
+            const text = inputBuffer.toString('utf8');
+            // Se il testo ha pattern che suggeriscono struttura, possiamo convertirli
+            // Per ora, restituiamo come markdown puro
+            outputBuffer = Buffer.from(text, 'utf8');
+            mime = 'text/markdown';
+          } catch (e) {
+            outputBuffer = Buffer.from(inputBuffer.toString('utf8'), 'utf8');
+            mime = 'text/markdown';
+          }
+        } else if (inputExt === 'docx') {
+          // DOCX → MD: converte prima in HTML, poi in MD
+          try {
+            const { value: html } = await mammoth.convertToHtml({ buffer: inputBuffer });
+            // Ora converti HTML in MD (riuso la logica sopra)
+            let md = html;
+            md = md.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+            md = md.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+            md = md.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n');
+            md = md.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n');
+            md = md.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n');
+            md = md.replace(/<a[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi, '[$2]($1)');
+            md = md.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**');
+            md = md.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**');
+            md = md.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*');
+            md = md.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*');
+            md = md.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n');
+            md = md.replace(/<[^>]+>/g, '');
+            md = md.replace(/&nbsp;/g, ' ');
+            md = md.replace(/&amp;/g, '&');
+            md = md.replace(/&lt;/g, '<');
+            md = md.replace(/&gt;/g, '>');
+            md = md.replace(/&quot;/g, '"');
+            md = md.replace(/&#39;/g, "'");
+            md = md.replace(/\n{3,}/g, '\n\n').trim();
+            outputBuffer = Buffer.from(md, 'utf8');
+            mime = 'text/markdown';
+          } catch (e) {
+            // Fallback: estrai solo testo
+            try {
+              const { value } = await mammoth.extractRawText({ buffer: inputBuffer });
+              outputBuffer = Buffer.from(value || '', 'utf8');
+              mime = 'text/markdown';
+            } catch {
+              outputBuffer = Buffer.from('', 'utf8');
+              mime = 'text/markdown';
+            }
+          }
+        }
       }
 
       // CSV/XLSX
@@ -276,20 +951,349 @@ export default async function handler(req, res) {
         mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       }
 
-      // DOCX -> HTML/PDF
-      if (!outputBuffer && (lowerTarget === 'html' || lowerTarget === 'pdf') && inputExt === 'docx') {
+      // DOCX -> PDF (HTML è gestito nella sezione HTML conversion)
+      if (!outputBuffer && lowerTarget === 'pdf' && inputExt === 'docx') {
         try {
           const { value: html } = await mammoth.convertToHtml({ buffer: inputBuffer });
-          if (lowerTarget === 'html') {
+          // Estrai testo dall'HTML e genera PDF con pdfkit
+          let text = html
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          const doc = new PDFDocument({ margin: 48 });
+          const chunks = [];
+          doc.on('data', d => chunks.push(d));
+          doc.on('end', () => {});
+          doc.fontSize(12).text(text);
+          doc.end();
+          await new Promise(resolve => doc.on('end', resolve));
+          outputBuffer = Buffer.concat(chunks);
+          mime = 'application/pdf';
+        } catch {}
+      }
+
+      // Formati Word legacy: DOC, DOCM, DOT, DOTX -> PDF/TXT/HTML
+      const wordFormats = ['doc', 'docm', 'dot', 'dotx'];
+      if (!outputBuffer && wordFormats.includes(inputExt)) {
+        try {
+          // Prova con mammoth (potrebbe funzionare per alcuni formati moderni)
+          if (inputExt === 'docm' || inputExt === 'dotx') {
+            if (lowerTarget === 'txt') {
+              const { value } = await mammoth.extractRawText({ buffer: inputBuffer });
+              outputBuffer = Buffer.from(value || '', 'utf8');
+              mime = 'text/plain';
+            } else if (lowerTarget === 'html') {
+              const { value: html } = await mammoth.convertToHtml({ buffer: inputBuffer });
+              outputBuffer = Buffer.from(html, 'utf8');
+              mime = 'text/html';
+            } else if (lowerTarget === 'pdf') {
+              const { value: html } = await mammoth.convertToHtml({ buffer: inputBuffer });
+              // Estrai testo e genera PDF con pdfkit
+              let text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+              const doc = new PDFDocument({ margin: 48 });
+              const chunks = [];
+              doc.on('data', d => chunks.push(d));
+              doc.on('end', () => {});
+              doc.fontSize(12).text(text);
+              doc.end();
+              await new Promise(resolve => doc.on('end', resolve));
+              outputBuffer = Buffer.concat(chunks);
+              mime = 'application/pdf';
+            }
+          } else if (inputExt === 'doc' || inputExt === 'dot') {
+            // DOC e DOT sono binari legacy
+            if (lowerTarget === 'txt') {
+              // Prova con mammoth per estrarre testo
+              try {
+                const { value } = await mammoth.extractRawText({ buffer: inputBuffer });
+                outputBuffer = Buffer.from(value || '', 'utf8');
+                mime = 'text/plain';
+              } catch (e) {
+                // Fallback: estrai testo grezzo
+                const text = inputBuffer.toString('utf8', 0, Math.min(50000, inputBuffer.length));
+                const cleanText = text.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, ' ').trim();
+                outputBuffer = Buffer.from(cleanText || 'Contenuto non estraibile da formato DOC legacy', 'utf8');
+                mime = 'text/plain';
+              }
+            } else if (lowerTarget === 'pdf') {
+              // Prova prima con LibreOffice
+              try {
+                const tmpDir = path.dirname(inputPath);
+                const outputFileName = path.basename(originalName, path.extname(originalName)) + '.pdf';
+                const outputPath = path.join(tmpDir, `lo_${Date.now()}_${outputFileName}`);
+                
+                const convertedBuffer = await convertViaLibreOffice(inputPath, outputPath, 'pdf');
+                if (convertedBuffer) {
+                  outputBuffer = convertedBuffer;
+                  mime = 'application/pdf';
+                  // Cleanup
+                  try { fs.unlinkSync(outputPath); } catch {}
+                } else {
+                  // Fallback: prova con mammoth + pdfkit
+                  try {
+                    const { value: html } = await mammoth.convertToHtml({ buffer: inputBuffer });
+                    // Usa pdfkit invece di html-pdf-node
+                    const chunks = [];
+                    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+                    doc.on('data', chunk => chunks.push(chunk));
+                    doc.on('end', () => {});
+                    
+                    let text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                    doc.fontSize(12).text(text);
+                    doc.end();
+                    await new Promise(resolve => doc.on('end', resolve));
+                    
+                    outputBuffer = Buffer.concat(chunks);
+                    mime = 'application/pdf';
+                  } catch (e2) {
+                    outputBuffer = Buffer.from('I formati DOC e DOT (Word legacy) richiedono LibreOffice installato. Installa LibreOffice e riprova.', 'utf8');
+                    mime = 'text/plain';
+                  }
+                }
+              } catch (e) {
+                console.error('Errore conversione DOC/DOT:', e);
+                // Fallback: prova con mammoth + pdfkit
+                try {
+                  const { value: html } = await mammoth.convertToHtml({ buffer: inputBuffer });
+                  const chunks = [];
+                  const doc = new PDFDocument({ size: 'A4', margin: 50 });
+                  doc.on('data', chunk => chunks.push(chunk));
+                  doc.on('end', () => {});
+                  
+                  let text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                  doc.fontSize(12).text(text);
+                  doc.end();
+                  await new Promise(resolve => doc.on('end', resolve));
+                  
+                  outputBuffer = Buffer.concat(chunks);
+                  mime = 'application/pdf';
+                } catch (e2) {
+                  outputBuffer = Buffer.from('I formati DOC e DOT (Word legacy) richiedono LibreOffice installato.', 'utf8');
+                  mime = 'text/plain';
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Errore conversione Word:', e);
+        }
+      }
+
+      // RTF -> PDF/TXT/HTML
+      if (!outputBuffer && inputExt === 'rtf' && (lowerTarget === 'pdf' || lowerTarget === 'txt' || lowerTarget === 'html')) {
+        try {
+          const rtfText = inputBuffer.toString('utf8');
+          let plainText = rtfText;
+          
+          // Rimozione base dei codici RTF
+          plainText = plainText.replace(/\\[a-z]+\d*\s?/gi, ' '); // Comandi RTF
+          plainText = plainText.replace(/\{[^}]*\}/g, ''); // Gruppi RTF
+          plainText = plainText.replace(/\s+/g, ' ').trim();
+          
+          if (lowerTarget === 'txt') {
+            outputBuffer = Buffer.from(plainText, 'utf8');
+            mime = 'text/plain';
+          } else if (lowerTarget === 'html') {
+            const html = `<!DOCTYPE html>\n<html><head><meta charset="UTF-8"></head><body><pre>${plainText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></body></html>`;
             outputBuffer = Buffer.from(html, 'utf8');
             mime = 'text/html';
-          } else {
-            const fileObj = { content: html };
-            const pdfBuffer = await htmlPdf.generatePdf(fileObj, { format: 'A4' });
-            outputBuffer = Buffer.from(pdfBuffer);
+          } else if (lowerTarget === 'pdf') {
+            // Genera PDF direttamente con pdfkit
+            const doc = new PDFDocument({ margin: 48 });
+            const chunks = [];
+            doc.on('data', d => chunks.push(d));
+            doc.on('end', () => {});
+            doc.fontSize(12).text(plainText);
+            doc.end();
+            await new Promise(resolve => doc.on('end', resolve));
+            outputBuffer = Buffer.concat(chunks);
             mime = 'application/pdf';
           }
-        } catch {}
+        } catch (e) {
+          console.error('Errore conversione RTF:', e);
+        }
+      }
+
+      // ODT -> PDF/TXT/HTML (ODT è un archivio ZIP con content.xml)
+      if (!outputBuffer && inputExt === 'odt' && (lowerTarget === 'pdf' || lowerTarget === 'txt' || lowerTarget === 'html')) {
+        try {
+          const zip = await JSZip.loadAsync(inputBuffer);
+          let content = '';
+          
+          if (zip.files['content.xml']) {
+            const xmlContent = await zip.files['content.xml'].async('string');
+            content = xmlContent.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+          } else {
+            content = 'Impossibile estrarre contenuto da ODT.';
+          }
+          
+          if (lowerTarget === 'txt') {
+            outputBuffer = Buffer.from(content, 'utf8');
+            mime = 'text/plain';
+          } else if (lowerTarget === 'html') {
+            const html = `<!DOCTYPE html>\n<html><head><meta charset="UTF-8"></head><body><p>${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p></body></html>`;
+            outputBuffer = Buffer.from(html, 'utf8');
+            mime = 'text/html';
+          } else if (lowerTarget === 'pdf') {
+            // Genera PDF direttamente con pdfkit
+            const doc = new PDFDocument({ margin: 48 });
+            const chunks = [];
+            doc.on('data', d => chunks.push(d));
+            doc.on('end', () => {});
+            doc.fontSize(12).text(content);
+            doc.end();
+            await new Promise(resolve => doc.on('end', resolve));
+            outputBuffer = Buffer.concat(chunks);
+            mime = 'application/pdf';
+          }
+        } catch (e) {
+          console.error('Errore conversione ODT:', e);
+        }
+      }
+
+      // ABW/ZABW -> PDF/TXT/HTML
+      if (!outputBuffer && (inputExt === 'abw' || inputExt === 'zabw') && (lowerTarget === 'pdf' || lowerTarget === 'txt' || lowerTarget === 'html')) {
+        try {
+          let content = '';
+          if (inputExt === 'zabw') {
+            const zip = await JSZip.loadAsync(inputBuffer);
+            const file = zip.files['content.xml'] || zip.files['AbiWord'];
+            if (file) {
+              const text = await file.async('string');
+              content = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            }
+          } else {
+            content = inputBuffer.toString('utf8');
+            content = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+          }
+          
+          if (!content) content = 'Impossibile estrarre contenuto dal file.';
+          
+          if (lowerTarget === 'txt') {
+            outputBuffer = Buffer.from(content, 'utf8');
+            mime = 'text/plain';
+          } else if (lowerTarget === 'html') {
+            const html = `<!DOCTYPE html>\n<html><head><meta charset="UTF-8"></head><body><p>${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p></body></html>`;
+            outputBuffer = Buffer.from(html, 'utf8');
+            mime = 'text/html';
+          } else if (lowerTarget === 'pdf') {
+            // Genera PDF direttamente con pdfkit
+            const doc = new PDFDocument({ margin: 48 });
+            const chunks = [];
+            doc.on('data', d => chunks.push(d));
+            doc.on('end', () => {});
+            doc.fontSize(12).text(content);
+            doc.end();
+            await new Promise(resolve => doc.on('end', resolve));
+            outputBuffer = Buffer.concat(chunks);
+            mime = 'application/pdf';
+          }
+        } catch (e) {
+          console.error('Errore conversione ABW/ZABW:', e);
+        }
+      }
+
+      // DJVU -> PDF (special handling)
+      if (!outputBuffer && inputExt === 'djvu' && lowerTarget === 'pdf') {
+        try {
+          const tmpDir = path.dirname(inputPath);
+          const outputFileName = path.basename(originalName, path.extname(originalName)) + '.pdf';
+          const outputPath = path.join(tmpDir, `djvu_${Date.now()}_${outputFileName}`);
+          
+          const convertedBuffer = await convertDjvuToPdf(inputPath, outputPath);
+          if (convertedBuffer) {
+            outputBuffer = convertedBuffer;
+            mime = 'application/pdf';
+            // Cleanup
+            try { fs.unlinkSync(outputPath); } catch {}
+          } else {
+            outputBuffer = Buffer.from('DJVU richiede djvulibre installato. Installa djvulibre e riprova.', 'utf8');
+            mime = 'text/plain';
+          }
+        } catch (e) {
+          console.error('Errore conversione DJVU:', e);
+          outputBuffer = Buffer.from('DJVU richiede djvulibre installato. Errore: ' + e.message, 'utf8');
+          mime = 'text/plain';
+        }
+      }
+
+      // Formati complessi: prova prima con LibreOffice/Pandoc, poi messaggio informativo
+      const complexFormats = {
+        'pub': { tool: 'libreoffice', format: 'pdf', msg: 'Microsoft Publisher richiede LibreOffice installato.' },
+        'xps': { tool: 'libreoffice', format: 'pdf', msg: 'XPS richiede LibreOffice installato.' },
+        'hwp': { tool: 'libreoffice', format: 'pdf', msg: 'HWP (Hancom Word) richiede LibreOffice installato.' },
+        'lwp': { tool: 'libreoffice', format: 'pdf', msg: 'LWP (Lotus Word Pro) richiede LibreOffice installato.' },
+        'pages': { tool: 'libreoffice', format: 'pdf', msg: 'Apple Pages richiede LibreOffice installato.' },
+        'wpd': { tool: 'libreoffice', format: 'pdf', msg: 'WordPerfect richiede LibreOffice installato.' },
+        'wps': { tool: 'libreoffice', format: 'pdf', msg: 'WPS richiede LibreOffice installato.' },
+        'tex': { tool: 'pandoc', format: 'pdf', msg: 'LaTeX richiede Pandoc o pdflatex installato.' },
+        'rst': { tool: 'pandoc', format: 'pdf', msg: 'reStructuredText richiede Pandoc installato.' }
+      };
+      
+      if (!outputBuffer && complexFormats[inputExt] && lowerTarget === 'pdf') {
+        const formatInfo = complexFormats[inputExt];
+        
+        try {
+          // Prova conversione tramite LibreOffice
+          if (formatInfo.tool === 'libreoffice') {
+            const tmpDir = path.dirname(inputPath);
+            const outputDir = path.join(tmpDir, `lo_output_${Date.now()}`);
+            
+            // Crea directory temporanea per output LibreOffice
+            if (!fs.existsSync(outputDir)) {
+              fs.mkdirSync(outputDir, { recursive: true });
+            }
+            
+            const convertedBuffer = await convertViaLibreOffice(inputPath, outputDir, 'pdf');
+            if (convertedBuffer) {
+              outputBuffer = convertedBuffer;
+              mime = 'application/pdf';
+              
+              // Cleanup: rimuovi tutti i file temporanei nella directory di output
+              try {
+                const files = fs.readdirSync(outputDir);
+                files.forEach(file => {
+                  try { fs.unlinkSync(path.join(outputDir, file)); } catch {}
+                });
+                fs.rmdirSync(outputDir);
+              } catch {}
+            }
+          }
+          
+          // Prova conversione tramite Pandoc (per RST, TEX, ecc.)
+          if (!outputBuffer && formatInfo.tool === 'pandoc') {
+            const tmpDir = path.dirname(inputPath);
+            const outputFileName = path.basename(originalName, path.extname(originalName)) + '.pdf';
+            const outputPath = path.join(tmpDir, `pandoc_${Date.now()}_${outputFileName}`);
+            
+            const convertedBuffer = await convertViaPandoc(inputPath, outputPath, inputExt, 'pdf');
+            if (convertedBuffer) {
+              outputBuffer = convertedBuffer;
+              mime = 'application/pdf';
+              // Cleanup
+              try { fs.unlinkSync(outputPath); } catch {}
+            }
+          }
+          
+          // Se non è stato possibile convertire, restituisci messaggio informativo
+          if (!outputBuffer) {
+            outputBuffer = Buffer.from(`${formatInfo.msg} Installa ${formatInfo.tool} e riprova.`, 'utf8');
+            mime = 'text/plain';
+          }
+        } catch (e) {
+          console.error(`Errore conversione ${inputExt}:`, e);
+          outputBuffer = Buffer.from(`${formatInfo.msg} Errore: ${e.message}`, 'utf8');
+          mime = 'text/plain';
+        }
       }
 
       // XLS/XLSX -> PDF
@@ -417,16 +1421,83 @@ export default async function handler(req, res) {
         } catch {}
       }
 
-      // MD -> HTML/PDF
+      // DOCX conversion
+      if (!outputBuffer && lowerTarget === 'docx') {
+        if (inputExt === 'docx') {
+          // DOCX → DOCX: pass-through
+          try {
+            outputBuffer = inputBuffer;
+            mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          } catch (e) {
+            outputBuffer = inputBuffer;
+            mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          }
+        } else if (inputExt === 'txt') {
+          // TXT → DOCX: crea un DOCX minimale dal testo
+          try {
+            // Usa mammoth per creare HTML, poi convertilo in DOCX via mammoth
+            // Mammoth può anche creare DOCX, ma è limitato. Per ora, convertiamo in HTML e poi in DOCX tramite ConvertAPI o lasciamo un placeholder
+            // Per una conversione nativa più robusta, servirebbe docx o officegen
+            // Fallback: restituisci un messaggio che indica che questa conversione richiede una libreria dedicata
+            const text = inputBuffer.toString('utf8');
+            // Creiamo un HTML minimale che mammoth può gestire
+            const html = `<html><body><p>${text.replace(/\n/g, '</p><p>').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p></body></html>`;
+            // Per ora, mammoth non può creare DOCX da zero, quindi restituiamo l'originale
+            // In futuro, si potrebbe usare docx o officegen per creare DOCX nativamente
+            outputBuffer = Buffer.from('Conversione TXT → DOCX richiede una libreria dedicata. Per ora, usa TXT → HTML → DOCX tramite altri tool.', 'utf8');
+            mime = 'text/plain';
+          } catch (e) {
+            outputBuffer = Buffer.from('Errore nella conversione TXT → DOCX', 'utf8');
+            mime = 'text/plain';
+          }
+        } else if (inputExt === 'html' || inputExt === 'htm') {
+          // HTML → DOCX: mammoth non può creare DOCX, ma possiamo provare con altre librerie
+          // Per ora, restituiamo un messaggio
+          outputBuffer = Buffer.from('Conversione HTML → DOCX richiede una libreria dedicata (es. docx o officegen).', 'utf8');
+          mime = 'text/plain';
+        } else if (inputExt === 'md') {
+          // MD → DOCX: converti prima in HTML, poi cerca di convertire in DOCX
+          try {
+            const html = marked.parse(inputBuffer.toString('utf8'));
+            // Stessa situazione: mammoth non crea DOCX
+            outputBuffer = Buffer.from('Conversione MD → DOCX richiede una libreria dedicata. Converti prima in HTML.', 'utf8');
+            mime = 'text/plain';
+          } catch (e) {
+            outputBuffer = Buffer.from('Errore nella conversione MD → DOCX', 'utf8');
+            mime = 'text/plain';
+          }
+        }
+      }
+
+      // MD -> HTML/PDF (se non già gestito sopra)
       if (!outputBuffer && (lowerTarget === 'html' || lowerTarget === 'pdf') && inputExt === 'md') {
         const html = marked.parse(inputBuffer.toString('utf8'));
         if (lowerTarget === 'html') {
           outputBuffer = Buffer.from(html, 'utf8');
           mime = 'text/html';
         } else {
-          const fileObj = { content: html };
-          const pdfBuffer = await htmlPdf.generatePdf(fileObj, { format: 'A4' });
-          outputBuffer = Buffer.from(pdfBuffer);
+          // Estrai testo dall'HTML e genera PDF con pdfkit
+          let text = html
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          const doc = new PDFDocument({ margin: 48 });
+          const chunks = [];
+          doc.on('data', d => chunks.push(d));
+          doc.on('end', () => {});
+          doc.fontSize(12).text(text);
+          doc.end();
+          await new Promise(resolve => doc.on('end', resolve));
+          outputBuffer = Buffer.concat(chunks);
           mime = 'application/pdf';
         }
       }
@@ -713,8 +1784,78 @@ export default async function handler(req, res) {
       }
 
       // If still not handled, return original buffer but with forced extension
+      if (!outputBuffer && !inputBuffer) {
+        return handleApiError(
+          new ProcessingError('Nessun buffer disponibile per la conversione'),
+          res,
+          {
+            method: req.method,
+            url: req.url,
+            endpoint: '/api/convert/[target]',
+            target,
+            inputExt,
+          }
+        );
+      }
+      
+      const finalBuffer = outputBuffer || inputBuffer;
+      
+      // Se non abbiamo un buffer di output specifico, significa che la conversione non è stata gestita
+      // In questo caso, per i documenti, proviamo a fare un pass-through intelligente
+      if (!outputBuffer && finalBuffer === inputBuffer) {
+        // Se l'estensione di input corrisponde al target, è un pass-through
+        if (inputExt === lowerTarget) {
+          // Pass-through: mantieni il file originale ma cambia solo il nome
+          const name = finalizeName(originalName);
+          // Determina il MIME type corretto basandosi sull'estensione
+          const mimeMap = {
+            'txt': 'text/plain',
+            'html': 'text/html',
+            'htm': 'text/html',
+            'md': 'text/markdown',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'pdf': 'application/pdf',
+            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          };
+          const finalMime = mimeMap[lowerTarget] || mime || 'application/octet-stream';
+          const dataUrl = toDataUrl(finalBuffer, finalMime);
+          return res.status(200).json({ name, dataUrl });
+        } else {
+          // Conversione non supportata
+          console.warn(`Conversione non supportata: ${inputExt} → ${lowerTarget}`);
+          return handleApiError(
+            new ProcessingError(`Conversione non supportata: ${inputExt} → ${lowerTarget}. Questo formato non può essere convertito in ${lowerTarget}.`),
+            res,
+            {
+              method: req.method,
+              url: req.url,
+              endpoint: '/api/convert/[target]',
+              target,
+              inputExt,
+            }
+          );
+        }
+      }
+      
       const name = finalizeName(originalName);
-      const dataUrl = toDataUrl(outputBuffer || inputBuffer, mime);
+      
+      // Verifica che il buffer non sia vuoto
+      if (!finalBuffer || finalBuffer.length === 0) {
+        return handleApiError(
+          new ProcessingError('Il file risultante è vuoto. Il formato potrebbe non essere supportato.'),
+          res,
+          {
+            method: req.method,
+            url: req.url,
+            endpoint: '/api/convert/[target]',
+            target,
+            inputExt,
+          }
+        );
+      }
+      
+      const dataUrl = toDataUrl(finalBuffer, mime);
       return res.status(200).json({ name, dataUrl });
     } catch (e) {
       return handleApiError(

@@ -1,6 +1,6 @@
 import formidable from 'formidable';
 import { readFileSync, unlinkSync } from 'fs';
-import mammoth from 'mammoth';
+import JSZip from 'jszip';
 import PDFDocument from 'pdfkit';
 
 export const config = { api: { bodyParser: false } };
@@ -20,16 +20,13 @@ export default async function handler(req, res) {
           if (err.message && err.message.includes('file size should be greater than 0')) {
             return reject(new Error('Il file è vuoto. Carica un file valido.'));
           }
-          if (err.message && err.message.includes('options.allowEmptyFiles')) {
-            return reject(new Error('Il file caricato è vuoto. Carica un file con contenuto.'));
-          }
           return reject(err);
         }
         resolve({ fields, files });
       });
     });
 
-    if (!files?.file) return res.status(400).json({ error: 'Nessun DOCX inviato' });
+    if (!files?.file) return res.status(400).json({ error: 'Nessun file ABW/ZABW inviato' });
     
     const fileList = Array.isArray(files.file) ? files.file : [files.file];
     for (const f of fileList) {
@@ -42,26 +39,30 @@ export default async function handler(req, res) {
 
     for (const f of fileList) {
       const dataBuffer = readFileSync(f.filepath);
+      const ext = (f.originalFilename || '').split('.').pop()?.toLowerCase() || '';
       
       try {
-        // Converti DOCX in HTML usando mammoth
-        const { value: html } = await mammoth.convertToHtml({ buffer: dataBuffer });
+        let content = '';
         
-        // Converti HTML in testo semplice per PDF
-        let text = html
-          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/&nbsp;/g, ' ')
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .replace(/\s+/g, ' ')
-          .trim();
+        if (ext === 'zabw') {
+          // ZABW è un archivio ZIP
+          const zip = await JSZip.loadAsync(dataBuffer);
+          const file = zip.files['content.xml'] || zip.files['AbiWord'];
+          if (file) {
+            const text = await file.async('string');
+            content = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+          }
+        } else {
+          // ABW: prova parsing XML diretto
+          const text = dataBuffer.toString('utf8');
+          content = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        }
         
-        // Genera PDF con pdfkit
+        if (!content) {
+          content = 'Contenuto non estraibile da ABW/ZABW.';
+        }
+        
+        // Genera PDF direttamente con pdfkit
         const chunks = [];
         const doc = new PDFDocument({ 
           size: 'A4', 
@@ -71,26 +72,16 @@ export default async function handler(req, res) {
         doc.on('data', chunk => chunks.push(chunk));
         doc.on('end', () => {});
         
-        // Aggiungi testo al PDF
-        const lines = text.split(/\s+/);
-        let currentLine = '';
+        const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
         doc.fontSize(12);
         
-        lines.forEach(word => {
-          const testLine = currentLine ? `${currentLine} ${word}` : word;
-          if (doc.widthOfString(testLine) < (doc.page.width - doc.page.margins.left - doc.page.margins.right - 20)) {
-            currentLine = testLine;
-          } else {
-            if (currentLine) {
-              doc.text(currentLine);
-              doc.moveDown(0.5);
-            }
-            currentLine = word;
-          }
-        });
-        
-        if (currentLine) {
-          doc.text(currentLine);
+        if (paragraphs.length > 0) {
+          paragraphs.forEach((para, idx) => {
+            if (idx > 0) doc.moveDown(1);
+            doc.text(para);
+          });
+        } else {
+          doc.text(content);
         }
         
         doc.end();
@@ -102,12 +93,11 @@ export default async function handler(req, res) {
         
         results.push({ 
           url: dataUrl,
-          name: f.originalFilename?.replace(/\.(docx?)$/i, '.pdf') || 'converted.pdf',
+          name: f.originalFilename?.replace(/\.(abw|zabw)$/i, '.pdf') || 'converted.pdf',
           type: 'application/pdf'
         });
       } catch (e) {
-        console.error('Errore conversione DOCX→PDF:', e);
-        console.error('Stack:', e.stack);
+        console.error('Errore conversione ABW→PDF:', e);
         throw new Error(`Errore conversione: ${e.message || 'Errore sconosciuto'}`);
       }
       
@@ -117,11 +107,12 @@ export default async function handler(req, res) {
     if (results.length === 1) return res.status(200).json({ url: results[0].url, name: results[0].name });
     return res.status(200).json({ urls: results });
   } catch (e) {
-    console.error('docx-to-pdf error', e);
+    console.error('abw-to-pdf error', e);
     return res.status(500).json({ 
       error: 'Conversione fallita', 
       details: e?.message || e,
-      hint: 'Conversione nativa DOCX→PDF (illimitata, gratuita)'
+      hint: 'Conversione nativa ABW/ZABW→PDF (illimitata, gratuita)'
     });
   }
 }
+

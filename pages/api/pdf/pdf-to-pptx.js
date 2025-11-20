@@ -1,35 +1,55 @@
 import formidable from 'formidable';
 import { readFileSync, unlinkSync } from 'fs';
+import pdfParse from 'pdf-parse';
 
 export const config = { api: { bodyParser: false } };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const form = formidable({ multiples: true });
+  const form = formidable({ 
+    multiples: true,
+    allowEmptyFiles: false // Non permettere file vuoti
+  });
   try {
     const { files } = await new Promise((resolve, reject) => {
-      form.parse(req, (err, fields, files) => (err ? reject(err) : resolve({ fields, files })));
+      form.parse(req, (err, fields, files) => {
+        if (err) {
+          // Gestisci errori specifici di formidable
+          if (err.message && err.message.includes('file size should be greater than 0')) {
+            return reject(new Error('Il file è vuoto. Carica un file valido.'));
+          }
+          if (err.message && err.message.includes('options.allowEmptyFiles')) {
+            return reject(new Error('Il file caricato è vuoto. Carica un file con contenuto.'));
+          }
+          return reject(err);
+        }
+        resolve({ fields, files });
+      });
     });
 
     if (!files?.file) return res.status(400).json({ error: 'Nessun file PDF caricato' });
+    
+    // Valida che il file non sia vuoto
+    const fileList = Array.isArray(files.file) ? files.file : [files.file];
+    for (const f of fileList) {
+      if (f.size === 0) {
+        return res.status(400).json({ error: 'Il file è vuoto. Carica un file valido.' });
+      }
+    }
 
-    const list = Array.isArray(files.file) ? files.file : [files.file];
     const results = [];
 
-    for (const f of list) {
+    for (const f of fileList) {
       const dataBuffer = readFileSync(f.filepath);
       let text = '';
       let pages = 1;
       try {
-        const { createRequire } = await import('module');
-        const req = createRequire(typeof import.meta !== 'undefined' ? import.meta.url : __filename);
-        const pdfParse = req('pdf-parse');
         const data = await pdfParse(dataBuffer);
         text = data.text || '';
         pages = data.numpages || 1;
       } catch (e) {
-        text = 'Conversione base: contenuto non estratto (nessuna dipendenza esterna).';
+        text = 'Conversione base: contenuto non estratto.';
         pages = 1;
       }
       
@@ -46,7 +66,7 @@ export default async function handler(req, res) {
       try { unlinkSync(f.filepath); } catch {}
     }
 
-    if (results.length === 1) return res.status(200).json({ url: results[0].url });
+    if (results.length === 1) return res.status(200).json({ url: results[0].url, name: results[0].name });
     return res.status(200).json({ urls: results });
   } catch (e) {
     console.error('pdf-to-pptx error', e);

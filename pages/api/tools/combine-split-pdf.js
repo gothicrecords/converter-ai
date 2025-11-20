@@ -90,8 +90,22 @@ export default async function handler(req, res) {
     try {
         const [fields, files] = await new Promise((resolve, reject) => {
             form.parse(req, (err, fields, files) => {
-                if (err) reject(err);
-                else resolve([fields, files]);
+                if (err) {
+                    // Gestione specifica degli errori di formidable
+                    if (err.code === 'LIMIT_FILE_SIZE') {
+                        reject(new Error('File troppo grande. Dimensione massima: 50MB per file'));
+                    } else if (err.code === 'LIMIT_FIELD_VALUE') {
+                        reject(new Error('Valore del campo troppo grande'));
+                    } else if (err.code === 'LIMIT_FIELD_COUNT') {
+                        reject(new Error('Troppi campi nel form'));
+                    } else if (err.code === 'LIMIT_PART_COUNT') {
+                        reject(new Error('Troppe parti nel form'));
+                    } else {
+                        reject(err);
+                    }
+                } else {
+                    resolve([fields, files]);
+                }
             });
         });
 
@@ -102,6 +116,17 @@ export default async function handler(req, res) {
             
             if (!uploadedFiles || uploadedFiles.length < 2) {
                 return res.status(400).json({ error: 'Carica almeno 2 file PDF' });
+            }
+
+            // Valida che tutti i file siano PDF
+            for (const file of uploadedFiles) {
+                if (!file.mimetype || !file.mimetype.includes('pdf')) {
+                    // Cleanup
+                    uploadedFiles.forEach(f => {
+                        try { fs.unlinkSync(f.filepath); } catch (e) {}
+                    });
+                    return res.status(400).json({ error: 'Tutti i file devono essere PDF' });
+                }
             }
 
             const filePaths = uploadedFiles.map(f => f.filepath);
@@ -123,6 +148,12 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'Carica un file PDF' });
             }
 
+            // Valida che il file sia un PDF
+            if (!uploadedFile.mimetype || !uploadedFile.mimetype.includes('pdf')) {
+                try { fs.unlinkSync(uploadedFile.filepath); } catch (e) {}
+                return res.status(400).json({ error: 'Il file deve essere un PDF' });
+            }
+
             const ranges = Array.isArray(fields.ranges) ? fields.ranges[0] : fields.ranges;
             const splitPdfBytes = await splitPDF(uploadedFile.filepath, ranges);
 
@@ -139,8 +170,30 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('Errore elaborazione PDF:', error);
+        
+        // Pulisci i file temporanei in caso di errore
+        try {
+            if (req.file) {
+                if (fs.existsSync(req.file.path)) {
+                    fs.unlinkSync(req.file.path);
+                }
+            }
+        } catch (cleanupError) {
+            console.error('Errore durante la pulizia dei file:', cleanupError);
+        }
+
+        // Assicurati che la risposta sia sempre JSON
+        const errorMessage = error.message || 'Errore durante l\'elaborazione del PDF';
+        
+        // Se l'errore riguarda la dimensione del file, restituisci 413
+        if (errorMessage.includes('troppo grande') || errorMessage.includes('LIMIT_FILE_SIZE')) {
+            return res.status(413).json({ 
+                error: 'File troppo grande. Dimensione massima: 50MB per file' 
+            });
+        }
+        
         return res.status(500).json({ 
-            error: error.message || 'Errore durante l\'elaborazione del PDF' 
+            error: errorMessage
         });
     }
 }

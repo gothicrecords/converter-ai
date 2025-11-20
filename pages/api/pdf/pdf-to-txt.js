@@ -1,6 +1,5 @@
 import formidable from 'formidable';
 import { readFileSync, unlinkSync } from 'fs';
-import * as XLSX from 'xlsx';
 import pdfParse from 'pdf-parse';
 
 export const config = { api: { bodyParser: false } };
@@ -12,6 +11,7 @@ export default async function handler(req, res) {
     multiples: true,
     allowEmptyFiles: false // Non permettere file vuoti
   });
+  
   try {
     const { files } = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
@@ -38,46 +38,51 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Il file è vuoto. Carica un file valido.' });
       }
     }
+
     const results = [];
 
     for (const f of fileList) {
       const dataBuffer = readFileSync(f.filepath);
       let text = '';
+      
       try {
+        // Estrai il testo usando pdf-parse
         const data = await pdfParse(dataBuffer);
         text = data.text || '';
       } catch (e) {
-        text = 'Conversione base: contenuto non estratto.';
+        // Se pdf-parse non è disponibile, restituisci un messaggio di errore
+        console.error('Errore estrazione testo PDF:', e);
+        text = 'Impossibile estrarre il testo dal PDF. Il file potrebbe essere scansionato o protetto.';
       }
       
-      // Crea XLSX nativo convertendo il testo (o placeholder) in righe/celle
-      const rows = text.split('\n').map(line => [line]);
-      const ws = XLSX.utils.aoa_to_sheet(rows);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+      // Se il testo è vuoto, restituisci un messaggio informativo
+      if (!text || text.trim().length === 0) {
+        text = 'Il PDF non contiene testo estraibile. Potrebbe essere un file scansionato (solo immagini).';
+      }
       
-      const xlsxBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-      const base64 = xlsxBuffer.toString('base64');
-      const dataUrl = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`;
+      // Converti il testo in base64 data URL
+      const textBuffer = Buffer.from(text, 'utf8');
+      const base64 = textBuffer.toString('base64');
+      const dataUrl = `data:text/plain;base64,${base64}`;
       
       results.push({ 
         url: dataUrl,
-        name: f.originalFilename?.replace(/\.pdf$/i, '.xlsx') || 'converted.xlsx',
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        name: f.originalFilename?.replace(/\.pdf$/i, '.txt') || 'converted.txt',
+        type: 'text/plain'
       });
+      
       try { unlinkSync(f.filepath); } catch {}
     }
 
     if (results.length === 1) return res.status(200).json({ url: results[0].url, name: results[0].name });
     return res.status(200).json({ urls: results });
   } catch (e) {
-    console.error('pdf-to-xlsx error', e);
+    console.error('pdf-to-txt error', e);
     return res.status(500).json({ 
       error: 'Conversione fallita', 
       details: e?.message || e,
-      hint: 'Conversione nativa PDF→XLSX (illimitata, gratuita)'
+      hint: 'Conversione nativa PDF→TXT (illimitata, gratuita)'
     });
   }
 }
 
-// Nessuna dipendenza extra: l'estrazione testo è opzionale e non blocca la conversione

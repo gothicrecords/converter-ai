@@ -1,0 +1,150 @@
+warning: in the working copy of 'package-lock.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pages/api/convert/[target].js', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/components/GenericConverter.js b/components/GenericConverter.js[m
+[1mindex a4f41ef..8679d54 100644[m
+[1m--- a/components/GenericConverter.js[m
+[1m+++ b/components/GenericConverter.js[m
+[36m@@ -79,7 +79,17 @@[m [mfunction GenericConverter({ tool }) {[m
+   });[m
+ [m
+   const handleConvert = useCallback(async () => {[m
+[31m-    if (!file) return;[m
+[32m+[m[32m    if (!file) {[m
+[32m+[m[32m      setError('Seleziona un file prima di convertire.');[m
+[32m+[m[32m      return;[m
+[32m+[m[32m    }[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Valida che il file non sia vuoto[m
+[32m+[m[32m    if (file.size === 0) {[m
+[32m+[m[32m      setError('Il file è vuoto. Carica un file valido.');[m
+[32m+[m[32m      return;[m
+[32m+[m[32m    }[m
+[32m+[m[41m    [m
+     setLoading(true); [m
+     setError(null); [m
+     setResultDataUrl(null); [m
+[36m@@ -89,6 +99,11 @@[m [mfunction GenericConverter({ tool }) {[m
+     const fromFormat = file.name.split('.').pop() || file.type;[m
+     [m
+     try {[m
+[32m+[m[32m      // Verifica che il file esista e abbia una dimensione valida[m
+[32m+[m[32m      if (!file || file.size === 0) {[m
+[32m+[m[32m        throw new Error('Il file è vuoto o non valido. Carica un file valido.');[m
+[32m+[m[32m      }[m
+[32m+[m[41m      [m
+       const form = new FormData();[m
+       form.append('file', file);[m
+       form.append('target', outputFormat);[m
+[36m@@ -101,16 +116,209 @@[m [mfunction GenericConverter({ tool }) {[m
+       if (aBitrate) form.append('abitrate', aBitrate);[m
+       if (page) form.append('page', page);[m
+       [m
+[31m-      // Use improved error handling[m
+[31m-      const data = await fetchWithErrorHandling(`/api/convert/${outputFormat}`, { [m
+[31m-        method: 'POST', [m
+[31m-        body: form,[m
+[31m-        headers: {}, // Don't set Content-Type for FormData, browser will set it with boundary[m
+[31m-        signal: AbortSignal.timeout(300000) // 5 minuti[m
+[31m-      });[m
+[32m+[m[32m      // Determina quale API chiamare in base allo slug del tool[m
+[32m+[m[32m      let apiUrl = `/api/convert/${outputFormat}`;[m
+[32m+[m[32m      const toolSlug = tool?.slug || currentSlug;[m
+[32m+[m[41m      [m
+[32m+[m[32m      // Mappa dei convertitori PDF agli endpoint dedicati[m
+[32m+[m[32m      const pdfConverterMap = {[m
+[32m+[m[32m        'pdf-to-docx': '/api/pdf/pdf-to-docx',[m
+[32m+[m[32m        'pdf-to-pptx': '/api/pdf/pdf-to-pptx',[m
+[32m+[m[32m        'pdf-to-powerpoint': '/api/pdf/pdf-to-pptx',[m
+[32m+[m[32m        'pdf-to-xlsx': '/api/pdf/pdf-to-xlsx',[m
+[32m+[m[32m        'pdf-to-excel': '/api/pdf/pdf-to-xlsx',[m
+[32m+[m[32m        'pdf-to-jpg': '/api/pdf/pdf-to-jpg',[m
+[32m+[m[32m        'pdf-to-png': '/api/pdf/pdf-to-jpg', // PDF to PNG usa lo stesso endpoint[m
+[32m+[m[32m        'pdf-to-txt': '/api/pdf/pdf-to-txt',[m
+[32m+[m[32m        'pdf-to-html': '/api/pdf/pdf-to-html',[m
+[32m+[m[32m        'pdf-to-pdfa': '/api/pdf/pdf-to-pdfa',[m
+[32m+[m[32m        'docx-to-pdf': '/api/pdf/docx-to-pdf',[m
+[32m+[m[32m        'powerpoint-to-pdf': '/api/pdf/ppt-to-pdf',[m
+[32m+[m[32m        'excel-to-pdf': '/api/pdf/xls-to-pdf',[m
+[32m+[m[32m        'html-to-pdf': '/api/pdf/html-to-pdf'[m
+[32m+[m[32m      };[m
+[32m+[m[41m      [m
+[32m+[m[32m      // Se è un convertitore PDF, usa l'endpoint dedicato[m
+[32m+[m[32m      if (toolSlug && pdfConverterMap[toolSlug]) {[m
+[32m+[m[32m        apiUrl = pdfConverterMap[toolSlug];[m
+[32m+[m[32m      }[m
+[32m+[m[41m      [m
+[32m+[m[32m      // Verifica che l'URL sia valido[m
+[32m+[m[32m      if (!apiUrl || !apiUrl.startsWith('/')) {[m
+[32m+[m[32m        throw new Error(`URL API non valido: ${apiUrl}`);[m
+[32m+[m[32m      }[m
+[32m+[m[41m      [m
+[32m+[m[32m      // Crea un AbortController per gestire timeout[m
+[32m+[m[32m      const controller = new AbortController();[m
+[32m+[m[32m      let timeoutId;[m
+[32m+[m[32m      let response;[m
+[32m+[m[41m      [m
+[32m+[m[32m      try {[m
+[32m+[m[32m        timeoutId = setTimeout(() => {[m
+[32m+[m[32m          controller.abort();[m
+[32m+[m[32m          setError('Timeout: l\'operazione ha richiesto troppo tempo. Riprova con un file più piccolo.');[m
+[32m+[m[32m          setLoading(false);[m
+[32m+[m[32m        }, 300000); // 5 minuti[m
+[32m+[m[32m        // Use improved error handling[m
+[32m+[m[32m        response = await fetch(apiUrl, {[m[41m [m
+[32m+[m[32m          method: 'POST',[m[41m [m
+[32m+[m[32m          body: form,[m
+[32m+[m[32m          headers: {}, // Don't set Content-Type for FormData, browser will set it with boundary[m
+[32m+[m[32m          signal: controller.signal[m
+[32m+[m[32m        });[m
+[32m+[m[41m        [m
+[32m+[m[32m        // Pulisci il timeout se la richiesta è completata[m
+[32m+[m[32m        clearTimeout(timeoutId);[m
+[32m+[m[41m        [m
+[32m+[m[32m        // Se la richiesta è stata abortita, esci[m
+[32m+[m[32m        if (controller.signal.aborted) {[m
+[32m+[m[32m          return;[m
+[32m+[m[32m        }[m
+[32m+[m[32m      } catch (fetchError) {[m
+[32m+[m[32m        // Pulisci sempre il timeout in caso di errore[m
+[32m+[m[32m        clearTimeout(timeoutId);[m
+[32m+[m[41m        [m
+[32m+[m[32m        // Gestisci errori di rete[m
+[32m+[m[32m        if (fetchError.name === 'AbortError') {[m
+[32m+[m[32m          throw new Error('Timeout: l\'operazione ha richiesto troppo tempo. Riprova con un file più piccolo.');[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+[32m+[m[32m        if (fetchError instanceof TypeError && fetchError.message.includes('fetch')) {[m
+[32m+[m[32m          throw new Error('Errore di connessione. Controlla la tua connessione internet e riprova.');[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+[32m+[m[32m        // Rilancia altri errori[m
+[32m+[m[32m        throw new Error(`Errore durante la richiesta: ${fetchError.message || 'Errore sconosciuto'}`);[m
+[32m+[m[32m      }[m
+[32m+[m[41m      [m
+[32m+[m[32m      if (!response.ok) {[m
+[32m+[m[32m        let errorMessage = `Errore HTTP ${response.status}`;[m
+[32m+[m[32m        try {[m
+[32m+[m[32m          const errorData = await response.json();[m
+[32m+[m[32m          // Gestisci diversi formati di errore[m
+[32m+[m[32m          if (errorData.error) {[m
+[32m+[m[32m            errorMessage = errorData.error;[m
+[32m+[m[32m            // Se c'è un hint, aggiungilo al messaggio[m
+[32m+[m[32m            if (errorData.hint) {[m
+[32m+[m[32m              errorMessage += `. ${errorData.hint}`;[m
+[32m+[m[32m            }[m
+[32m+[m[32m          } else if (errorData.details) {[m
+[32m+[m[32m            errorMessage = errorData.details;[m
+[32m+[m[32m          } else if (errorData.message) {[m
+[32m+[m[32m            errorMessage = errorData.message;[m
+[32m+[m[32m          }[m
+[32m+[m[32m        } catch (e) {[m
+[32m+[m[32m          // Se la risposta non è JSON, usa il messaggio di default[m
+[32m+[m[32m          errorMessage = `Errore durante l'upload: il file potrebbe essere vuoto o non valido`;[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+[32m+[m[32m        // Messaggi di errore più specifici per errori comuni[m
+[32m+[m[32m        if (response.status === 400) {[m
+[32m+[m[32m          errorMessage = errorMessage.includes('vuoto') || errorMessage.includes('empty')[m[41m [m
+[32m+[m[32m            ? errorMessage[m[41m [m
+[32m+[m[32m            : 'File non valido o formato non supportato. ' + (errorMessage !== `Errore 

@@ -36,6 +36,8 @@ const pdfPages = [
   { path: '/pdf/pdf2xlsx', priority: '0.8', changefreq: 'weekly' },
   { path: '/pdf/html2pdf', priority: '0.75', changefreq: 'weekly' },
   { path: '/pdf/pdf2pdfa', priority: '0.75', changefreq: 'weekly' },
+  { path: '/pdf/pdf2html', priority: '0.75', changefreq: 'weekly' },
+  { path: '/pdf/pdf2txt', priority: '0.75', changefreq: 'weekly' },
 ];
 
 function generateUrlEntry(path, priority = '0.8', changefreq = 'weekly', lastmod = CURRENT_DATE) {

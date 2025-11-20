@@ -94,8 +94,21 @@ const BackgroundRemover = () => {
             updateToast(toastId, { progress: 95, message: 'Finalizzazione...' });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Qualcosa è andato storto');
+                // Prova a leggere come JSON, altrimenti come testo
+                let errorMessage = 'Qualcosa è andato storto';
+                try {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const errorData = await response.json();
+                        errorMessage = errorData.error || errorMessage;
+                    } else {
+                        const errorText = await response.text();
+                        errorMessage = errorText || errorMessage;
+                    }
+                } catch (e) {
+                    errorMessage = `Errore HTTP ${response.status}: ${response.statusText}`;
+                }
+                throw new Error(errorMessage);
             }
 
             const blob = await response.blob();

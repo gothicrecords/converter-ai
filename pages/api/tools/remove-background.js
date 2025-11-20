@@ -19,16 +19,37 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Servizio non configurato correttamente.' });
     }
 
-    const form = formidable({});
+    const form = formidable({
+        allowEmptyFiles: false // Non permettere file vuoti
+    });
 
     try {
-        const [fields, files] = await form.parse(req);
+        const [fields, files] = await new Promise((resolve, reject) => {
+            form.parse(req, (err, fields, files) => {
+                if (err) {
+                    // Gestisci errori specifici di formidable
+                    if (err.message && err.message.includes('file size should be greater than 0')) {
+                        return reject(new Error('Il file è vuoto. Carica un file valido.'));
+                    }
+                    if (err.message && err.message.includes('options.allowEmptyFiles')) {
+                        return reject(new Error('Il file caricato è vuoto. Carica un file con contenuto.'));
+                    }
+                    return reject(err);
+                }
+                resolve([fields, files]);
+            });
+        });
         
         if (!files.file || files.file.length === 0) {
             return res.status(400).json({ error: 'Nessun file caricato.' });
         }
-
+        
         const imageFile = files.file[0];
+        
+        // Valida che il file non sia vuoto
+        if (imageFile.size === 0) {
+            return res.status(400).json({ error: 'Il file è vuoto. Carica un file valido.' });
+        }
 
         // Opzioni aggiuntive dal client per migliorare il risultato
         // Supportate da remove.bg: type, size, crop, crop_margin, bg_color, channels, format
@@ -75,6 +96,17 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error("Errore durante l'elaborazione dell'immagine:", error);
-        res.status(500).json({ error: "Errore interno del server durante l'elaborazione dell'immagine." });
+        
+        // Gestisci errori specifici
+        let errorMessage = "Errore interno del server durante l'elaborazione dell'immagine.";
+        if (error.message && error.message.includes('file size should be greater than 0')) {
+            errorMessage = 'Il file è vuoto. Carica un file valido.';
+        } else if (error.message && error.message.includes('options.allowEmptyFiles')) {
+            errorMessage = 'Il file caricato è vuoto. Carica un file con contenuto.';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        res.status(500).json({ error: errorMessage });
     }
 }

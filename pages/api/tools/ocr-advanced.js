@@ -23,13 +23,23 @@ export default async function handler(req, res) {
         uploadDir,
         keepExtensions: true,
         maxFileSize: 20 * 1024 * 1024, // 20MB
+        allowEmptyFiles: false // Non permettere file vuoti
     });
 
     try {
         const [fields, files] = await new Promise((resolve, reject) => {
             form.parse(req, (err, fields, files) => {
-                if (err) reject(err);
-                else resolve([fields, files]);
+                if (err) {
+                    // Gestisci errori specifici di formidable
+                    if (err.message && err.message.includes('file size should be greater than 0')) {
+                        return reject(new Error('Il file è vuoto. Carica un file valido.'));
+                    }
+                    if (err.message && err.message.includes('options.allowEmptyFiles')) {
+                        return reject(new Error('Il file caricato è vuoto. Carica un file con contenuto.'));
+                    }
+                    return reject(err);
+                }
+                resolve([fields, files]);
             });
         });
 
@@ -37,6 +47,11 @@ export default async function handler(req, res) {
 
         if (!file) {
             return res.status(400).json({ error: 'Nessun file caricato' });
+        }
+        
+        // Valida che il file non sia vuoto
+        if (file.size === 0) {
+            return res.status(400).json({ error: 'Il file è vuoto. Carica un file valido.' });
         }
 
         console.log('Inizio OCR su file:', file.originalFilename);

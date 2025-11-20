@@ -1,6 +1,5 @@
 import formidable from 'formidable';
 import { readFileSync, unlinkSync } from 'fs';
-import mammoth from 'mammoth';
 import PDFDocument from 'pdfkit';
 
 export const config = { api: { bodyParser: false } };
@@ -20,16 +19,13 @@ export default async function handler(req, res) {
           if (err.message && err.message.includes('file size should be greater than 0')) {
             return reject(new Error('Il file è vuoto. Carica un file valido.'));
           }
-          if (err.message && err.message.includes('options.allowEmptyFiles')) {
-            return reject(new Error('Il file caricato è vuoto. Carica un file con contenuto.'));
-          }
           return reject(err);
         }
         resolve({ fields, files });
       });
     });
 
-    if (!files?.file) return res.status(400).json({ error: 'Nessun DOCX inviato' });
+    if (!files?.file) return res.status(400).json({ error: 'Nessun file TXT inviato' });
     
     const fileList = Array.isArray(files.file) ? files.file : [files.file];
     for (const f of fileList) {
@@ -44,24 +40,11 @@ export default async function handler(req, res) {
       const dataBuffer = readFileSync(f.filepath);
       
       try {
-        // Converti DOCX in HTML usando mammoth
-        const { value: html } = await mammoth.convertToHtml({ buffer: dataBuffer });
+        // Leggi testo
+        const text = dataBuffer.toString('utf8');
+        const lines = text.split(/\r?\n/);
         
-        // Converti HTML in testo semplice per PDF
-        let text = html
-          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/&nbsp;/g, ' ')
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .replace(/\s+/g, ' ')
-          .trim();
-        
-        // Genera PDF con pdfkit
+        // Crea PDF
         const chunks = [];
         const doc = new PDFDocument({ 
           size: 'A4', 
@@ -71,29 +54,22 @@ export default async function handler(req, res) {
         doc.on('data', chunk => chunks.push(chunk));
         doc.on('end', () => {});
         
-        // Aggiungi testo al PDF
-        const lines = text.split(/\s+/);
-        let currentLine = '';
+        // Aggiungi testo
         doc.fontSize(12);
-        
-        lines.forEach(word => {
-          const testLine = currentLine ? `${currentLine} ${word}` : word;
-          if (doc.widthOfString(testLine) < (doc.page.width - doc.page.margins.left - doc.page.margins.right - 20)) {
-            currentLine = testLine;
+        lines.forEach((line, index) => {
+          if (index > 0 && line.trim() === '' && lines[index - 1]?.trim() === '') {
+            doc.moveDown(0.5);
           } else {
-            if (currentLine) {
-              doc.text(currentLine);
-              doc.moveDown(0.5);
-            }
-            currentLine = word;
+            doc.text(line || ' ', { 
+              align: 'left',
+              continued: false
+            });
           }
         });
         
-        if (currentLine) {
-          doc.text(currentLine);
-        }
-        
         doc.end();
+        
+        // Aspetta che il PDF sia completato
         await new Promise(resolve => doc.on('end', resolve));
         
         const pdfBuffer = Buffer.concat(chunks);
@@ -102,12 +78,11 @@ export default async function handler(req, res) {
         
         results.push({ 
           url: dataUrl,
-          name: f.originalFilename?.replace(/\.(docx?)$/i, '.pdf') || 'converted.pdf',
+          name: f.originalFilename?.replace(/\.txt$/i, '.pdf') || 'converted.pdf',
           type: 'application/pdf'
         });
       } catch (e) {
-        console.error('Errore conversione DOCX→PDF:', e);
-        console.error('Stack:', e.stack);
+        console.error('Errore conversione TXT→PDF:', e);
         throw new Error(`Errore conversione: ${e.message || 'Errore sconosciuto'}`);
       }
       
@@ -117,11 +92,12 @@ export default async function handler(req, res) {
     if (results.length === 1) return res.status(200).json({ url: results[0].url, name: results[0].name });
     return res.status(200).json({ urls: results });
   } catch (e) {
-    console.error('docx-to-pdf error', e);
+    console.error('txt-to-pdf error', e);
     return res.status(500).json({ 
       error: 'Conversione fallita', 
       details: e?.message || e,
-      hint: 'Conversione nativa DOCX→PDF (illimitata, gratuita)'
+      hint: 'Conversione nativa TXT→PDF (illimitata, gratuita)'
     });
   }
 }
+

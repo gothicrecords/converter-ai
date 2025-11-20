@@ -74,8 +74,35 @@ export default function CombineSplitPDF() {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Errore durante l\'elaborazione');
+                // Verifica se la risposta è JSON
+                const contentType = response.headers.get('content-type');
+                let errorMessage = 'Errore durante l\'elaborazione del PDF';
+                
+                if (contentType && contentType.includes('application/json')) {
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (e) {
+                        // Se il parsing JSON fallisce, usa il messaggio di default
+                        errorMessage = response.status === 413 
+                            ? 'File troppo grande. Dimensione massima: 50MB per file'
+                            : `Errore ${response.status}: ${response.statusText}`;
+                    }
+                } else {
+                    // Se la risposta non è JSON, estrai il testo o usa un messaggio generico
+                    try {
+                        const text = await response.text();
+                        errorMessage = response.status === 413 
+                            ? 'File troppo grande. Dimensione massima: 50MB per file'
+                            : text || `Errore ${response.status}: ${response.statusText}`;
+                    } catch (e) {
+                        errorMessage = response.status === 413 
+                            ? 'File troppo grande. Dimensione massima: 50MB per file'
+                            : `Errore ${response.status}: ${response.statusText}`;
+                    }
+                }
+                
+                throw new Error(errorMessage);
             }
 
             const blob = await response.blob();
