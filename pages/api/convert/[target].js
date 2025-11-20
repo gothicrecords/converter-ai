@@ -294,7 +294,9 @@ export default async function handler(req, res) {
   const form = formidable({ 
     multiples: false, 
     keepExtensions: true,
-    allowEmptyFiles: false // Non permettere file vuoti
+    allowEmptyFiles: false, // Non permettere file vuoti
+    maxFileSize: 500 * 1024 * 1024, // 500MB per singolo file
+    maxTotalFileSize: 500 * 1024 * 1024, // 500MB totale
   });
   
   form.parse(req, async (err, fields, files) => {

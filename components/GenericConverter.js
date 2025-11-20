@@ -249,7 +249,7 @@ function GenericConverter({ tool }) {
             ? errorMessage 
             : 'File non valido o formato non supportato. ' + (errorMessage !== `Errore HTTP ${response.status}` ? errorMessage : '');
         } else if (response.status === 413) {
-          errorMessage = 'File troppo grande. Dimensione massima: 50MB per file';
+          errorMessage = 'File troppo grande. Dimensione massima: 500MB per file video/audio, 50MB per altri formati';
         } else if (response.status === 500) {
           errorMessage = errorMessage !== `Errore HTTP ${response.status}` ? errorMessage : 'Errore del server durante la conversione';
         }
