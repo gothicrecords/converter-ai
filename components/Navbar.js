@@ -646,7 +646,7 @@ export default function Navbar() {
                                     })}
                                     {categories[catName].length > 20 && (
                                         <Link
-                                            href="/tools"
+                                            href={`/tools?category=${encodeURIComponent(catName)}`}
                                             style={{
                                                 ...styles.dropdownItem,
                                                 background: 'rgba(102, 126, 234, 0.1)',
@@ -805,7 +805,7 @@ export default function Navbar() {
                             ))}
                             {expandedCategory === catName && categories[catName].length > 15 && (
                                 <Link
-                                    href="/tools"
+                                    href={`/tools?category=${encodeURIComponent(catName)}`}
                                     style={{
                                         ...styles.mobileDropdownItem,
                                         background: 'rgba(102, 126, 234, 0.1)',

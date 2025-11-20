@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { useState, useMemo, memo, useCallback, useEffect, useRef, startTransition } from 'react';
+import { useRouter } from 'next/router';
 import { HiArrowRight } from 'react-icons/hi';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import Navbar from '../components/Navbar';
@@ -83,8 +84,16 @@ const ToolCard = memo(({ tool, isMobile, getCardPadding, getIconSize, getIconInn
 ToolCard.displayName = 'ToolCard';
 
 export default function ToolsPage() {
+    const router = useRouter();
     const [selectedCategory, setSelectedCategory] = useState('Tutti');
     const [isMobile, setIsMobile] = useState(false);
+    
+    // Leggi categoria da URL query params
+    useEffect(() => {
+        if (router.query.category) {
+            setSelectedCategory(router.query.category);
+        }
+    }, [router.query.category]);
 
     // Safe client-side mobile detection
     useEffect(() => {
