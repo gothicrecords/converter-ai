@@ -156,10 +156,7 @@ function GenericConverter({ tool }) {
       try {
         timeoutId = setTimeout(() => {
           controller.abort();
-          console.warn('Timeout raggiunto dopo 5 minuti');
         }, 300000); // 5 minuti
-        
-        console.log('Chiamata API:', apiUrl, 'con file:', file.name);
         
         // Use improved error handling
         response = await fetch(apiUrl, { 
@@ -168,8 +165,6 @@ function GenericConverter({ tool }) {
           headers: {}, // Don't set Content-Type for FormData, browser will set it with boundary
           signal: controller.signal
         });
-        
-        console.log('Risposta ricevuta:', response.status, response.statusText);
         
         // Pulisci il timeout se la richiesta è completata
         clearTimeout(timeoutId);

@@ -330,7 +330,6 @@ export default async function handler(req, res) {
     // Supporta sia filepath (v2/v3) che path (v1) di formidable
     const inputPath = file.filepath || file.path;
     if (!inputPath) {
-      console.error('File object received:', JSON.stringify(file, null, 2));
       return handleApiError(
         new ValidationError('File path non valido - il file potrebbe non essere stato caricato correttamente'),
         res,
