@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useState, useMemo, memo, useCallback, useEffect } from 'react';
+import { useState, useMemo, memo, useCallback, useEffect, useRef } from 'react';
 import { HiArrowRight } from 'react-icons/hi';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import Navbar from '../components/Navbar';
@@ -148,9 +148,11 @@ export default function ToolsPage() {
 
     const mobile = isMobile; // Always false in static mode
 
-    // Combine AI tools and conversion tools
-    const conversionTools = getAllConversionTools();
-    const allTools = [...aiTools, ...conversionTools];
+    // Combine AI tools and conversion tools - memoized per performance
+    const allTools = useMemo(() => {
+        const conversionTools = getAllConversionTools();
+        return [...aiTools, ...conversionTools];
+    }, []);
     
     // Map conversion tool categories to Italian - migliorata e più chiara
     const categoryMap = {
@@ -163,18 +165,22 @@ export default function ToolsPage() {
         'Spreadsheet': 'Fogli di Calcolo',
         'Archive': 'Archivi',
         'Ebook': 'Ebook',
-        'Font': 'Font'
+        'Font': 'Font',
+        'PDF': 'PDF',
+        'Text': 'Testo'
     };
     
-    // Normalize categories - migliorata logica
-    const normalizedTools = allTools.map(tool => {
-        // Se il tool ha già una categoria italiana, usala
-        const mappedCategory = categoryMap[tool.category] || tool.category;
-        return {
-            ...tool,
-            category: mappedCategory
-        };
-    });
+    // Normalize categories - migliorata logica con memoization
+    const normalizedTools = useMemo(() => {
+        return allTools.map(tool => {
+            // Se il tool ha già una categoria italiana, usala
+            const mappedCategory = categoryMap[tool.category] || tool.category;
+            return {
+                ...tool,
+                category: mappedCategory
+            };
+        });
+    }, [allTools]);
     
     // Ordina categorie per importanza (AI tools prima, poi convertitori)
     const categoryOrder = [
@@ -201,13 +207,29 @@ export default function ToolsPage() {
     const remainingCategories = uniqueCategories.filter(cat => !categoryOrder.includes(cat));
     const categories = [...sortedCategories, ...remainingCategories];
 
-    // Filtra strumenti per categoria
-    const filteredTools = selectedCategory === 'Tutti' 
-        ? normalizedTools 
-        : normalizedTools.filter(tool => tool.category === selectedCategory);
+    // Filtra strumenti per categoria - ottimizzato
+    const filteredTools = useMemo(() => {
+        if (selectedCategory === 'Tutti') {
+            return normalizedTools;
+        }
+        return normalizedTools.filter(tool => tool.category === selectedCategory);
+    }, [normalizedTools, selectedCategory]);
 
-    // Memoize filtered tools per performance
-    const memoizedFilteredTools = useMemo(() => filteredTools, [filteredTools]);
+    // Memoize categories per evitare ricalcoli
+    const memoizedCategories = useMemo(() => categories, [categories]);
+    
+    // Scroll automatico del filtro selezionato su mobile
+    const activeFilterRef = useRef(null);
+    
+    useEffect(() => {
+        if (isMobile && activeFilterRef.current) {
+            activeFilterRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'center'
+            });
+        }
+    }, [selectedCategory, isMobile]);
     
     // Stili dinamici basati su mobile
     const getCardPadding = () => (mobile ? '16px' : '28px');
@@ -262,13 +284,18 @@ export default function ToolsPage() {
                     {isMobile ? (
                         <div style={styles.filterScrollContainer} className="filter-scroll-container">
                             <div style={styles.filterScrollWrapper}>
-                                {categories.map((category) => (
+                                {memoizedCategories.map((category, index) => (
                                     <button
                                         key={category}
-                                        onClick={() => setSelectedCategory(category)}
+                                        ref={selectedCategory === category ? activeFilterRef : null}
+                                        onClick={() => {
+                                            setSelectedCategory(category);
+                                        }}
                                         style={{
                                             ...styles.filterButtonMobile,
-                                            ...(selectedCategory === category ? styles.filterButtonActiveMobile : {})
+                                            ...(selectedCategory === category ? styles.filterButtonActiveMobile : {}),
+                                            ...(index === 0 ? { marginLeft: '0' } : {}),
+                                            ...(index === memoizedCategories.length - 1 ? { marginRight: '0' } : {})
                                         }}
                                     >
                                         {category}
@@ -278,7 +305,7 @@ export default function ToolsPage() {
                         </div>
                     ) : (
                         <div style={styles.filterContainerDesktop}>
-                            {categories.map((category) => (
+                            {memoizedCategories.map((category) => (
                                 <button
                                     key={category}
                                     onClick={() => setSelectedCategory(category)}
@@ -309,7 +336,7 @@ export default function ToolsPage() {
                             {selectedCategory !== 'Tutti' && ` in ${selectedCategory}`}
                         </div>
                         <div style={styles.toolsGrid}>
-                            {memoizedFilteredTools.map((tool, i) => (
+                            {filteredTools.map((tool, i) => (
                                 <div
                                     key={`${tool.href}-${i}`}
                                     style={{
@@ -383,17 +410,21 @@ export default function ToolsPage() {
         maxWidth: '1200px', 
         margin: '0 auto', 
         padding: '40px 24px 80px',
+        width: '100%',
         '@media (max-width: 768px)': {
-            padding: '30px 16px 60px'
+            padding: '24px 16px 60px',
+            boxSizing: 'border-box'
         }
     },
     toolsGrid: {
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
         gap: '28px',
+        width: '100%',
         '@media (max-width: 768px)': {
             gridTemplateColumns: '1fr',
-            gap: '20px'
+            gap: '16px',
+            padding: '0'
         }
     },
     toolCard: { 
@@ -403,19 +434,25 @@ export default function ToolsPage() {
         border: '1px solid rgba(102, 126, 234, 0.25)', 
         borderRadius: '20px', 
         textDecoration: 'none', 
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
         cursor: 'pointer',
         overflow: 'hidden',
         backdropFilter: 'blur(16px)',
-        willChange: 'transform, box-shadow',
+        willChange: 'transform',
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
         WebkitTapHighlightColor: 'transparent',
         touchAction: 'manipulation',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3), 0 0 20px rgba(102, 126, 234, 0.1)'
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3), 0 0 20px rgba(102, 126, 234, 0.1)',
+        width: '100%',
+        boxSizing: 'border-box',
+        '@media (max-width: 768px)': {
+            padding: '24px 20px',
+            borderRadius: '16px'
+        }
     },
     proBadge: {
         position: 'absolute',
@@ -493,7 +530,12 @@ export default function ToolsPage() {
         padding: '0 24px 30px',
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        width: '100%',
+        boxSizing: 'border-box',
+        '@media (max-width: 768px)': {
+            padding: '0 0 20px'
+        }
     },
     filterContainer: {
         display: 'flex',
@@ -523,15 +565,21 @@ export default function ToolsPage() {
         WebkitOverflowScrolling: 'touch',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
-        padding: '12px 16px',
-        position: 'relative'
+        padding: '12px 0',
+        position: 'relative',
+        WebkitTapHighlightColor: 'transparent',
+        boxSizing: 'border-box',
+        scrollBehavior: 'smooth',
+        margin: '0 auto'
     },
     filterScrollWrapper: {
         display: 'inline-flex',
         alignItems: 'center',
         gap: '10px',
-        padding: '4px 0',
-        minWidth: 'max-content'
+        padding: '4px 16px',
+        minWidth: 'max-content',
+        width: 'auto',
+        justifyContent: 'flex-start'
     },
     filterButtonMobile: {
         padding: '10px 20px',
@@ -542,7 +590,7 @@ export default function ToolsPage() {
         fontSize: '14px',
         fontWeight: '600',
         cursor: 'pointer',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'all 0.2s ease',
         outline: 'none',
         whiteSpace: 'nowrap',
         textAlign: 'center',
@@ -551,16 +599,22 @@ export default function ToolsPage() {
         WebkitTapHighlightColor: 'transparent',
         touchAction: 'manipulation',
         minHeight: '44px',
-        display: 'flex',
+        width: 'auto',
+        maxWidth: 'none',
+        display: 'inline-flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        position: 'relative',
+        boxSizing: 'border-box'
     },
     filterButtonActiveMobile: {
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         borderColor: 'transparent',
         color: '#fff',
-        transform: 'scale(1.05)',
-        boxShadow: '0 6px 20px rgba(102, 126, 234, 0.5), 0 0 20px rgba(102, 126, 234, 0.3)',
+        transform: 'scale(1.02)',
+        boxShadow: '0 4px 16px rgba(102, 126, 234, 0.4), 0 0 16px rgba(102, 126, 234, 0.2)',
         fontWeight: '700'
     },
     filterButtonDesktop: {

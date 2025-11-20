@@ -142,18 +142,6 @@ export default function ImageGenerator() {
                 />
             )}
 
-            <div style={styles.header}>
-                <div style={styles.badge}>
-                    <HiLightningBolt style={{ width: 18, height: 18 }} />
-                    <span>AI Image Generation</span>
-                </div>
-                <h1 style={styles.title}>Generazione Immagini AI</h1>
-                <p style={styles.subtitle}>
-                    Crea immagini uniche e professionali in 4K con tecniche procedurali avanzate.<br/>
-                    Completamente gratuito e locale - nessuna API esterna richiesta.
-                </p>
-            </div>
-
             <div style={styles.card}>
                 <div style={styles.inputSection}>
                     <label style={styles.label}>
@@ -324,39 +312,6 @@ const styles = {
         maxWidth: '900px',
         margin: '0 auto',
         padding: '24px'
-    },
-    header: {
-        textAlign: 'center',
-        marginBottom: '40px'
-    },
-    badge: {
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '8px',
-        padding: '8px 18px',
-        background: 'rgba(102, 126, 234, 0.1)',
-        border: '1px solid rgba(102, 126, 234, 0.3)',
-        borderRadius: '24px',
-        color: '#667eea',
-        fontSize: '13px',
-        fontWeight: '600',
-        marginBottom: '20px'
-    },
-    title: {
-        margin: '0 0 12px',
-        fontSize: 'clamp(32px, 6vw, 42px)',
-        fontWeight: '800',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        letterSpacing: '-0.02em'
-    },
-    subtitle: {
-        fontSize: '16px',
-        color: '#94a3b8',
-        margin: 0,
-        lineHeight: 1.7
     },
     card: {
         background: 'rgba(15, 23, 42, 0.7)',

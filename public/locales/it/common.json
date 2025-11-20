@@ -58,7 +58,7 @@
   },
   "additionalTools": {
     "title": "Strumenti IA Aggiuntivi",
-    "description": "Oltre all'intelligenza documentale, accedi a 9 strumenti professionali per l'elaborazione di immagini, PDF, video e audio.",
+    "description": "Oltre all'intelligenza documentale, accedi a 250+ strumenti professionali per l'elaborazione di immagini, PDF, video e audio.",
     "explore": "Esplora tutti gli strumenti"
   },
   "footer": {
@@ -142,7 +142,7 @@
     "poweredBy": "Powered by AI • 100% Gratis",
     "heroTitle1": "Trasforma i tuoi contenuti con l'",
     "heroTitle2": "Intelligenza Artificiale",
-    "heroSubtitle": "15+ strumenti professionali per immagini, PDF, audio e video. Nessuna registrazione. Nessun limite. Risultati istantanei.",
+    "heroSubtitle": "250+ strumenti professionali per immagini, PDF, audio e video. Nessuna registrazione. Nessun limite. Risultati istantanei.",
     "learnMore": "Scopri di più",
     "premiumQuality": "Qualità Premium",
     "users": "50K+ Utenti",
@@ -294,7 +294,7 @@
     "statsUsers": "Utenti Attivi",
     "stats2m": "2M+",
     "statsImages": "Immagini Processate",
-    "stats15": "15+",
+    "stats15": "250+",
     "statsTools": "Strumenti AI",
     "stats99": "99.9%",
     "statsUptime": "Uptime",

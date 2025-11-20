@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { memo, useMemo, useState, useEffect } from 'react';
 import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
+import { getAllConversionTools } from '../lib/conversionRegistry';
 import { useTranslation } from '../lib/i18n';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
@@ -41,6 +42,46 @@ export default function HomePage() {
   const { t } = useTranslation();
   const [isMobile, setIsMobile] = useState(false);
   
+  // Conta strumenti per categoria
+  const categoryCounts = useMemo(() => {
+    const counts = {
+      'Immagini': 0,
+      'PDF': 0,
+      'Video': 0,
+      'Audio': 0,
+      'Testo': 0,
+      'Documenti': 0
+    };
+    
+    // Conta AI tools
+    tools.forEach(tool => {
+      const category = tool.category;
+      if (counts.hasOwnProperty(category)) {
+        counts[category]++;
+      }
+    });
+    
+    // Conta conversion tools
+    const conversionTools = getAllConversionTools();
+    const categoryMap = {
+      'Image': 'Immagini',
+      'PDF': 'PDF',
+      'Video': 'Video',
+      'Audio': 'Audio',
+      'Text': 'Testo',
+      'Document': 'Documenti'
+    };
+    
+    conversionTools.forEach(tool => {
+      const mappedCategory = categoryMap[tool.category] || tool.category;
+      if (counts.hasOwnProperty(mappedCategory)) {
+        counts[mappedCategory]++;
+      }
+    });
+    
+    return counts;
+  }, []);
+  
   // Safe client-side mobile detection (no hydration mismatch)
   useEffect(() => {
     const checkMobile = () => {
@@ -63,7 +104,7 @@ export default function HomePage() {
     <div style={styles.homeWrap}>
       <SEOHead 
         title={t('seo.homeTitle') || 'Strumenti AI Professionali per Immagini, PDF e Audio'}
-        description={t('seo.homeDesc') || 'Piattaforma all-in-one con oltre 15 strumenti AI: rimozione sfondo, upscaling 4K, generazione immagini, OCR, conversione PDF e molto altro. Gratis e professionale.'}
+        description={t('seo.homeDesc') || 'Piattaforma all-in-one con oltre 250 strumenti AI: rimozione sfondo, upscaling 4K, generazione immagini, OCR, conversione PDF e molto altro. Gratis e professionale.'}
         canonical="/"
       />
       
@@ -108,14 +149,26 @@ export default function HomePage() {
           }} className="animate-fade-in-up">
             <Link href="/tools" style={{
               ...styles.mainPrimaryCta,
-              ...(isMobile ? { width: '100%', padding: '12px 24px', fontSize: '15px' } : {})
+              ...(isMobile ? { 
+                width: '100%', 
+                padding: '12px 24px', 
+                fontSize: '15px',
+                justifyContent: 'center'
+              } : {})
             }} className="hover-lift">
               <span>{t('hero.cta')}</span>
               <HiArrowRight style={{ width: 20, height: 20 }} />
             </Link>
             <Link href="/home" style={{
               ...styles.mainSecondaryCta,
-              ...(isMobile ? { width: '100%', padding: '12px 24px', fontSize: '15px' } : {})
+              ...(isMobile ? { 
+                width: '100%', 
+                padding: '12px 24px', 
+                fontSize: '15px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              } : {})
             }} className="hover-lift">
               <span>{t('home.learnMore')}</span>
             </Link>
@@ -294,11 +347,19 @@ export default function HomePage() {
 
       <div style={{
         ...styles.toolsPreview,
-        ...(isMobile ? { padding: '40px 20px', borderRadius: '24px' } : {})
+        ...(isMobile ? { 
+          padding: '28px 12px', 
+          borderRadius: '20px',
+          margin: '0 16px 40px',
+          maxWidth: 'none',
+          width: 'calc(100% - 32px)',
+          boxSizing: 'border-box',
+          overflow: 'hidden'
+        } : {})
       }}>
         <div style={styles.toolsPreviewBadge} className="animate-fade-in-up">
           <HiSparkles style={{ width: 14, height: 14 }} />
-          <span>9 STRUMENTI PROFESSIONALI</span>
+          <span>250+ STRUMENTI PROFESSIONALI</span>
         </div>
         <h2 style={{
           ...styles.toolsPreviewTitle,
@@ -317,10 +378,18 @@ export default function HomePage() {
           ...(isMobile ? { 
             gridTemplateColumns: 'repeat(2, 1fr)', 
             gap: '12px',
-            maxWidth: '100%'
+            maxWidth: '100%',
+            padding: '0',
+            width: '100%',
+            boxSizing: 'border-box',
+            marginLeft: 'auto',
+            marginRight: 'auto'
           } : {})
         }}>
-          <div style={styles.toolHighlight} className="animate-slide-up tool-highlight-hover" data-delay="0">
+          <div style={{
+            ...styles.toolHighlight,
+            ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
+          }} className="animate-slide-up tool-highlight-hover" data-delay="0">
             <div style={styles.toolHighlightIcon}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -329,9 +398,12 @@ export default function HomePage() {
               </svg>
             </div>
             <div style={styles.toolHighlightTitle}>Immagini</div>
-            <div style={styles.toolHighlightCount}>4 strumenti</div>
+            <div style={styles.toolHighlightCount}>{categoryCounts.Immagini}+ strumenti</div>
           </div>
-          <div style={styles.toolHighlight} className="animate-slide-up tool-highlight-hover" data-delay="1">
+          <div style={{
+            ...styles.toolHighlight,
+            ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
+          }} className="animate-slide-up tool-highlight-hover" data-delay="1">
             <div style={styles.toolHighlightIcon}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -342,16 +414,12 @@ export default function HomePage() {
               </svg>
             </div>
             <div style={styles.toolHighlightTitle}>PDF</div>
-            <div style={styles.toolHighlightCount}>4 strumenti</div>
-            {/* Sub-links for SEO and quick access */}
-            <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Link href="/pdf/jpg2pdf" style={{ color: '#60a5fa', textDecoration: 'none', fontSize: 11, padding: '4px 8px', background: 'rgba(96, 165, 250, 0.1)', borderRadius: '6px', transition: 'all 0.2s', fontWeight: 500 }} className="pdf-tool-link">JPG→PDF</Link>
-              <Link href="/pdf/pdf2jpg" style={{ color: '#60a5fa', textDecoration: 'none', fontSize: 11, padding: '4px 8px', background: 'rgba(96, 165, 250, 0.1)', borderRadius: '6px', transition: 'all 0.2s', fontWeight: 500 }} className="pdf-tool-link">PDF→JPG</Link>
-              <Link href="/pdf/docx2pdf" style={{ color: '#60a5fa', textDecoration: 'none', fontSize: 11, padding: '4px 8px', background: 'rgba(96, 165, 250, 0.1)', borderRadius: '6px', transition: 'all 0.2s', fontWeight: 500 }} className="pdf-tool-link">DOCX→PDF</Link>
-              <Link href="/pdf/pdf2docx" style={{ color: '#60a5fa', textDecoration: 'none', fontSize: 11, padding: '4px 8px', background: 'rgba(96, 165, 250, 0.1)', borderRadius: '6px', transition: 'all 0.2s', fontWeight: 500 }} className="pdf-tool-link">PDF→DOCX</Link>
-            </div>
+            <div style={styles.toolHighlightCount}>{categoryCounts.PDF}+ strumenti</div>
           </div>
-          <div style={styles.toolHighlight} className="animate-slide-up tool-highlight-hover" data-delay="2">
+          <div style={{
+            ...styles.toolHighlight,
+            ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
+          }} className="animate-slide-up tool-highlight-hover" data-delay="2">
             <div style={styles.toolHighlightIcon}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 18V5l12-2v13"></path>
@@ -360,9 +428,12 @@ export default function HomePage() {
               </svg>
             </div>
             <div style={styles.toolHighlightTitle}>Audio</div>
-            <div style={styles.toolHighlightCount}>2 strumenti</div>
+            <div style={styles.toolHighlightCount}>{categoryCounts.Audio}+ strumenti</div>
           </div>
-          <div style={styles.toolHighlight} className="animate-slide-up tool-highlight-hover" data-delay="3">
+          <div style={{
+            ...styles.toolHighlight,
+            ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
+          }} className="animate-slide-up tool-highlight-hover" data-delay="3">
             <div style={styles.toolHighlightIcon}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="4 7 4 4 20 4 20 7"></polyline>
@@ -371,7 +442,35 @@ export default function HomePage() {
               </svg>
             </div>
             <div style={styles.toolHighlightTitle}>Testo</div>
-            <div style={styles.toolHighlightCount}>1 strumento</div>
+            <div style={styles.toolHighlightCount}>{categoryCounts.Testo}+ strumenti</div>
+          </div>
+          <div style={{
+            ...styles.toolHighlight,
+            ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
+          }} className="animate-slide-up tool-highlight-hover" data-delay="4">
+            <div style={styles.toolHighlightIcon}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+            </div>
+            <div style={styles.toolHighlightTitle}>Video</div>
+            <div style={styles.toolHighlightCount}>{categoryCounts.Video}+ strumenti</div>
+          </div>
+          <div style={{
+            ...styles.toolHighlight,
+            ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
+          }} className="animate-slide-up tool-highlight-hover" data-delay="5">
+            <div style={styles.toolHighlightIcon}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+            </div>
+            <div style={styles.toolHighlightTitle}>Documenti</div>
+            <div style={styles.toolHighlightCount}>{categoryCounts.Documenti}+ strumenti</div>
           </div>
         </div>
         
@@ -392,7 +491,9 @@ const styles = {
     minHeight: '100vh',
     background: 'linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 50%, #0f1720 100%)',
     backgroundAttachment: 'fixed',
-    overflow: 'visible'
+    overflow: 'visible',
+    width: '100%',
+    boxSizing: 'border-box'
   },
   heroSection: {
     textAlign: 'center',
@@ -624,7 +725,9 @@ const styles = {
     position: 'relative',
     zIndex: 1,
     boxShadow: '0 20px 60px rgba(102, 126, 234, 0.12)',
-    backdropFilter: 'blur(10px)'
+    backdropFilter: 'blur(10px)',
+    width: '100%',
+    boxSizing: 'border-box'
   },
   toolsPreviewBadge: {
     display: 'inline-flex',
@@ -663,40 +766,54 @@ const styles = {
   },
   toolHighlightsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-    gap: '16px',
-    marginBottom: '32px',
-    maxWidth: '700px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '24px',
+    marginBottom: '40px',
+    maxWidth: '800px',
     marginLeft: 'auto',
     marginRight: 'auto'
   },
   toolHighlight: {
-    background: 'rgba(15, 23, 42, 0.6)',
-    border: '1px solid rgba(102, 126, 234, 0.25)',
-    borderRadius: '16px',
-    padding: '20px 16px',
+    background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.6) 100%)',
+    border: '1px solid rgba(102, 126, 234, 0.3)',
+    borderRadius: '20px',
+    padding: '24px 20px',
     textAlign: 'center',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     cursor: 'pointer',
     position: 'relative',
     overflow: 'hidden',
     transform: 'translateZ(0)',
-    willChange: 'transform, box-shadow'
+    willChange: 'transform, box-shadow',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(102, 126, 234, 0.1)',
+    backdropFilter: 'blur(12px)'
   },
   toolHighlightIcon: {
-    fontSize: '28px',
-    marginBottom: '8px'
+    fontSize: '32px',
+    marginBottom: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '56px',
+    height: '56px',
+    margin: '0 auto 12px',
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.15) 100%)',
+    borderRadius: '16px',
+    border: '1px solid rgba(102, 126, 234, 0.3)',
+    transition: 'all 0.3s ease'
   },
   toolHighlightTitle: {
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: '700',
     color: '#e2e8f0',
-    marginBottom: '4px'
+    marginBottom: '6px',
+    letterSpacing: '-0.01em'
   },
   toolHighlightCount: {
-    fontSize: '12px',
+    fontSize: '13px',
     color: '#94a3b8',
-    fontWeight: '500'
+    fontWeight: '500',
+    marginBottom: '8px'
   },
   toolsPreviewCta: {
     display: 'inline-flex',
@@ -918,7 +1035,9 @@ const styles = {
     gap: '12px',
     marginTop: '12px',
     flexWrap: 'wrap',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%'
   },
   mainPrimaryCta: {
     padding: '14px 32px',

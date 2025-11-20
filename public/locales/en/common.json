@@ -58,7 +58,7 @@
   },
   "additionalTools": {
     "title": "Additional AI-Powered Tools",
-    "description": "Beyond document intelligence, access 9 professional tools for images, PDFs, video, and audio processing.",
+    "description": "Beyond document intelligence, access 250+ professional tools for images, PDFs, video, and audio processing.",
     "explore": "Explore all tools"
   },
   "footer": {
@@ -142,7 +142,7 @@
     "poweredBy": "Powered by AI • 100% Free",
     "heroTitle1": "Transform your content with",
     "heroTitle2": "Artificial Intelligence",
-    "heroSubtitle": "15+ professional tools for images, PDFs, audio and video. No registration. No limits. Instant results.",
+    "heroSubtitle": "250+ professional tools for images, PDFs, audio and video. No registration. No limits. Instant results.",
     "learnMore": "Learn More",
     "premiumQuality": "Premium Quality",
     "users": "50K+ Users",
@@ -294,7 +294,7 @@
     "statsUsers": "Active Users",
     "stats2m": "2M+",
     "statsImages": "Images Processed",
-    "stats15": "15+",
+    "stats15": "250+",
     "statsTools": "AI Tools",
     "stats99": "99.9%",
     "statsUptime": "Uptime",

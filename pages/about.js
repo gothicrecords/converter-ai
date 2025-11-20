@@ -106,7 +106,7 @@ export default function AboutPage() {
                         <div style={styles.statLabel}>Immagini Processate</div>
                     </div>
                     <div style={styles.statBox}>
-                        <div style={styles.statNumber}>15+</div>
+                        <div style={styles.statNumber}>250+</div>
                         <div style={styles.statLabel}>Strumenti AI</div>
                     </div>
                     <div style={styles.statBox}>
