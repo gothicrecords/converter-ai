@@ -35,6 +35,8 @@ function GenericConverter({ tool }) {
   const [resultName, setResultName] = useState(null);
   const [resultDataUrl, setResultDataUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState('');
   const [error, setError] = useState(null);
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
@@ -123,6 +125,8 @@ function GenericConverter({ tool }) {
     }
     
     setLoading(true); 
+    setProgress(0);
+    setProgressMessage('Preparazione...');
     setError(null); 
     setResultDataUrl(null); 
     setResultName(null);
@@ -130,11 +134,22 @@ function GenericConverter({ tool }) {
     const startTime = Date.now();
     const fromFormat = file.name.split('.').pop() || file.type;
     
+    // Simulatore di progresso per l'upload
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 95) return prev;
+        const increment = Math.random() * 15;
+        return Math.min(95, prev + increment);
+      });
+    }, 500);
+    
     try {
       // Verifica che il file esista e abbia una dimensione valida
       if (!file || file.size === 0) {
         throw new Error('Il file è vuoto o non valido. Carica un file valido.');
       }
+      
+      setProgressMessage('Caricamento file...');
       
       const form = new FormData();
       form.append('file', file);
@@ -190,6 +205,9 @@ function GenericConverter({ tool }) {
           controller.abort();
         }, 300000); // 5 minuti
         
+        setProgress(30);
+        setProgressMessage('Conversione in corso...');
+        
         // Use improved error handling
         response = await fetch(apiUrl, { 
           method: 'POST', 
@@ -197,6 +215,9 @@ function GenericConverter({ tool }) {
           headers: {}, // Don't set Content-Type for FormData, browser will set it with boundary
           signal: controller.signal
         });
+        
+        setProgress(80);
+        setProgressMessage('Finalizzazione...');
         
         // Pulisci il timeout se la richiesta è completata
         clearTimeout(timeoutId);
@@ -360,10 +381,16 @@ function GenericConverter({ tool }) {
       );
       analytics.trackToolComplete(tool?.title || tool?.name, duration, true);
       
+      clearInterval(progressInterval);
+      setProgress(100);
+      setProgressMessage('Completato!');
+      
       setResultName(resultName);
       setResultDataUrl(resultDataUrl);
     } catch (e) {
       const duration = Date.now() - startTime;
+      
+      clearInterval(progressInterval);
       
       // Track failed conversion
       analytics.trackToolComplete(tool?.title || tool?.name, duration, false);
@@ -382,7 +409,16 @@ function GenericConverter({ tool }) {
       if (typeof timeoutId !== 'undefined') {
         clearTimeout(timeoutId);
       }
+      clearInterval(progressInterval);
       setLoading(false);
+      
+      // Reset progress dopo 2 secondi se c'è stato successo
+      if (!error) {
+        setTimeout(() => {
+          setProgress(0);
+          setProgressMessage('');
+        }, 2000);
+      }
     }
   }, [file, outputFormat, width, height, quality, vWidth, vHeight, vBitrate, aBitrate, page, tool, currentSlug]);
 
@@ -517,6 +553,18 @@ function GenericConverter({ tool }) {
             'Converti'
           )}
         </button>
+        
+        {loading && progress > 0 && (
+          <div style={styles.progressContainer}>
+            <div style={styles.progressBar}>
+              <div style={{ ...styles.progressFill, width: `${progress}%` }}></div>
+            </div>
+            <div style={styles.progressText}>
+              {progressMessage} {Math.round(progress)}%
+            </div>
+          </div>
+        )}
+        
         {error && <div style={styles.error}>{error}</div>}
       </div>
       {resultDataUrl && (
@@ -876,6 +924,34 @@ const styles = {
       fontSize: '16px', // Prevent zoom on iOS
       borderRadius: '8px'
     }
+  },
+  progressContainer: {
+    marginTop: '16px',
+    marginBottom: '16px'
+  },
+  progressBar: {
+    width: '100%',
+    height: '8px',
+    background: 'rgba(15, 23, 42, 0.8)',
+    borderRadius: '10px',
+    overflow: 'hidden',
+    border: '1px solid rgba(102, 126, 234, 0.2)',
+    position: 'relative'
+  },
+  progressFill: {
+    height: '100%',
+    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+    borderRadius: '10px',
+    transition: 'width 0.3s ease',
+    boxShadow: '0 0 10px rgba(102, 126, 234, 0.5)',
+    animation: 'shimmerProgress 2s infinite'
+  },
+  progressText: {
+    marginTop: '8px',
+    fontSize: '13px',
+    color: '#94a3b8',
+    textAlign: 'center',
+    fontWeight: 500
   }
 };
 
@@ -902,6 +978,14 @@ if (typeof document !== 'undefined') {
       }
       @keyframes spin {
         to { transform: rotate(360deg); }
+      }
+      @keyframes shimmerProgress {
+        0% {
+          background-position: -200% center;
+        }
+        100% {
+          background-position: 200% center;
+        }
       }
     `;
     document.head.appendChild(style);
