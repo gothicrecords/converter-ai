@@ -423,10 +423,14 @@ export default async function handler(req, res) {
       
       if (!outputBuffer && (audioFormats.includes(lowerTarget) || videoFormats.includes(lowerTarget))) {
         try {
-          // Configura ffmpeg
+          // Configura ffmpeg con ottimizzazioni
           if (ffmpegStatic) {
             ffmpeg.setFfmpegPath(ffmpegStatic);
           }
+          
+          // Determina numero ottimale di thread (usa tutti i core disponibili)
+          const os = require('os');
+          const threads = os.cpus().length;
           
           const outputDir = path.dirname(inputPath);
           const outputFilename = `output_${Date.now()}.${lowerTarget}`;
@@ -434,6 +438,11 @@ export default async function handler(req, res) {
           
           await new Promise((resolve, reject) => {
             let command = ffmpeg(inputPath);
+            
+            // Opzioni globali per velocità - usa tutti i thread disponibili
+            command = command.outputOptions([
+              '-threads', threads.toString() // Multi-threading
+            ]);
             
             // Configurazioni specifiche per audio
             if (audioFormats.includes(lowerTarget)) {
@@ -444,18 +453,18 @@ export default async function handler(req, res) {
               if (abitrate) {
                 command = command.audioBitrate(abitrate);
               } else {
-                // Bitrate BILANCIATI qualità/velocità
+                // Bitrate OTTIMIZZATI per velocità mantenendo qualità accettabile
                 const defaultBitrates = {
-                  'mp3': '192k',   // Qualità buona
-                  'aac': '192k',   // Qualità buona
-                  'm4a': '192k',   // Qualità buona
+                  'mp3': '160k',   // Veloce e buona qualità
+                  'aac': '160k',   // Veloce e buona qualità
+                  'm4a': '160k',   // Veloce e buona qualità
                   'flac': '1411k', // lossless
                   'wav': '1411k',  // lossless
-                  'ogg': '192k',   // Qualità buona
+                  'ogg': '160k',   // Veloce
                   'opus': '128k',  // Ottimo per Opus
                   'weba': '128k'   // Ottimo per WebM audio
                 };
-                const bitrate = defaultBitrates[lowerTarget] || '192k';
+                const bitrate = defaultBitrates[lowerTarget] || '160k';
                 command = command.audioBitrate(bitrate);
               }
               
@@ -477,18 +486,23 @@ export default async function handler(req, res) {
                 command = command.audioCodec(audioCodecs[lowerTarget]);
               }
               
-              // Frequenza campionamento alta qualità
+              // Frequenza campionamento ottimizzata
               command = command.audioFrequency(44100);
               command = command.audioChannels(2);
               
-              // Opzioni di qualità per codec specifici
+              // Opzioni di velocità per codec specifici
               if (lowerTarget === 'mp3') {
                 command = command.outputOptions([
-                  '-q:a', '2' // Alta qualità per MP3 (0-9, 2 = ottima qualità)
+                  '-q:a', '3' // Buon compromesso qualità/velocità per MP3
                 ]);
               } else if (lowerTarget === 'aac' || lowerTarget === 'm4a') {
                 command = command.outputOptions([
-                  '-profile:a', 'aac_low' // Profilo AAC-LC per migliore compatibilità
+                  '-profile:a', 'aac_low',
+                  '-movflags', '+faststart' // Start veloce
+                ]);
+              } else if (lowerTarget === 'opus' || lowerTarget === 'weba') {
+                command = command.outputOptions([
+                  '-compression_level', '5' // Compromesso velocità/qualità per Opus
                 ]);
               }
             }
@@ -516,7 +530,7 @@ export default async function handler(req, res) {
               if (vbitrate) {
                 command = command.videoBitrate(vbitrate);
               } else {
-                command = command.videoBitrate('2000k'); // Bilanciato qualità/velocità
+                command = command.videoBitrate('1800k'); // Ridotto leggermente per velocità
               }
               
               // Dimensioni video se specificate
@@ -548,42 +562,46 @@ export default async function handler(req, res) {
               if (abitrate) {
                 command = command.audioBitrate(abitrate);
               } else {
-                command = command.audioBitrate('192k'); // Qualità audio migliorata
+                command = command.audioBitrate('160k'); // Ridotto leggermente per velocità
               }
               
               // Frame rate ottimizzato
-              command = command.fps(30); // Ripristinato a 30fps
+              command = command.fps(30);
               
-              // Formato specifico con preset FAST (compromesso velocità/qualità)
+              // Formato specifico con preset VERYFAST (ottimo compromesso)
               if (lowerTarget === 'mp4') {
                 command = command.format('mp4');
                 command = command.outputOptions([
                   '-movflags', 'faststart',
-                  '-preset', 'fast', // CAMBIATO: da ultrafast a fast (migliore qualità)
-                  '-crf', '23' // CAMBIATO: da 28 a 23 (migliore qualità)
+                  '-preset', 'veryfast', // VELOCIZZATO: da fast a veryfast
+                  '-crf', '24', // Leggermente ridotto per velocità
+                  '-tune', 'fastdecode' // Ottimizzazione per decodifica veloce
                 ]);
               } else if (lowerTarget === 'webm') {
                 command = command.format('webm');
                 command = command.outputOptions([
-                  '-deadline', 'good', // CAMBIATO: da realtime a good
-                  '-cpu-used', '4' // CAMBIATO: da 8 a 4 (migliore qualità)
+                  '-deadline', 'good',
+                  '-cpu-used', '5', // VELOCIZZATO: da 4 a 5
+                  '-row-mt', '1' // Multi-threading per righe
                 ]);
               } else if (lowerTarget === 'mkv') {
                 command = command.format('matroska');
                 command = command.outputOptions([
-                  '-preset', 'fast',
-                  '-crf', '23'
+                  '-preset', 'veryfast',
+                  '-crf', '24',
+                  '-tune', 'fastdecode'
                 ]);
               } else if (lowerTarget === 'avi') {
                 command = command.format('avi');
                 command = command.outputOptions([
-                  '-q:v', '5' // Migliore qualità per avi
+                  '-q:v', '6' // Bilanciato
                 ]);
               } else if (lowerTarget === 'mov') {
                 command = command.format('mov');
                 command = command.outputOptions([
-                  '-preset', 'fast',
-                  '-crf', '23'
+                  '-preset', 'veryfast',
+                  '-crf', '24',
+                  '-tune', 'fastdecode'
                 ]);
               } else if (lowerTarget === 'flv') {
                 command = command.format('flv');
