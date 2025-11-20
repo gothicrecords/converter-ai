@@ -1,4 +1,4 @@
-import { useState, useCallback, memo, useMemo } from 'react';
+import { useState, useCallback, memo, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useDropzone } from 'react-dropzone';
 import { HiUpload, HiX, HiDownload } from 'react-icons/hi';
@@ -11,9 +11,27 @@ function GenericConverter({ tool }) {
   const router = useRouter();
   // Estrai lo slug dall'URL o dal tool
   const currentSlug = router.query.slug || tool?.slug || (tool?.href ? tool.href.replace('/tools/', '') : null);
+  
+  // Formati disponibili per categoria
+  const FORMAT_OPTIONS = {
+    Audio: ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'weba'],
+    Video: ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv']
+  };
+  
+  // Determina il formato di output iniziale
+  const getInitialFormat = () => {
+    if (tool.category === 'Audio') {
+      return FORMAT_OPTIONS.Audio[0]; // mp3
+    }
+    if (tool.category === 'Video') {
+      return FORMAT_OPTIONS.Video[0]; // mp4
+    }
+    return tool.targetFormat;
+  };
+  
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [outputFormat, setOutputFormat] = useState(tool.targetFormat);
+  const [outputFormat, setOutputFormat] = useState(getInitialFormat());
   const [resultName, setResultName] = useState(null);
   const [resultDataUrl, setResultDataUrl] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -27,13 +45,27 @@ function GenericConverter({ tool }) {
   const [aBitrate, setABitrate] = useState('192k');
   const [page, setPage] = useState('0');
   const [isDragActive, setIsDragActive] = useState(false);
+  
+  // Aggiorna il formato quando cambia il tool
+  useEffect(() => {
+    setOutputFormat(getInitialFormat());
+  }, [tool.slug, tool.category]);
 
   // Rimuovi duplicati dall'array degli output disponibili
   const availableOutputs = useMemo(() => {
+    // Se è un convertitore Audio o Video, usa i formati specifici
+    if (tool.category === 'Audio') {
+      return FORMAT_OPTIONS.Audio;
+    }
+    if (tool.category === 'Video') {
+      return FORMAT_OPTIONS.Video;
+    }
+    
+    // Altrimenti usa il formato target del tool + formati comuni
     const outputs = [tool.targetFormat, 'pdf', 'txt', 'jpg', 'png'];
     // Rimuovi duplicati mantenendo l'ordine
     return [...new Set(outputs)];
-  }, [tool.targetFormat]);
+  }, [tool.targetFormat, tool.category]);
 
   // Drag and drop handler
   const onDrop = useCallback((acceptedFiles) => {
