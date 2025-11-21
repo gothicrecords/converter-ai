@@ -288,7 +288,10 @@ export default function Navbar() {
             fontWeight: '500',
             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            cursor: 'pointer',
+            pointerEvents: 'auto',
+            zIndex: 1
         },
         signupBtn: {
             display: 'flex',
@@ -645,8 +648,7 @@ export default function Navbar() {
                                         );
                                     })}
                                     {categories[catName].length > 20 && (
-                                        <Link
-                                            href={`/tools?category=${encodeURIComponent(catName)}`}
+                                        <button
                                             style={{
                                                 ...styles.dropdownItem,
                                                 background: 'rgba(102, 126, 234, 0.1)',
@@ -654,18 +656,21 @@ export default function Navbar() {
                                                 justifyContent: 'center',
                                                 marginTop: '8px',
                                                 borderTop: '1px solid rgba(102, 126, 234, 0.2)',
-                                                paddingTop: '16px'
+                                                paddingTop: '16px',
+                                                border: 'none',
+                                                width: '100%',
+                                                cursor: 'pointer'
                                             }}
-                                            onClick={() => {
-                                                if (closeTimeoutRef.current) {
-                                                    clearTimeout(closeTimeoutRef.current);
-                                                }
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
                                                 setDropdownOpen(null);
+                                                router.push('/tools');
                                             }}
                                         >
                                             <span>Vedi tutti ({categories[catName].length})</span>
                                             <BsChevronRight style={{ marginLeft: '8px', width: '14px', height: '14px' }} />
-                                        </Link>
+                                        </button>
                                     )}
                                     </div>
                                 </DropdownPortal>
@@ -804,18 +809,23 @@ export default function Navbar() {
                                 </Link>
                             ))}
                             {expandedCategory === catName && categories[catName].length > 15 && (
-                                <Link
-                                    href={`/tools?category=${encodeURIComponent(catName)}`}
+                                <button
                                     style={{
                                         ...styles.mobileDropdownItem,
                                         background: 'rgba(102, 126, 234, 0.1)',
                                         fontWeight: '600',
-                                        justifyContent: 'center'
+                                        justifyContent: 'center',
+                                        border: 'none',
+                                        width: '100%',
+                                        cursor: 'pointer'
                                     }}
-                                    onClick={() => setMobileMenuOpen(false)}
+                                    onClick={() => {
+                                        setMobileMenuOpen(false);
+                                        router.push('/tools');
+                                    }}
                                 >
                                     <span>Vedi tutti ({categories[catName].length})</span>
-                                </Link>
+                                </button>
                             )}
                         </div>
                     ))}

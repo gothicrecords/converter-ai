@@ -88,10 +88,21 @@ export default function ToolsPage() {
     const [selectedCategory, setSelectedCategory] = useState('Tutti');
     const [isMobile, setIsMobile] = useState(false);
     
+    // Mappa categorie dalla Navbar alle categorie della pagina tools
+    const navbarToToolsCategory = {
+        'AI & Immagini': 'Immagini',
+        'Documenti & PDF': 'Documenti',
+        'Video & Audio': 'Video',
+        'Grafica': 'Vettoriali',
+        'Archivi & Ebook': 'Archivi'
+    };
+    
     // Leggi categoria da URL query params
     useEffect(() => {
         if (router.query.category) {
-            setSelectedCategory(router.query.category);
+            // Se la categoria dall'URL è una categoria della navbar, mappala
+            const mappedCategory = navbarToToolsCategory[router.query.category] || router.query.category;
+            setSelectedCategory(mappedCategory);
         }
     }, [router.query.category]);
 
