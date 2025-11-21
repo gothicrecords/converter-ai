@@ -89,12 +89,27 @@ function ChatPage() {
     setMessages(prev => [...prev, thinkingMsg]);
 
     try {
-      // Simulate API call (sostituire con vera chiamata API quando Supabase sarà configurato)
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call the chat API
+      const response = await fetch('/api/chat/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: content,
+          conversationHistory: messages.filter(m => !m.thinking).slice(-5), // Last 5 messages for context
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response');
+      }
 
       const aiResponse = {
         role: 'assistant',
-        content: `I received your message: "${content}"\n\nThis is currently a demo response. Once Supabase and OpenAI are configured, I will be able to:\n- Search through your files\n- Analyze documents\n- Provide intelligent AI responses\n- Cite specific sources`,
+        content: data.message || `I received your message: "${content}"\n\nError: Unable to get AI response. Please check your OpenAI API key configuration.`,
         file_references: [],
         created_at: new Date().toISOString(),
       };

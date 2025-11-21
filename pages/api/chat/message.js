@@ -1,6 +1,4 @@
-import { getServiceSupabase } from '../../../lib/supabase';
 import { chatCompletion } from '../../../lib/openai';
-import { semanticSearch } from '../../../ai/indexing/indexer';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -8,96 +6,48 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, fileIds = [], conversationId } = req.body;
-    const authHeader = req.headers.authorization;
+    const { message, conversationHistory = [] } = req.body;
     
-    if (!authHeader) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-
     if (!message || !message.trim()) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    const supabase = getServiceSupabase();
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Save user message
-    const { data: userMessage, error: userMsgError } = await supabase
-      .from('chat_messages')
-      .insert({
-        user_id: user.id,
-        conversation_id: conversationId || null,
+    // Build conversation messages for OpenAI
+    const messages = [
+      {
+        role: 'system',
+        content: 'You are a helpful AI assistant for MegaPixelAI, a platform for AI-powered document and image processing tools. Help users with their questions about documents, images, and file processing. Be concise and helpful.',
+      },
+      ...conversationHistory.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+      {
         role: 'user',
         content: message,
-        file_references: fileIds,
-      })
-      .select()
-      .single();
+      },
+    ];
 
-    if (userMsgError) {
-      console.error('Error saving user message:', userMsgError);
-      throw new Error('Failed to save message');
-    }
+    // Call OpenAI via our helper
+    const aiResponse = await chatCompletion(messages, {
+      temperature: 0.7,
+      max_tokens: 500,
+    });
 
-    // Perform semantic search on user's files
-    let relevantContext = [];
-    let referencedFiles = [];
-
-    try {
-      const searchResults = await semanticSearch(user.id, message, 5);
-      
-      if (searchResults && searchResults.length > 0) {
-        relevantContext = searchResults.map(result => ({
-          filename: result.filename,
-          content: result.chunk_text,
-          relevance: result.similarity,
-        }));
-
-        // Get unique file IDs
-        const fileIdsFromSearch = [...new Set(searchResults.map(r => r.file_id))];
-        
-        // Fetch file details
-        const { data: files } = await supabase
-          .from('files')
-          .select('id, original_filename, filename')
-          .in('id', fileIdsFromSearch);
-
-        referencedFiles = files || [];
-      }
-    } catch (searchError) {
-      console.error('Semantic search error:', searchError);
-      // Continue without search results
-    }
-
-    // If specific files were requested, fetch their content
-    if (fileIds.length > 0) {
-      const { data: requestedFiles } = await supabase
-        .from('files')
-        .select('id, original_filename, filename, extracted_text, summary')
-        .in('id', fileIds)
-        .eq('user_id', user.id);
-
-      if (requestedFiles) {
-        requestedFiles.forEach(file => {
-          if (file.extracted_text) {
-            relevantContext.push({
-              filename: file.original_filename,
-              content: file.summary || file.extracted_text.substring(0, 2000),
-              relevance: 1.0,
-            });
-          }
-          if (!referencedFiles.find(f => f.id === file.id)) {
-            referencedFiles.push(file);
-          }
-        });
-      }
-    }
+    return res.status(200).json({
+      success: true,
+      message: aiResponse,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Chat API Error:', error);
+    
+    return res.status(500).json({ 
+      error: 'Failed to process message',
+      details: error.message,
+    });
+  }
+}
 
     // Build context for AI
     let contextPrompt = '';
