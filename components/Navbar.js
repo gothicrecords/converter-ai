@@ -648,7 +648,8 @@ export default function Navbar() {
                                         );
                                     })}
                                     {categories[catName].length > 20 && (
-                                        <button
+                                        <Link
+                                            href="/tools"
                                             style={{
                                                 ...styles.dropdownItem,
                                                 background: 'rgba(102, 126, 234, 0.1)',
@@ -656,21 +657,12 @@ export default function Navbar() {
                                                 justifyContent: 'center',
                                                 marginTop: '8px',
                                                 borderTop: '1px solid rgba(102, 126, 234, 0.2)',
-                                                paddingTop: '16px',
-                                                border: 'none',
-                                                width: '100%',
-                                                cursor: 'pointer'
-                                            }}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                setDropdownOpen(null);
-                                                router.push('/tools');
+                                                paddingTop: '16px'
                                             }}
                                         >
                                             <span>Vedi tutti ({categories[catName].length})</span>
                                             <BsChevronRight style={{ marginLeft: '8px', width: '14px', height: '14px' }} />
-                                        </button>
+                                        </Link>
                                     )}
                                     </div>
                                 </DropdownPortal>
@@ -809,23 +801,17 @@ export default function Navbar() {
                                 </Link>
                             ))}
                             {expandedCategory === catName && categories[catName].length > 15 && (
-                                <button
+                                <Link
+                                    href="/tools"
                                     style={{
                                         ...styles.mobileDropdownItem,
                                         background: 'rgba(102, 126, 234, 0.1)',
                                         fontWeight: '600',
-                                        justifyContent: 'center',
-                                        border: 'none',
-                                        width: '100%',
-                                        cursor: 'pointer'
-                                    }}
-                                    onClick={() => {
-                                        setMobileMenuOpen(false);
-                                        router.push('/tools');
+                                        justifyContent: 'center'
                                     }}
                                 >
                                     <span>Vedi tutti ({categories[catName].length})</span>
-                                </button>
+                                </Link>
                             )}
                         </div>
                     ))}

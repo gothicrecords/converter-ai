@@ -155,13 +155,11 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
       // Non chiudere se si clicca sull'elemento anchor
       if (anchorEl && anchorEl.contains(target)) return;
       
+      // Se si clicca su un link, non fare nulla (lascia che navighi)
+      if (target.closest('a')) return;
+      
       // Non chiudere se si clicca all'interno del dropdown
       if (elRef.current && elRef.current.contains(target)) {
-        // Se è un link, non bloccare e lascia che navighi
-        const link = target.closest('a');
-        if (link) {
-          return; // Non fare nulla, lascia che il link navighi
-        }
         return;
       }
       
@@ -170,9 +168,9 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
     };
 
     if (open) {
-      document.addEventListener('click', onDocClick, true); // Usa capture phase
+      document.addEventListener('click', onDocClick);
     }
-    return () => document.removeEventListener('click', onDocClick, true);
+    return () => document.removeEventListener('click', onDocClick);
   }, [open, anchorEl, onClose]);
 
   // Non renderizzare nulla durante SSR o se il container non è ancora montato
