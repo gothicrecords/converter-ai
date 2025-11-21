@@ -29,7 +29,6 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['react-icons', 'framer-motion', 'lodash', '@tanstack/react-query'],
     scrollRestoration: true,
-    optimizeCss: true,
     optimizeServerReact: true,
   },
   
