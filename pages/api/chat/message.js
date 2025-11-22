@@ -88,8 +88,16 @@ export default async function handler(req, res) {
       });
     }
 
-    // Genera risposta intelligente basata sui risultati
-    const answer = generateMultiDocumentAnswer(message, searchResults);
+    // Costruisci contesto della conversazione per OpenAI
+    const conversationContext = conversationHistory
+      .filter(m => m.role && m.content)
+      .slice(-3) // Ultimi 3 messaggi per contesto
+      .map(m => `${m.role === 'user' ? 'Utente' : 'Assistente'}: ${m.content}`)
+      .join('\n\n');
+
+    // Genera risposta intelligente basata sui risultati usando OpenAI
+    // Passa anche il contesto della conversazione per risposte più coerenti
+    const answer = await generateMultiDocumentAnswer(message, searchResults, conversationContext);
 
     // Costruisci risposta completa
     let responseMessage = answer.answer;

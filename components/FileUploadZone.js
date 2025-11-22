@@ -5,9 +5,11 @@ import { HiOutlineUpload, HiX, HiDocumentText, HiPhotograph } from 'react-icons/
 export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
 
   const onDrop = useCallback(async (acceptedFiles) => {
     setUploading(true);
+    setUploadProgress({ current: 0, total: acceptedFiles.length });
     
     try {
       // Prepara FormData per inviare i file al server
@@ -17,10 +19,17 @@ export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
       });
 
       // Carica e analizza i file sul server
+      // Usa AbortController per timeout (opzionale)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minuti timeout
+
       const response = await fetch('/api/chat/upload-document', {
         method: 'POST',
         body: formData,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       // L'API restituisce sempre JSON, quindi proviamo sempre a parsare come JSON
       let result;
@@ -71,6 +80,7 @@ export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
       // Mostra messaggio di successo o errore
       if (newFiles.length > 0) {
         console.log(`${newFiles.length} file analizzati con successo`);
+        setUploadProgress({ current: acceptedFiles.length, total: acceptedFiles.length });
         
         // Aggiorna lo stato
         setUploadedFiles(prev => {
@@ -111,6 +121,7 @@ export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
       alert(`Errore nel caricamento: ${errorMessage}\n\nVerifica che:\n- Il file sia un documento supportato (PDF, DOCX, XLSX, TXT)\n- Il file non superi i 50MB\n- La tua connessione internet sia attiva`);
     } finally {
       setUploading(false);
+      setUploadProgress({ current: 0, total: 0 });
     }
   }, [onFilesSelected]); // Rimuovo uploadedFiles dalle dipendenze
 
@@ -201,7 +212,21 @@ export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
         {uploading && (
           <div style={{ ...styles.uploadingIndicator, pointerEvents: 'none' }}>
             <div style={styles.spinner}></div>
-            <span>Caricamento...</span>
+            <span>
+              {uploadProgress.total > 1 
+                ? `Caricamento ${uploadProgress.current}/${uploadProgress.total} file...`
+                : 'Caricamento e analisi in corso...'}
+            </span>
+            {uploadProgress.total > 1 && (
+              <div style={styles.progressBar}>
+                <div 
+                  style={{
+                    ...styles.progressFill,
+                    width: `${(uploadProgress.current / uploadProgress.total) * 100}%`
+                  }}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -309,6 +334,21 @@ const styles = {
     borderTopColor: '#667eea',
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite'
+  },
+  progressBar: {
+    width: '100%',
+    maxWidth: '300px',
+    height: '4px',
+    background: 'rgba(102, 126, 234, 0.2)',
+    borderRadius: '2px',
+    marginTop: '8px',
+    overflow: 'hidden'
+  },
+  progressFill: {
+    height: '100%',
+    background: 'linear-gradient(90deg, #667eea 0%, #8a5db8 100%)',
+    borderRadius: '2px',
+    transition: 'width 0.3s ease'
   },
   filesList: {
     marginTop: '32px'

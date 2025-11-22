@@ -42,9 +42,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Nessun file caricato' });
     }
 
-    const results = [];
-
-    for (const file of fileArray) {
+    // Processa i file in parallelo per velocità
+    const processFile = async (file) => {
       try {
         // Leggi il file come buffer
         const buffer = fs.readFileSync(file.filepath);
@@ -62,22 +61,20 @@ export default async function handler(req, res) {
           console.log(`Extracted text length: ${text ? text.length : 0} characters`);
         } catch (extractError) {
           console.error(`Error extracting text from ${filename}:`, extractError);
-          results.push({
+          return {
             filename,
             success: false,
             error: `Errore estrazione testo: ${extractError.message}`,
-          });
-          continue;
+          };
         }
 
         if (!text || text.trim().length === 0) {
           console.warn(`No text extracted from ${filename}`);
-          results.push({
+          return {
             filename,
             success: false,
             error: 'Nessun testo estratto dal documento',
-          });
-          continue;
+          };
         }
 
         // Genera ID unico per il file
@@ -105,7 +102,14 @@ export default async function handler(req, res) {
         console.log(`Verification - Document ${fileId} exists:`, savedDoc ? 'YES' : 'NO');
         console.log(`Total documents in store: ${stats.totalDocuments}`);
 
-        results.push({
+        // Pulisci il file temporaneo
+        try {
+          fs.unlinkSync(file.filepath);
+        } catch (unlinkError) {
+          console.warn('Errore eliminazione file temporaneo:', unlinkError);
+        }
+
+        return {
           fileId,
           filename,
           success: true,
@@ -113,22 +117,25 @@ export default async function handler(req, res) {
           chunkCount: stored.chunkCount,
           pages: metadata.pages || 0,
           size: buffer.length,
-        });
-
-        // Pulisci il file temporaneo
-        try {
-          fs.unlinkSync(file.filepath);
-        } catch (unlinkError) {
-          console.warn('Errore eliminazione file temporaneo:', unlinkError);
-        }
+        };
       } catch (fileError) {
         console.error('Errore processamento file:', fileError);
-        results.push({
+        return {
           filename: file.originalFilename || file.newFilename,
           success: false,
           error: fileError.message || 'Errore durante il processamento',
-        });
+        };
       }
+    };
+
+    // Processa tutti i file in parallelo (fino a 5 alla volta per non sovraccaricare)
+    const BATCH_SIZE = 5;
+    const results = [];
+    
+    for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {
+      const batch = fileArray.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.all(batch.map(processFile));
+      results.push(...batchResults);
     }
 
     const successCount = results.filter(r => r.success).length;

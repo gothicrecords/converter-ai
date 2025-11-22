@@ -1,0 +1,2 @@
+/* Redirect wrapper to avoid 404s if /styles/styles.css is requested */
+@import url("/styles.css");
