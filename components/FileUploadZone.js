@@ -9,26 +9,115 @@ export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
   const onDrop = useCallback(async (acceptedFiles) => {
     setUploading(true);
     
-    const newFiles = acceptedFiles.map(file => ({
-      file,
-      id: Math.random().toString(36).substr(2, 9),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null
-    }));
+    try {
+      // Prepara FormData per inviare i file al server
+      const formData = new FormData();
+      acceptedFiles.forEach(file => {
+        formData.append('files', file);
+      });
 
-    setUploadedFiles(prev => [...prev, ...newFiles]);
-    
-    if (onFilesSelected) {
-      onFilesSelected([...uploadedFiles, ...newFiles]);
+      // Carica e analizza i file sul server
+      const response = await fetch('/api/chat/upload-document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      // L'API restituisce sempre JSON, quindi proviamo sempre a parsare come JSON
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        // Se il parsing JSON fallisce, è un errore grave
+        console.error('Error parsing JSON response:', jsonError);
+        if (!response.ok) {
+          throw new Error(`Errore HTTP ${response.status}: impossibile parsare la risposta`);
+        }
+        throw new Error('Formato risposta non valido dal server');
+      }
+
+      // Controlla se la risposta è OK dopo il parsing
+      if (!response.ok) {
+        const errorMessage = result?.error || result?.details || `Errore HTTP ${response.status}`;
+        throw new Error(errorMessage);
+      }
+
+      console.log('Upload API response:', result);
+
+      // Verifica che result.files esista e sia un array
+      if (!result.files || !Array.isArray(result.files)) {
+        console.warn('Invalid response format:', result);
+        throw new Error('Formato risposta non valido dal server');
+      }
+
+      // Crea oggetti file con i fileId dal server
+      const newFiles = result.files
+        .filter(f => f.success && f.fileId)
+        .map(fileResult => ({
+          id: fileResult.fileId,
+          fileId: fileResult.fileId,
+          name: fileResult.filename,
+          size: fileResult.size || 0,
+          type: 'document', // Tipo generico per documenti analizzati
+          wordCount: fileResult.wordCount || 0,
+          chunkCount: fileResult.chunkCount || 0,
+          pages: fileResult.pages || 0,
+          preview: null, // Non mostriamo preview per documenti testuali
+        }));
+
+      console.log('Processed new files:', newFiles);
+      console.log('Full API response files:', result.files);
+      console.log('Result structure:', JSON.stringify(result, null, 2));
+      
+      // Mostra messaggio di successo o errore
+      if (newFiles.length > 0) {
+        console.log(`${newFiles.length} file analizzati con successo`);
+        
+        // Aggiorna lo stato
+        setUploadedFiles(prev => {
+          const updated = [...prev, ...newFiles];
+          console.log('Updated uploaded files:', updated);
+          
+          // Chiama onFilesSelected dopo che lo stato è stato aggiornato
+          // Usa setTimeout per evitare il warning React
+          setTimeout(() => {
+            if (onFilesSelected) {
+              console.log('Calling onFilesSelected with files:', updated);
+              onFilesSelected(updated);
+            }
+          }, 0);
+          
+          return updated;
+        });
+      } else {
+        // Se non ci sono file validi, mostra un errore
+        const failedFiles = result.files.filter(f => !f.success);
+        if (failedFiles.length > 0) {
+          // Usa console.warn invece di console.error per evitare l'overlay di Next.js
+          console.warn('Alcuni file non sono stati caricati:', failedFiles);
+          console.warn('Failed files details:', failedFiles.map(f => ({ filename: f.filename, error: f.error })));
+          
+          const errorDetails = failedFiles.map(f => `- ${f.filename}: ${f.error || 'Errore sconosciuto'}`).join('\n');
+          alert(`Errore: ${failedFiles.length} file non sono stati caricati.\n\nDettagli:\n${errorDetails}\n\nVerifica che siano documenti supportati (PDF, DOCX, XLSX, TXT).`);
+        } else {
+          console.warn('Nessun file valido nella risposta:', result);
+          console.warn('Result structure:', JSON.stringify(result, null, 2));
+          alert('Errore: nessun file valido ricevuto dal server. Riprova.\n\nControlla la console per più dettagli.');
+        }
+      }
+    } catch (error) {
+      // Usa console.warn per errori gestiti per evitare l'overlay di Next.js
+      console.warn('Errore caricamento file:', error);
+      const errorMessage = error.message || 'Errore sconosciuto durante il caricamento';
+      alert(`Errore nel caricamento: ${errorMessage}\n\nVerifica che:\n- Il file sia un documento supportato (PDF, DOCX, XLSX, TXT)\n- Il file non superi i 50MB\n- La tua connessione internet sia attiva`);
+    } finally {
+      setUploading(false);
     }
-    
-    setUploading(false);
-  }, [uploadedFiles, onFilesSelected]);
+  }, [onFilesSelected]); // Rimuovo uploadedFiles dalle dipendenze
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
+    noClick: true, // Disabilita il click automatico sul root, lo gestiamo manualmente
+    noKeyboard: false, // Assicura che la tastiera funzioni
     accept: {
       'application/pdf': ['.pdf'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
@@ -45,9 +134,14 @@ export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
   const removeFile = (fileId) => {
     setUploadedFiles(prev => {
       const updated = prev.filter(f => f.id !== fileId);
-      if (onFilesSelected) {
-        onFilesSelected(updated);
-      }
+      
+      // Chiama onFilesSelected dopo che lo stato è stato aggiornato
+      setTimeout(() => {
+        if (onFilesSelected) {
+          onFilesSelected(updated);
+        }
+      }, 0);
+      
       return updated;
     });
   };
@@ -68,7 +162,25 @@ export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
   return (
     <div style={styles.container}>
       <div
-        {...getRootProps()}
+        {...getRootProps({
+          onClick: (e) => {
+            // Ferma la propagazione per evitare che il click chiuda altri elementi
+            e.stopPropagation();
+            // Apri il file dialog quando si clicca sulla zona
+            if (!uploading) {
+              open();
+            }
+          },
+          onKeyDown: (e) => {
+            // Ferma la propagazione anche per la tastiera
+            e.stopPropagation();
+            // Apri il file dialog con Enter o Space
+            if ((e.key === 'Enter' || e.key === ' ') && !uploading) {
+              e.preventDefault();
+              open();
+            }
+          }
+        })}
         style={{
           ...styles.dropzone,
           ...(isDragActive ? styles.dropzoneActive : {}),
@@ -76,18 +188,18 @@ export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
         }}
       >
         <input {...getInputProps()} />
-        <div style={styles.uploadIcon}>
+        <div style={{ ...styles.uploadIcon, pointerEvents: 'none' }}>
           <HiOutlineUpload style={{ fontSize: '48px', color: isDragActive ? '#667eea' : '#94a3b8' }} />
         </div>
-        <h3 style={styles.uploadTitle}>
+        <h3 style={{ ...styles.uploadTitle, pointerEvents: 'none' }}>
           {isDragActive ? 'Rilascia i file qui' : 'Trascina i file o clicca per selezionare'}
         </h3>
-        <p style={styles.uploadDesc}>
+        <p style={{ ...styles.uploadDesc, pointerEvents: 'none' }}>
           Supportati: PDF, DOCX, XLSX, TXT, CSV, Immagini<br/>
           Max 100MB per file
         </p>
         {uploading && (
-          <div style={styles.uploadingIndicator}>
+          <div style={{ ...styles.uploadingIndicator, pointerEvents: 'none' }}>
             <div style={styles.spinner}></div>
             <span>Caricamento...</span>
           </div>
@@ -149,7 +261,11 @@ const styles = {
     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     position: 'relative',
     boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(102, 126, 234, 0.1)',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+    MozUserSelect: 'none',
+    msUserSelect: 'none'
   },
   dropzoneActive: {
     borderColor: '#667eea',

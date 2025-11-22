@@ -8,11 +8,21 @@ import Script from 'next/script';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
 import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
-import DownloadManager from '../components/DownloadManager';
-import ChatSupport from '../components/ChatSupport';
 import { optimizeCoreWebVitals, setupLazyImages } from '../lib/performance';
+
+// Dynamic imports for better code splitting and performance
+const DownloadManager = dynamic(() => import('../components/DownloadManager'), {
+  ssr: false, // Client-side only component
+  loading: () => null, // No loading spinner needed
+});
+
+const ChatSupport = dynamic(() => import('../components/ChatSupport'), {
+  ssr: false, // Client-side only component
+  loading: () => null, // No loading spinner needed
+});
 
 import * as analytics from '../lib/analytics';
 
@@ -148,8 +158,21 @@ function MyApp({ Component, pageProps }) {
         if (typeof setupLazyImages === 'function') {
           setupLazyImages();
         }
+        // Import and use additional performance utilities
+        import('../lib/performance').then(({ optimizeAnimations, measureWebVitals }) => {
+          if (typeof optimizeAnimations === 'function') {
+            optimizeAnimations();
+          }
+          if (typeof measureWebVitals === 'function') {
+            measureWebVitals();
+          }
+        }).catch(() => {
+          // Silently fail if performance utils can't be loaded
+        });
       } catch (error) {
-        console.warn('Performance optimization setup failed:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Performance optimization setup failed:', error);
+        }
       }
     } catch (error) {
       console.warn('Animation setup failed:', error);
@@ -163,31 +186,57 @@ function MyApp({ Component, pageProps }) {
       document.documentElement.style.overflowX = 'hidden';
     }
     
-    // Prefetch ottimizzato solo dopo idle per non bloccare FCP
+    // Intelligent prefetching after page load for better performance
     if (typeof window !== 'undefined') {
+      // Wait for page to be fully interactive
+      const prefetchCriticalRoutes = () => {
+        // Prefetch critical routes based on current page
+        const currentPath = router.asPath;
+        const criticalRoutes = [];
+        
+        // Always prefetch main navigation routes
+        criticalRoutes.push('/tools', '/upscaler', '/pdf');
+        
+        // Add route-specific prefetches
+        if (currentPath === '/') {
+          criticalRoutes.push('/home', '/tools/rimozione-sfondo-ai', '/tools/generazione-immagini-ai');
+        } else if (currentPath.startsWith('/tools')) {
+          criticalRoutes.push('/tools/rimozione-sfondo-ai', '/upscaler');
+        }
+        
+        // Prefetch routes with delay to avoid blocking
+        criticalRoutes.slice(0, 5).forEach((route, index) => {
+          setTimeout(() => {
+            router.prefetch(route).catch(() => {}); // Ignore errors
+          }, index * 200 + 1000); // Start after 1s, 200ms between each
+        });
+      };
+      
+      // Use requestIdleCallback if available, otherwise use setTimeout
       if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => {
-          // Prefetch solo le route più comuni
-          const commonRoutes = [
-            '/tools/rimozione-sfondo-ai',
-            '/tools/generazione-immagini-ai',
-            '/upscaler',
-            '/pdf',
-            '/tools'
-          ];
-          // Prefetch con delay per non sovraccaricare
-          commonRoutes.forEach((route, index) => {
-            setTimeout(() => {
-              router.prefetch(route).catch(() => {}); // Ignora errori
-            }, index * 100);
-          });
-        }, { timeout: 2000 });
+        requestIdleCallback(prefetchCriticalRoutes, { timeout: 3000 });
       } else {
-        // Fallback per browser senza requestIdleCallback
-        setTimeout(() => {
-          router.prefetch('/tools').catch(() => {});
-        }, 2000);
+        setTimeout(prefetchCriticalRoutes, 2000);
       }
+      
+      // Prefetch on link hover (user intent)
+      const prefetchOnHover = (e) => {
+        const link = e.target.closest('a[href]');
+        if (link && link.href.startsWith(window.location.origin)) {
+          const href = link.getAttribute('href');
+          if (href && !href.startsWith('#') && !href.startsWith('http')) {
+            router.prefetch(href).catch(() => {});
+          }
+        }
+      };
+      
+      // Add prefetch on hover for better UX
+      document.addEventListener('mouseover', prefetchOnHover, { passive: true });
+      
+      // Cleanup
+      return () => {
+        document.removeEventListener('mouseover', prefetchOnHover);
+      };
     }
 
     // Track pageviews con Google Analytics e GTM
@@ -302,14 +351,20 @@ function MyApp({ Component, pageProps }) {
           <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
           <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
           
-          {/* Preload critical resources */}
-          <link rel="preload" href="/styles/styles.css" as="style" />
-          <link rel="preload" href="/styles/animations.css" as="style" />
+          {/* CSS files are already imported above, no need for link tags */}
           
-          {/* Prefetch important routes */}
-          <link rel="prefetch" href="/tools" />
-          <link rel="prefetch" href="/upscaler" />
-          <link rel="prefetch" href="/pdf" />
+          {/* DNS prefetch for external resources */}
+          <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+          <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+          
+          {/* Resource hints for critical routes (prefetch in production only) */}
+          {process.env.NODE_ENV === 'production' && (
+            <>
+              <link rel="prefetch" href="/tools" as="document" />
+              <link rel="prefetch" href="/upscaler" as="document" />
+              <link rel="prefetch" href="/pdf" as="document" />
+            </>
+          )}
           
           <title>Tool Suite - Upscaler AI & PDF Converter</title>
           <style>{`
@@ -365,6 +420,30 @@ function MyApp({ Component, pageProps }) {
           `}</style>
         </Head>
 
+      {/* Google Analytics 4 - Primary (G-34NK4NEB9B) */}
+      <Script
+        id="google-analytics"
+        strategy="afterInteractive"
+        src="https://www.googletagmanager.com/gtag/js?id=G-34NK4NEB9B"
+      />
+      <Script
+        id="google-analytics-init"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-34NK4NEB9B', {
+              page_path: window.location.pathname,
+              page_location: window.location.href,
+              page_title: document.title,
+              send_page_view: true,
+            });
+          `,
+        }}
+      />
+
       {/* Google Tag Manager */}
       {analytics.ENABLE_ANALYTICS && analytics.GTM_ID !== 'GTM-XXXXXXX' && (
         <>
@@ -392,8 +471,8 @@ function MyApp({ Component, pageProps }) {
         </>
       )}
 
-      {/* Google Analytics 4 - Enhanced */}
-      {analytics.ENABLE_ANALYTICS && analytics.GA_TRACKING_ID !== 'G-XXXXXXXXXX' && (
+      {/* Google Analytics 4 - Enhanced (Additional tracking if configured) */}
+      {analytics.ENABLE_ANALYTICS && analytics.GA_TRACKING_ID !== 'G-XXXXXXXXXX' && analytics.GA_TRACKING_ID !== 'G-34NK4NEB9B' && (
         <>
           <Script
             strategy="afterInteractive"

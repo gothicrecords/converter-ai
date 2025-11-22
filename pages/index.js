@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
 import { memo, useMemo, useState, useEffect } from 'react';
 import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
@@ -8,7 +9,11 @@ import { useTranslation } from '../lib/i18n';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 
-import Footer from '../components/Footer';
+// Dynamic import for Footer to reduce initial bundle size
+const Footer = dynamic(() => import('../components/Footer'), {
+  ssr: true, // Footer can be server-side rendered
+  loading: () => null, // No loading indicator needed
+});
 
 // Memoized components for better performance
 const AnimatedBadge = memo(({ icon: Icon, text }) => (
@@ -28,7 +33,7 @@ const StatItem = memo(({ value, label, delay }) => (
 StatItem.displayName = 'StatItem';
 
 const FeatureCard = memo(({ icon, title, description, delay }) => (
-  <div style={styles.featureCard} className="animate-slide-up" data-delay={delay}>
+  <div style={styles.featureCard} className="animate-slide-up feature-card-hover" data-delay={delay}>
     <div style={styles.featureIconPro}>
       {icon}
     </div>
@@ -38,11 +43,12 @@ const FeatureCard = memo(({ icon, title, description, delay }) => (
 ));
 FeatureCard.displayName = 'FeatureCard';
 
-export default function HomePage() {
+// Memoize the main component to prevent unnecessary re-renders
+const HomePage = () => {
   const { t } = useTranslation();
   const [isMobile, setIsMobile] = useState(false);
   
-  // Conta strumenti per categoria
+  // Conta strumenti per categoria - memoized to avoid recalculation
   const categoryCounts = useMemo(() => {
     const counts = {
       'Immagini': 0,
@@ -225,7 +231,7 @@ export default function HomePage() {
           }}>
             <div style={styles.aiDocumentsFeature} className="animate-slide-up ai-feature-hover" data-delay="0">
               <div style={styles.aiDocumentsFeatureIcon}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                   <polyline points="14 2 14 8 20 8"></polyline>
                 </svg>
@@ -235,7 +241,7 @@ export default function HomePage() {
             </div>
             <div style={styles.aiDocumentsFeature} className="animate-slide-up ai-feature-hover" data-delay="1">
               <div style={styles.aiDocumentsFeatureIcon}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
               </div>
@@ -244,7 +250,7 @@ export default function HomePage() {
             </div>
             <div style={styles.aiDocumentsFeature} className="animate-slide-up ai-feature-hover" data-delay="2">
               <div style={styles.aiDocumentsFeatureIcon}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="11" cy="11" r="8"></circle>
                   <path d="m21 21-4.35-4.35"></path>
                 </svg>
@@ -254,7 +260,7 @@ export default function HomePage() {
             </div>
             <div style={styles.aiDocumentsFeature} className="animate-slide-up ai-feature-hover" data-delay="3">
               <div style={styles.aiDocumentsFeatureIcon}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                 </svg>
               </div>
@@ -391,7 +397,7 @@ export default function HomePage() {
             ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
           }} className="animate-slide-up tool-highlight-hover" data-delay="0">
             <div style={styles.toolHighlightIcon}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
                 <polyline points="21 15 16 10 5 21"></polyline>
@@ -405,7 +411,7 @@ export default function HomePage() {
             ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
           }} className="animate-slide-up tool-highlight-hover" data-delay="1">
             <div style={styles.toolHighlightIcon}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -421,7 +427,7 @@ export default function HomePage() {
             ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
           }} className="animate-slide-up tool-highlight-hover" data-delay="2">
             <div style={styles.toolHighlightIcon}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
                 <path d="M9 18V5l12-2v13"></path>
                 <circle cx="6" cy="18" r="3"></circle>
                 <circle cx="18" cy="16" r="3"></circle>
@@ -435,7 +441,7 @@ export default function HomePage() {
             ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
           }} className="animate-slide-up tool-highlight-hover" data-delay="3">
             <div style={styles.toolHighlightIcon}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
                 <polyline points="4 7 4 4 20 4 20 7"></polyline>
                 <line x1="9" y1="20" x2="15" y2="20"></line>
                 <line x1="12" y1="4" x2="12" y2="20"></line>
@@ -449,7 +455,7 @@ export default function HomePage() {
             ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
           }} className="animate-slide-up tool-highlight-hover" data-delay="4">
             <div style={styles.toolHighlightIcon}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
               </svg>
@@ -462,7 +468,7 @@ export default function HomePage() {
             ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
           }} className="animate-slide-up tool-highlight-hover" data-delay="5">
             <div style={styles.toolHighlightIcon}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -483,7 +489,10 @@ export default function HomePage() {
       <Footer />
     </div>
   );
-}
+};
+
+// Export memoized component for better performance
+export default memo(HomePage);
 
 const styles = {
   homeWrap: {
@@ -563,8 +572,18 @@ const styles = {
     willChange: 'transform, border-color'
   },
   aiDocumentsFeatureIcon: {
-    fontSize: '32px',
-    marginBottom: '12px'
+    width: '56px',
+    height: '56px',
+    margin: '0 auto 16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.2) 100%)',
+    borderRadius: '16px',
+    border: '1px solid rgba(102, 126, 234, 0.35)',
+    boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3), 0 0 12px rgba(102, 126, 234, 0.15)',
+    transition: 'all 0.3s ease',
+    color: '#a78bfa'
   },
   aiDocumentsFeatureTitle: {
     fontSize: '16px',
@@ -797,10 +816,13 @@ const styles = {
     width: '56px',
     height: '56px',
     margin: '0 auto 12px',
-    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.15) 100%)',
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.2) 100%)',
     borderRadius: '16px',
-    border: '1px solid rgba(102, 126, 234, 0.3)',
-    transition: 'all 0.3s ease'
+    border: '1px solid rgba(102, 126, 234, 0.35)',
+    boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3), 0 0 12px rgba(102, 126, 234, 0.15)',
+    transition: 'all 0.3s ease',
+    position: 'relative',
+    overflow: 'hidden'
   },
   toolHighlightTitle: {
     fontSize: '16px',

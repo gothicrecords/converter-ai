@@ -356,14 +356,78 @@ html.animations-ready .animate-slide-up {
 
 .hover-lift {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, box-shadow;
+  will-change: transform, box-shadow, background, filter;
   backface-visibility: hidden;
 }
 
 .hover-lift:hover {
   transform: translateY(-4px) scale(1.02) translateZ(0);
-  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4), 
-              0 0 30px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5), 
+              0 0 40px rgba(102, 126, 234, 0.4),
+              0 0 60px rgba(102, 126, 234, 0.2);
+}
+
+/* Effetto illuminazione intenso per pulsanti primari con gradient */
+a.hover-lift[href="/tools"]:hover,
+a.hover-lift[href="/chat"]:hover {
+  background: linear-gradient(135deg, #7c8ef5 0%, #8a5db8 100%) !important;
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.7), 
+              0 0 50px rgba(102, 126, 234, 0.6),
+              0 0 80px rgba(102, 126, 234, 0.4),
+              inset 0 0 20px rgba(255, 255, 255, 0.15) !important;
+  filter: brightness(1.15);
+}
+
+/* Effetto illuminazione per pulsanti secondari */
+a.hover-lift[href="/home"]:hover {
+  background: rgba(102, 126, 234, 0.3) !important;
+  border-color: rgba(102, 126, 234, 0.7) !important;
+  box-shadow: 0 8px 28px rgba(102, 126, 234, 0.5), 
+              0 0 35px rgba(102, 126, 234, 0.4),
+              0 0 55px rgba(102, 126, 234, 0.2) !important;
+  color: #e2e8f0 !important;
+  filter: brightness(1.2);
+}
+
+/* Effetto per pulsante "Esplora" nella sezione tools */
+a.hover-lift[href="/tools"]:hover:not([style*="mainPrimaryCta"]) {
+  background: rgba(102, 126, 234, 0.3) !important;
+  border-color: rgba(102, 126, 234, 0.7) !important;
+  box-shadow: 0 8px 28px rgba(102, 126, 234, 0.5), 
+              0 0 35px rgba(102, 126, 234, 0.4),
+              0 0 55px rgba(102, 126, 234, 0.2) !important;
+  color: #a78bfa !important;
+  filter: brightness(1.2);
+}
+
+/* Effetto illuminazione per pulsanti primari */
+.hover-lift[style*="mainPrimaryCta"],
+.hover-lift[style*="primaryCta"] {
+  position: relative;
+}
+
+.hover-lift[style*="mainPrimaryCta"]:hover,
+.hover-lift[style*="primaryCta"]:hover {
+  background: linear-gradient(135deg, #7c8ef5 0%, #8a5db8 100%) !important;
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.7), 
+              0 0 60px rgba(102, 126, 234, 0.6),
+              0 0 100px rgba(102, 126, 234, 0.4),
+              inset 0 0 25px rgba(255, 255, 255, 0.15) !important;
+  filter: brightness(1.2);
+  transform: translateY(-5px) scale(1.03) translateZ(0) !important;
+}
+
+/* Effetto illuminazione per pulsanti secondari */
+.hover-lift[style*="mainSecondaryCta"]:hover,
+.hover-lift[style*="toolsPreviewCta"]:hover {
+  background: rgba(102, 126, 234, 0.3) !important;
+  border-color: rgba(102, 126, 234, 0.7) !important;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5), 
+              0 0 40px rgba(102, 126, 234, 0.4),
+              0 0 60px rgba(102, 126, 234, 0.25) !important;
+  color: #e2e8f0 !important;
+  filter: brightness(1.25);
+  transform: translateY(-4px) scale(1.02) translateZ(0) !important;
 }
 
 .ai-feature-hover {
@@ -371,9 +435,39 @@ html.animations-ready .animate-slide-up {
 }
 
 .ai-feature-hover:hover {
-  transform: translateY(-5px) translateZ(0);
+  transform: translateY(-6px) scale(1.02) translateZ(0);
+  border-color: rgba(102, 126, 234, 0.6) !important;
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4),
+              0 0 50px rgba(102, 126, 234, 0.3),
+              0 0 70px rgba(102, 126, 234, 0.15) !important;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.7) 100%) !important;
+}
+
+.ai-feature-hover:hover [style*="aiDocumentsFeatureIcon"] {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4),
+              0 0 25px rgba(102, 126, 234, 0.3);
   border-color: rgba(102, 126, 234, 0.5) !important;
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+}
+
+/* Effetto per FeatureCard */
+.feature-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feature-card-hover:hover {
+  transform: translateY(-6px) scale(1.02) translateZ(0) !important;
+  border-color: rgba(102, 126, 234, 0.6) !important;
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4),
+              0 0 50px rgba(102, 126, 234, 0.3),
+              0 0 70px rgba(102, 126, 234, 0.15) !important;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.7) 100%) !important;
+}
+
+.feature-card-hover:hover [style*="featureIconPro"] {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4),
+              0 0 25px rgba(102, 126, 234, 0.3);
 }
 
 .tool-highlight-hover {
@@ -393,10 +487,20 @@ html.animations-ready .animate-slide-up {
 
 .tool-highlight-hover:hover {
   transform: translateY(-8px) scale(1.05) translateZ(0);
-  border-color: rgba(102, 126, 234, 0.6) !important;
-  box-shadow: 0 20px 50px rgba(102, 126, 234, 0.4),
-              0 0 30px rgba(102, 126, 234, 0.3),
-              inset 0 0 20px rgba(102, 126, 234, 0.1);
+  border-color: rgba(102, 126, 234, 0.7) !important;
+  box-shadow: 0 20px 50px rgba(102, 126, 234, 0.5),
+              0 0 40px rgba(102, 126, 234, 0.4),
+              0 0 60px rgba(102, 126, 234, 0.25),
+              inset 0 0 25px rgba(102, 126, 234, 0.15) !important;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.8) 100%) !important;
+}
+
+.tool-highlight-hover:hover .toolHighlightIcon,
+.tool-highlight-hover:hover [style*="toolHighlightIcon"],
+.ai-feature-hover:hover [style*="aiDocumentsFeatureIcon"] {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4),
+              0 0 16px rgba(102, 126, 234, 0.2);
 }
 
 .tool-highlight-hover:hover::after {

@@ -77,8 +77,12 @@ export default function ChatMessage({ message, onFileClick }) {
         <div style={{
           borderRadius: '16px',
           padding: '16px 20px',
-          background: isUser ? '#667eea' : 'rgba(255, 255, 255, 0.05)',
-          border: isUser ? 'none' : '1px solid rgba(102, 126, 234, 0.2)',
+          background: message.error 
+            ? 'rgba(239, 68, 68, 0.15)' 
+            : (isUser ? '#667eea' : 'rgba(255, 255, 255, 0.05)'),
+          border: message.error 
+            ? '1px solid rgba(239, 68, 68, 0.4)' 
+            : (isUser ? 'none' : '1px solid rgba(102, 126, 234, 0.2)'),
           color: isUser ? 'white' : '#f1f5f9',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
         }}>

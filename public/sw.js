@@ -1,49 +1,114 @@
 // Service Worker for Performance Optimization
 // Caches static assets and API responses for offline support and faster loading
 
-const CACHE_NAME = 'megapixelai-v1';
-const STATIC_CACHE = 'static-v1';
-const API_CACHE = 'api-v1';
-const IMAGE_CACHE = 'images-v1';
+const CACHE_VERSION = 'v2.0.1';
+const CACHE_NAME = `megapixelai-${CACHE_VERSION}`;
+const STATIC_CACHE = `static-${CACHE_VERSION}`;
+const API_CACHE = `api-${CACHE_VERSION}`;
+const IMAGE_CACHE = `images-${CACHE_VERSION}`;
+const MAX_CACHE_SIZE = 50 * 1024 * 1024; // 50MB max cache size
+const MAX_CACHE_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-// Assets to cache on install
+// Critical assets to cache on install
 const STATIC_ASSETS = [
   '/',
   '/home',
   '/tools',
-  '/styles/styles.css',
-  '/styles/animations.css',
   '/favicon.svg',
   '/logo.svg',
 ];
 
-// Install event - cache static assets
+// Install event - cache static assets with error handling
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
+    caches.open(STATIC_CACHE)
+      .then((cache) => {
+        // Cache critical assets, ignore failures for non-critical ones
+        return Promise.allSettled(
+          STATIC_ASSETS.map(url => 
+            cache.add(url).catch(err => {
+              console.warn(`Failed to cache ${url}:`, err);
+              return null;
+            })
+          )
+        );
+      })
+      .catch(err => {
+        console.error('Cache installation failed:', err);
+      })
   );
-  self.skipWaiting();
+  self.skipWaiting(); // Activate immediately
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and manage cache size
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
-      return Promise.all(
+      // Delete old caches
+      const deleteOldCaches = Promise.all(
         cacheNames
           .filter((name) => {
-            return name !== STATIC_CACHE && 
-                   name !== API_CACHE && 
-                   name !== IMAGE_CACHE;
+            return !name.includes(CACHE_VERSION);
           })
-          .map((name) => caches.delete(name))
+          .map((name) => {
+            console.log('Deleting old cache:', name);
+            return caches.delete(name);
+          })
       );
+      
+      // Clean up cache size if needed
+      return deleteOldCaches.then(() => {
+        return manageCacheSize();
+      });
     })
   );
-  return self.clients.claim();
+  return self.clients.claim(); // Take control immediately
 });
+
+// Manage cache size to prevent overflow
+async function manageCacheSize() {
+  const cacheNames = await caches.keys();
+  let totalSize = 0;
+  const cacheEntries = [];
+  
+  // Calculate total cache size
+  for (const cacheName of cacheNames) {
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+    
+    for (const request of keys) {
+      const response = await cache.match(request);
+      if (response) {
+        const blob = await response.blob();
+        const size = blob.size;
+        totalSize += size;
+        cacheEntries.push({ cacheName, request, size, timestamp: Date.now() });
+      }
+    }
+  }
+  
+  // If cache exceeds max size, remove oldest entries
+  if (totalSize > MAX_CACHE_SIZE) {
+    cacheEntries.sort((a, b) => a.timestamp - b.timestamp);
+    
+    for (const entry of cacheEntries) {
+      if (totalSize <= MAX_CACHE_SIZE * 0.8) break; // Remove until 80% of max
+    
+      const cache = await caches.open(entry.cacheName);
+      await cache.delete(entry.request);
+      totalSize -= entry.size;
+    }
+  }
+  
+  // Remove entries older than MAX_CACHE_AGE
+  const now = Date.now();
+  for (const entry of cacheEntries) {
+    if (now - entry.timestamp > MAX_CACHE_AGE) {
+      const cache = await caches.open(entry.cacheName);
+      await cache.delete(entry.request);
+    }
+  }
+}
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
@@ -60,7 +125,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache strategy for static assets
+  // Cache strategy for static assets - Cache First
   if (url.pathname.startsWith('/_next/static/') || 
       url.pathname.startsWith('/static/') ||
       url.pathname.match(/\.(js|css|woff|woff2|ttf|eot|svg)$/)) {
@@ -69,56 +134,108 @@ self.addEventListener('fetch', (event) => {
         if (cached) {
           return cached;
         }
-        return fetch(request).then((response) => {
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(STATIC_CACHE).then((cache) => {
-              cache.put(request, responseClone);
+        return fetch(request)
+          .then((response) => {
+            // Only cache successful responses
+            if (response.status === 200 && response.type === 'basic') {
+              const responseClone = response.clone();
+              caches.open(STATIC_CACHE).then((cache) => {
+                cache.put(request, responseClone).catch(err => {
+                  console.warn('Failed to cache static asset:', err);
+                });
+              });
+            }
+            return response;
+          })
+          .catch(() => {
+            // Return offline fallback if network fails
+            return new Response('Offline', { 
+              status: 503, 
+              headers: { 'Content-Type': 'text/plain' } 
             });
-          }
-          return response;
-        });
+          });
       })
     );
     return;
   }
 
-  // Cache strategy for images
-  if (url.pathname.match(/\.(jpg|jpeg|png|gif|webp|avif|svg)$/i)) {
+  // Cache strategy for images - Cache First with Stale-While-Revalidate
+  if (url.pathname.match(/\.(jpg|jpeg|png|gif|webp|avif|svg)$/i) || 
+      url.pathname.startsWith('/_next/image')) {
     event.respondWith(
       caches.match(request).then((cached) => {
-        if (cached) {
-          return cached;
-        }
-        return fetch(request).then((response) => {
-          if (response.status === 200) {
+        const fetchPromise = fetch(request).then((response) => {
+          if (response.status === 200 && response.type === 'basic') {
             const responseClone = response.clone();
             caches.open(IMAGE_CACHE).then((cache) => {
-              cache.put(request, responseClone);
+              cache.put(request, responseClone).catch(err => {
+                console.warn('Failed to cache image:', err);
+              });
             });
           }
           return response;
+        }).catch(() => {
+          // Return cached version if network fails
+          return cached || new Response('Image unavailable', { 
+            status: 503,
+            headers: { 'Content-Type': 'text/plain' }
+          });
         });
+        
+        // Return cached version immediately, update in background
+        return cached || fetchPromise;
       })
     );
     return;
   }
 
-  // Network-first strategy for API calls
+  // Network-first strategy for API calls with short cache TTL
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(request)
+      fetch(request, { 
+        cache: 'no-store', // Always fetch fresh
+        headers: {
+          ...request.headers,
+          'Cache-Control': 'no-cache',
+        }
+      })
         .then((response) => {
-          if (response.status === 200) {
+          // Only cache GET requests and successful responses
+          if (request.method === 'GET' && response.status === 200) {
             const responseClone = response.clone();
             caches.open(API_CACHE).then((cache) => {
-              cache.put(request, responseClone);
+              // Cache with timestamp for expiration
+              const headers = new Headers(responseClone.headers);
+              headers.set('sw-cached-at', Date.now().toString());
+              const cachedResponse = new Response(responseClone.body, {
+                status: responseClone.status,
+                statusText: responseClone.statusText,
+                headers: headers,
+              });
+              
+              cache.put(request, cachedResponse).catch(err => {
+                console.warn('Failed to cache API response:', err);
+              });
             });
           }
           return response;
         })
         .catch(() => {
-          return caches.match(request);
+          // Return cached version if network fails (for offline support)
+          return caches.match(request).then(cached => {
+            if (cached) {
+              // Check if cache is still valid (5 minutes TTL for API)
+              const cachedAt = parseInt(cached.headers.get('sw-cached-at') || '0');
+              const cacheAge = Date.now() - cachedAt;
+              if (cacheAge < 5 * 60 * 1000) { // 5 minutes
+                return cached;
+              }
+            }
+            return new Response(JSON.stringify({ error: 'Offline' }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          });
         })
     );
     return;

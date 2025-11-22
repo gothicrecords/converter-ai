@@ -14,7 +14,7 @@ module.exports = {
   endOfLine: 'lf',
   bracketSpacing: true,
   jsxSingleQuote: true,
-  jsxBracketSameLine: false,
+  bracketSameLine: false,
   plugins: ['prettier-plugin-jsdoc'],
 };
 

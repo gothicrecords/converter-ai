@@ -19,9 +19,18 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
     e.preventDefault();
     if (!message.trim() || disabled) return;
 
+    // Usa i fileIds dai documenti caricati (selectedFiles) e dai file allegati
+    const allFileIds = [
+      ...selectedFiles.map(f => f.fileId || f.id).filter(Boolean),
+      ...attachedFiles.map(f => f.fileId || f.id).filter(Boolean),
+    ];
+    
+    // Rimuovi duplicati
+    const uniqueFileIds = [...new Set(allFileIds)];
+
     onSendMessage({
       content: message,
-      fileIds: attachedFiles.map(f => f.id),
+      fileIds: uniqueFileIds.length > 0 ? uniqueFileIds : undefined, // Passa solo se ci sono file
     });
 
     setMessage('');
@@ -172,6 +181,8 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
           <button
             type="button"
             onClick={handleFileUploadClick}
+            aria-label="Carica file"
+            title="Carica file"
             style={{
               background: 'transparent',
               border: 'none',
@@ -195,22 +206,28 @@ export default function ChatInput({ onSendMessage, disabled, selectedFiles = [] 
         
         <input
           ref={fileInputRef}
+          id="file-upload-input"
+          name="file-upload"
           type="file"
           multiple
           accept=".pdf,.doc,.docx,.txt"
           onChange={handleFileChange}
           style={{ display: 'none' }}
+          aria-label="Carica file"
         />
         
         <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
           <textarea
             ref={textareaRef}
+            id="chat-message-input"
+            name="chat-message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={isMobile ? "Scrivi un messaggio..." : "Ask me anything about your files... (Shift+Enter for new line)"}
             disabled={disabled}
             rows={1}
+            aria-label="Messaggio chat"
             style={{
               flex: 1,
               padding: isMobile ? '7px 12px' : '14px 16px',

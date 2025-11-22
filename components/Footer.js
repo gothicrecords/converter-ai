@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import React from 'react';
+import React, { memo } from 'react';
 import { useTranslation } from '../lib/i18n';
 
 const Footer = () => {
@@ -41,7 +41,8 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+// Memoize Footer to prevent unnecessary re-renders
+export default memo(Footer);
 
 const styles = {
   footer: {

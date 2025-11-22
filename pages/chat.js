@@ -70,11 +70,33 @@ function ChatPage() {
   const handleSendMessage = async ({ content, fileIds }) => {
     setSending(true);
 
+    // Log per debug
+    console.log('Sending message with fileIds:', fileIds);
+    console.log('Available files:', files);
+
+    // Combina fileIds passati esplicitamente con quelli disponibili nello stato
+    const allFileIds = new Set();
+    
+    if (fileIds && Array.isArray(fileIds)) {
+      fileIds.forEach(id => allFileIds.add(id));
+    }
+    
+    // Aggiungi anche i fileId dei file caricati
+    files.forEach(f => {
+      const id = f.fileId || f.id;
+      if (id) allFileIds.add(id);
+    });
+
+    const finalFileIds = Array.from(allFileIds);
+    console.log('Final fileIds to send:', finalFileIds);
+
     // Add user message
     const userMsg = {
       role: 'user',
       content,
-      file_references: fileIds.map(id => files.find(f => f.id === id)).filter(Boolean),
+      file_references: finalFileIds
+        .map(id => files.find(f => (f.fileId || f.id) === id))
+        .filter(Boolean),
       created_at: new Date().toISOString(),
     };
     setMessages(prev => [...prev, userMsg]);
@@ -97,23 +119,44 @@ function ChatPage() {
         },
         body: JSON.stringify({
           message: content,
+          fileIds: finalFileIds, // Usa i fileIds finali già calcolati
           conversationHistory: messages.filter(m => !m.thinking).slice(-5), // Last 5 messages for context
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to get response');
+      // Parse response
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('Error parsing JSON response:', jsonError);
+        // Even if JSON parsing fails, try to get text
+        try {
+          const textResponse = await response.text();
+          console.error('Non-JSON response:', textResponse);
+          data = {
+            message: 'Errore nel formato della risposta. Riprova.',
+            error: true
+          };
+        } catch (textError) {
+          console.error('Error reading response:', textError);
+          data = {
+            message: 'Errore nella comunicazione con il server. Riprova.',
+            error: true
+          };
+        }
       }
 
+      // Create AI response (API always returns 200 with a message)
       const aiResponse = {
         role: 'assistant',
-        content: data.message || `I received your message: "${content}"\n\nError: Unable to get AI response. Please check your OpenAI API key configuration.`,
+        content: data.message || data.content || `Ho ricevuto il tuo messaggio: "${content}"`,
         file_references: [],
+        error: data.error || data.fallback || false,
         created_at: new Date().toISOString(),
       };
 
+      // Remove thinking indicator and add response
       setMessages(prev => {
         const filtered = prev.filter(m => !m.thinking);
         return [...filtered, aiResponse];
@@ -122,7 +165,17 @@ function ChatPage() {
     } catch (error) {
       console.error('Send message error:', error);
       setMessages(prev => prev.filter(m => !m.thinking));
-      alert('Failed to send message: ' + error.message);
+      
+      // Show user-friendly error message
+      const errorMessage = error.message || 'Errore sconosciuto durante l\'invio del messaggio';
+      const errorMsg = {
+        role: 'assistant',
+        content: `❌ **Errore**: ${errorMessage}\n\nVerifica che:\n- Il servizio AI sia configurato correttamente\n- La tua connessione internet sia attiva\n- Riprova tra qualche istante`,
+        error: true,
+        created_at: new Date().toISOString(),
+      };
+      
+      setMessages(prev => [...prev, errorMsg]);
     } finally {
       setSending(false);
     }
@@ -133,17 +186,68 @@ function ChatPage() {
   };
 
   const handleFilesUploaded = (uploadedFiles) => {
-    console.log('Files uploaded:', uploadedFiles);
-    // Mock: in futuro salvare su server
-    const mockFiles = uploadedFiles.map(f => ({
-      id: f.id,
-      name: f.name,
-      original_filename: f.name,
-      size: f.size,
-      type: f.type
-    }));
-    setFiles(prev => [...prev, ...mockFiles]);
-    setShowUpload(false);
+    console.log('Files uploaded and analyzed:', uploadedFiles);
+    
+    if (!uploadedFiles || !Array.isArray(uploadedFiles)) {
+      console.error('Invalid uploadedFiles:', uploadedFiles);
+      return;
+    }
+    
+    // I file sono già stati analizzati dal server e hanno fileId
+    const processedFiles = uploadedFiles
+      .filter(f => f && (f.fileId || f.id)) // Filtra solo file validi con ID
+      .map(f => ({
+        id: f.fileId || f.id,
+        fileId: f.fileId || f.id,
+        name: f.name || f.filename || 'Documento',
+        original_filename: f.name || f.filename || 'Documento',
+        size: f.size || 0,
+        type: f.type || 'document',
+        wordCount: f.wordCount || 0,
+        chunkCount: f.chunkCount || 0,
+        pages: f.pages || 0,
+      }));
+
+    console.log('Processed files to add:', processedFiles);
+
+    // Aggiungi solo i nuovi file (evita duplicati)
+    setFiles(prev => {
+      const existingIds = new Set(prev.map(f => f.fileId || f.id));
+      const newFiles = processedFiles.filter(f => {
+        const fileId = f.fileId || f.id;
+        return fileId && !existingIds.has(fileId);
+      });
+      
+      console.log('Adding new files to state:', newFiles);
+      console.log('Previous files count:', prev.length);
+      console.log('New files count:', newFiles.length);
+      
+      // Mostra messaggio di successo nella chat
+      if (newFiles.length > 0) {
+        const fileNames = newFiles.map(f => f.name).join(', ');
+        const successMsg = {
+          role: 'assistant',
+          content: `✅ **${newFiles.length} documento/i caricato/i con successo!**\n\n**File analizzati:** ${fileNames}\n\nOra puoi fare domande su questi documenti. Il sistema AI locale analizzerà il contenuto e risponderà alle tue domande.`,
+          file_references: newFiles,
+          created_at: new Date().toISOString(),
+        };
+        
+        setMessages(prevMsgs => [...prevMsgs, successMsg]);
+      }
+      
+      return [...prev, ...newFiles];
+    });
+    
+    // Chiudi automaticamente il pannello dopo il caricamento con successo
+    if (processedFiles.length > 0) {
+      setShowUpload(false);
+    }
+    
+    // Mostra messaggio di successo nella console
+    if (processedFiles.length > 0) {
+      const successCount = processedFiles.filter(f => f.fileId || f.id).length;
+      console.log(`${successCount} documenti analizzati e pronti per la chat`);
+    }
   };
 
   const scrollToBottom = () => {
@@ -330,13 +434,22 @@ function ChatPage() {
             {/* Messages */}
             <div style={styles.messagesContainer}>
               {showUpload ? (
-                <div style={{ padding: '24px' }}>
+                <div 
+                  style={{ padding: '24px' }}
+                  onClick={(e) => {
+                    // Ferma la propagazione per evitare che i click chiudano il pannello
+                    e.stopPropagation();
+                  }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                     <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#f1f5f9', margin: 0 }}>
                       Carica Documenti
                     </h2>
                     <button
-                      onClick={() => setShowUpload(false)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowUpload(false);
+                      }}
                       style={{
                         padding: '8px 16px',
                         background: 'rgba(255, 255, 255, 0.05)',
@@ -570,7 +683,7 @@ function ChatPage() {
             <ChatInput
               onSendMessage={handleSendMessage}
               disabled={sending}
-              selectedFiles={files}
+              selectedFiles={files.filter(f => f.fileId || f.id)} // Passa solo file analizzati con fileId
             />
           </main>
         </div>

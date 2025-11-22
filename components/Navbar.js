@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { HiSparkles, HiHome, HiMenu, HiX, HiDotsVertical } from 'react-icons/hi';
@@ -8,8 +8,9 @@ import { getAllCategories, getToolsByCategory } from '../lib/conversionRegistry'
 import { useTranslation } from '../lib/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
 import DropdownPortal from './DropdownPortal';
+import { throttle } from '../lib/performance';
 
-export default function Navbar() {
+const Navbar = () => {
     const { t } = useTranslation();
     const router = useRouter();
     const [isMobile, setIsMobile] = useState(false);
@@ -43,9 +44,10 @@ export default function Navbar() {
     useEffect(() => {
         if (typeof window === 'undefined' || typeof document === 'undefined') return;
         
-        const handleScroll = () => {
+        // Throttle scroll handler for better performance
+        const handleScroll = throttle(() => {
             setScrolled(window.scrollY > 50);
-        };
+        }, 100); // Update at most once per 100ms
 
         const handleClickOutside = (event) => {
             if (navRef.current && !navRef.current.contains(event.target)) {
@@ -55,7 +57,7 @@ export default function Navbar() {
             }
         };
 
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         document.addEventListener('mousedown', handleClickOutside);
 
         return () => {
@@ -305,8 +307,10 @@ export default function Navbar() {
             borderRadius: '10px',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4), 0 0 15px rgba(102, 126, 234, 0.2)',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             backgroundSize: '200% 200%',
+            backgroundPosition: '0% 0%',
+            backgroundRepeat: 'no-repeat',
             position: 'relative',
             overflow: 'hidden',
             willChange: 'transform, box-shadow'
@@ -699,7 +703,7 @@ export default function Navbar() {
                         href="/login" 
                         style={{
                             ...styles.signupBtn,
-                            background: hoveredItem === 'login' ? 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            backgroundImage: hoveredItem === 'login' ? 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                             textDecoration: 'none'
                         }}
                         onMouseEnter={() => setHoveredItem('login')}
@@ -720,6 +724,8 @@ export default function Navbar() {
                                 setMobileMenuOpen(!mobileMenuOpen);
                                 setMobileSecondaryMenuOpen(false);
                             }}
+                            aria-label="Apri menu"
+                            title="Apri menu"
                         >
                             <HiMenu />
                         </button>
@@ -730,6 +736,8 @@ export default function Navbar() {
                                 setMobileSecondaryMenuOpen(!mobileSecondaryMenuOpen);
                                 setMobileMenuOpen(false);
                             }}
+                            aria-label="Apri menu secondario"
+                            title="Apri menu secondario"
                         >
                             <HiDotsVertical />
                         </button>
@@ -756,6 +764,8 @@ export default function Navbar() {
                         <button 
                             style={styles.closeBtn}
                             onClick={() => setMobileMenuOpen(false)}
+                            aria-label="Chiudi menu"
+                            title="Chiudi menu"
                         >
                             <HiX />
                         </button>
@@ -870,4 +880,7 @@ export default function Navbar() {
         </nav>
         </>
     );
-}
+};
+
+// Memoize Navbar to prevent unnecessary re-renders
+export default memo(Navbar);
