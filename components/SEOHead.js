@@ -323,8 +323,12 @@ export default function SEOHead({
             <meta name="duckduckbot" content="index, follow" />
             
             {/* Rich Snippets Support */}
-            <meta name="google-site-verification" content="" />
-            <meta name="msvalidate.01" content="" />
+            {process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION && (
+                <meta name="google-site-verification" content={process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION} />
+            )}
+            {process.env.NEXT_PUBLIC_BING_VERIFICATION && (
+                <meta name="msvalidate.01" content={process.env.NEXT_PUBLIC_BING_VERIFICATION} />
+            )}
             
             {/* Content Type and Encoding */}
             <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />
