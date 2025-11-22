@@ -11,6 +11,8 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   compress: true,
   poweredByHeader: false,
+  swcMinify: true,
+  httpAgentOptions: { keepAlive: true },
   
   // Image optimization
   images: {
@@ -217,15 +219,7 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()'
           },
-          // Performance headers
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'Content-Type',
-            value: 'text/html; charset=utf-8'
-          },
+          // Performance headers (rimuoviamo Content-Type forzato per non rompere API/asset)
         ],
       },
     ];

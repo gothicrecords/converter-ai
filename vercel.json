@@ -5,7 +5,7 @@
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "outputDirectory": ".next",
-  "regions": ["iad1"],
+  "regions": ["all"],
   "functions": {
     "pages/api/upscale.js": {
       "maxDuration": 300
