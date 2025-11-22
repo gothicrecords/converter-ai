@@ -69,35 +69,57 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "Error: VERCEL_TOKEN secret is required for deployment"
             exit 1
           fi
-          # Use --prebuilt only if .vercel/output exists, otherwise let Vercel build
-          if [ -d ".vercel/output" ]; then
-            echo "Deploying prebuilt output..."
-            vercel deploy --prebuilt --yes --token "$VERCEL_TOKEN"
+          # Use existing project if IDs are provided, otherwise Vercel will create new project
+          if [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            if [ -d ".vercel/output" ]; then
+              echo "Deploying prebuilt output to existing project..."
+              vercel deploy --prebuilt --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+            else
+              echo "Deploying to existing project (Vercel will build)..."
+              vercel deploy --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+            fi
           else
-            echo "Deploying without prebuilt (Vercel will build)..."
-            vercel deploy --yes --token "$VERCEL_TOKEN"
+            echo "Warning: VERCEL_ORG_ID or VERCEL_PROJECT_ID not set. This will create a new project."
+            if [ -d ".vercel/output" ]; then
+              vercel deploy --prebuilt --yes --token "$VERCEL_TOKEN"
+            else
+              vercel deploy --yes --token "$VERCEL_TOKEN"
+            fi
           fi
 
       - name: Deploy to Vercel (Production)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "Error: VERCEL_TOKEN secret is required for deployment"
             exit 1
           fi
-          # Use --prebuilt only if .vercel/output exists, otherwise let Vercel build
-          if [ -d ".vercel/output" ]; then
-            echo "Deploying prebuilt output..."
-            vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN"
+          # Use existing project if IDs are provided, otherwise Vercel will create new project
+          if [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            if [ -d ".vercel/output" ]; then
+              echo "Deploying prebuilt output to existing project..."
+              vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+            else
+              echo "Deploying to existing project (Vercel will build)..."
+              vercel deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+            fi
           else
-            echo "Deploying without prebuilt (Vercel will build)..."
-            vercel deploy --prod --yes --token "$VERCEL_TOKEN"
+            echo "Warning: VERCEL_ORG_ID or VERCEL_PROJECT_ID not set. This will create a new project."
+            if [ -d ".vercel/output" ]; then
+              vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN"
+            else
+              vercel deploy --prod --yes --token "$VERCEL_TOKEN"
+            fi
           fi
 
