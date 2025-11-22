@@ -52,3 +52,9 @@ logs/errors.db.json
 # OS
 .DS_Store
 Thumbs.db
+
+# uploads and temp artifacts
+uploads/
+tmp/
+uploads/**
+tmp/**
