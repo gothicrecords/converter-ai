@@ -43,6 +43,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Nessun file caricato' });
     }
 
+    // Enforce max files per richiesta (limite temporaneo: 10)
+    const MAX_FILES = 10;
+    if (fileArray.length > MAX_FILES) {
+      return res.status(400).json({
+        error: `Numero massimo di file per analisi superato: ${fileArray.length} > ${MAX_FILES}`,
+        details: `Carica al massimo ${MAX_FILES} file per volta.`,
+        limit: MAX_FILES,
+      });
+    }
+
     // Processa i file in parallelo per velocità (max 3 alla volta)
     const processFile = async (file) => {
       try {
