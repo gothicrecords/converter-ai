@@ -42,12 +42,12 @@ jobs:
         run: |
           if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
             if [ "${{ github.event_name }}" == "pull_request" ]; then
-              vercel pull --yes --environment=preview --token "$VERCEL_TOKEN" || echo "Warning: vercel pull failed"
+              vercel pull --yes --environment=preview --token "$VERCEL_TOKEN" || exit 1
             elif [ "${{ github.ref }}" == "refs/heads/main" ] || [ "${{ github.ref }}" == "refs/heads/master" ]; then
-              vercel pull --yes --environment=production --token "$VERCEL_TOKEN" || echo "Warning: vercel pull failed"
+              vercel pull --yes --environment=production --token "$VERCEL_TOKEN" || exit 1
             fi
           else
-            echo "Warning: Vercel secrets not fully configured. Skipping vercel pull."
+            echo "Warning: Vercel secrets not fully configured. Will use vercel deploy without --prebuilt."
           fi
         continue-on-error: true
 
@@ -56,10 +56,11 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           NODE_ENV: production
         run: |
-          if [ -n "$VERCEL_TOKEN" ]; then
+          if [ -f ".vercel/project.json" ]; then
+            echo "Project settings found. Building with vercel build..."
             vercel build --token "$VERCEL_TOKEN" --prod
           else
-            echo "Warning: VERCEL_TOKEN not set. Falling back to npm run build."
+            echo "No project settings found. Building with npm run build..."
             npm run build
           fi
 
@@ -73,9 +74,14 @@ jobs:
             echo "Error: VERCEL_TOKEN secret is required for deployment"
             exit 1
           fi
-          # Deploy without requiring VERCEL_ORG_ID and VERCEL_PROJECT_ID
-          # Vercel CLI will auto-detect the project if linked to GitHub
-          vercel deploy --prebuilt --yes --token "$VERCEL_TOKEN"
+          # Use --prebuilt only if .vercel/output exists, otherwise let Vercel build
+          if [ -d ".vercel/output" ]; then
+            echo "Deploying prebuilt output..."
+            vercel deploy --prebuilt --yes --token "$VERCEL_TOKEN"
+          else
+            echo "Deploying without prebuilt (Vercel will build)..."
+            vercel deploy --yes --token "$VERCEL_TOKEN"
+          fi
 
       - name: Deploy to Vercel (Production)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -86,7 +92,12 @@ jobs:
             echo "Error: VERCEL_TOKEN secret is required for deployment"
             exit 1
           fi
-          # Deploy without requiring VERCEL_ORG_ID and VERCEL_PROJECT_ID
-          # Vercel CLI will auto-detect the project if linked to GitHub
-          vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN"
+          # Use --prebuilt only if .vercel/output exists, otherwise let Vercel build
+          if [ -d ".vercel/output" ]; then
+            echo "Deploying prebuilt output..."
+            vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN"
+          else
+            echo "Deploying without prebuilt (Vercel will build)..."
+            vercel deploy --prod --yes --token "$VERCEL_TOKEN"
+          fi
 
