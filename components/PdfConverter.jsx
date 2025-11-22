@@ -135,7 +135,7 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
   };
 
   return (
-    <>
+    <div style={{ background: '#0a0e1a', minHeight: '100vh', width: '100%' }}>
       <Navbar />
       <div className="pdf-wrap">
         <Head>
@@ -255,8 +255,19 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
 
         </div>
 
-        <style jsx>{`/* copy of styles from pages/pdf/index.jsx */
-          .pdf-wrap{max-width:1000px;margin:0 auto;padding:40px 24px}
+        <style jsx global>{`/* copy of styles from pages/pdf/index.jsx */
+          body { 
+            background: #0a0e1a !important; 
+            min-height: 100vh;
+            color: #e2e8f0;
+          }
+          #__next {
+            background: #0a0e1a;
+            min-height: 100vh;
+          }
+        `}</style>
+        <style jsx>{`
+          .pdf-wrap{max-width:1000px;margin:0 auto;padding:40px 24px;background:transparent}
           .page-header{text-align:center;margin-bottom:40px}
           .page-title{font-size:clamp(28px,5vw,40px);font-weight:800;margin:0 0 12px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
           .page-subtitle{font-size:16px;color:#94a3b8;margin:0 auto;max-width:900px;line-height:1.7;text-align:center}
@@ -290,6 +301,6 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
           }
         `}</style>
       </div>
-    </>
+    </div>
   );
 }
