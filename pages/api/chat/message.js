@@ -23,7 +23,7 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log('Chat request:', { message, fileIds: fileIds.length, conversationHistory: conversationHistory.length });
+    console.log('Chat request:', { message, fileIds: fileIds?.length || 0, conversationHistory: conversationHistory.length });
 
     // Ottieni statistiche documenti
     const stats = getDocumentStats();
@@ -31,14 +31,38 @@ export default async function handler(req, res) {
     console.log('=== CHAT API CALL ===');
     console.log('Message:', message);
     console.log('FileIds received:', fileIds);
+    console.log('FileIds type:', typeof fileIds, Array.isArray(fileIds));
     console.log('Document stats:', JSON.stringify(stats, null, 2));
     console.log('Store size:', stats.totalDocuments);
+    
+    // Verifica se ci sono fileIds validi
+    const validFileIds = (fileIds && Array.isArray(fileIds) && fileIds.length > 0) 
+      ? fileIds.filter(id => id && typeof id === 'string')
+      : [];
+    
+    console.log('Valid fileIds:', validFileIds);
+    
+    // Verifica se i fileIds corrispondono a documenti esistenti
+    let documentsFound = 0;
+    if (validFileIds.length > 0) {
+      for (const id of validFileIds) {
+        const doc = getDocument(id);
+        if (doc) {
+          documentsFound++;
+          console.log(`Document found for fileId ${id}:`, doc.metadata?.filename);
+        } else {
+          console.log(`Document NOT found for fileId ${id}`);
+        }
+      }
+    }
+    
+    console.log(`Documents found for fileIds: ${documentsFound}/${validFileIds.length}`);
 
     // IMPORTANTE: Verifica sempre se ci sono documenti disponibili, anche se fileIds è vuoto
     // Il problema potrebbe essere che i fileIds non vengono passati ma i documenti esistono
     
-    // Se non ci sono documenti caricati E non ci sono fileIds specifici
-    if (stats.totalDocuments === 0 && (!fileIds || fileIds.length === 0)) {
+    // Se non ci sono documenti caricati E non ci sono fileIds specifici E non ci sono documenti trovati per i fileIds
+    if (stats.totalDocuments === 0 && validFileIds.length === 0) {
       console.log('NO DOCUMENTS FOUND - returning helpful message');
       const lowerMessage = message.toLowerCase();
       
@@ -68,9 +92,10 @@ export default async function handler(req, res) {
 
     // Cerca nei documenti caricati
     // Se ci sono fileIds specifici, cerca solo in quelli, altrimenti cerca in tutti
-    const targetFileIds = (fileIds && Array.isArray(fileIds) && fileIds.length > 0) ? fileIds : null;
+    const targetFileIds = validFileIds.length > 0 ? validFileIds : null;
     console.log('Searching in documents with fileIds:', targetFileIds);
     console.log('Stats before search:', stats);
+    console.log('Documents found for fileIds:', documentsFound);
     
     const searchResults = searchAllDocuments(message, targetFileIds);
     
@@ -112,6 +137,7 @@ export default async function handler(req, res) {
       }
       
       // Se abbiamo documenti, usiamo OpenAI per analizzarli
+      console.log(`Documents to analyze: ${documentsToAnalyze.length}`);
       if (documentsToAnalyze.length > 0) {
         // Costruisci contesto dai documenti (limita a 3000 caratteri per documento per non superare i limiti)
         let documentContext = '';
@@ -205,10 +231,27 @@ ${message}
         }
       }
       
+      // Se non ci sono documenti da analizzare, verifica meglio la situazione
+      console.log('No documents to analyze. Stats:', stats);
+      console.log('Valid fileIds:', validFileIds);
+      console.log('Documents found:', documentsFound);
+      
+      // Se ci sono fileIds ma non sono stati trovati documenti, potrebbe essere un problema di persistenza
+      if (validFileIds.length > 0 && documentsFound === 0) {
+        return res.status(200).json({
+          success: true,
+          message: `Ho ricevuto ${validFileIds.length} fileId ma non ho trovato i documenti corrispondenti nello store.\n\n**Possibili cause:**\n- I documenti potrebbero non essere stati salvati correttamente\n- Il server potrebbe essere stato riavviato e lo store è stato perso\n\n**Soluzione:**\n- Ricarica i documenti usando il pulsante + in basso\n- Assicurati che i documenti siano stati caricati con successo`,
+          timestamp: new Date().toISOString(),
+          noResults: true,
+          stats,
+          fileIdsReceived: validFileIds,
+        });
+      }
+      
       // Se non ci sono documenti da analizzare, restituisci messaggio di errore
       return res.status(200).json({
         success: true,
-        message: `Non ho trovato documenti da analizzare per rispondere a: "${message}"\n\n**Suggerimenti:**\n- Carica uno o più documenti usando il pulsante + in basso\n- Assicurati che i documenti siano stati caricati correttamente`,
+        message: `Non ho trovato documenti da analizzare per rispondere a: "${message}"\n\n**Suggerimenti:**\n- Carica uno o più documenti usando il pulsante + in basso\n- Assicurati che i documenti siano stati caricati correttamente\n- Verifica nella console del browser che i fileIds siano stati passati correttamente`,
         timestamp: new Date().toISOString(),
         noResults: true,
         stats,
