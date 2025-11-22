@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import Head from 'next/head';
-import dynamic from 'next/dynamic';
 import { memo, useMemo, useState, useEffect } from 'react';
 import { HiArrowRight, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { tools } from '../lib/tools';
@@ -8,12 +7,7 @@ import { getAllConversionTools } from '../lib/conversionRegistry';
 import { useTranslation } from '../lib/i18n';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
-
-// Dynamic import for Footer to reduce initial bundle size
-const Footer = dynamic(() => import('../components/Footer'), {
-  ssr: true, // Footer can be server-side rendered
-  loading: () => null, // No loading indicator needed
-});
+import Footer from '../components/Footer';
 
 // Memoized components for better performance
 const AnimatedBadge = memo(({ icon: Icon, text }) => (

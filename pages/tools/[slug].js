@@ -6,27 +6,17 @@ import GenericConverter from '../../components/GenericConverter';
 import { HiArrowRight } from 'react-icons/hi';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-
-// Dynamic imports con loading prioritizzato per strumenti più usati
-const BackgroundRemover = dynamic(() => import('../../components/tools/BackgroundRemover'), {
-    loading: () => <div style={styles.loading}>Caricamento...</div>,
-    ssr: false
-});
-const ImageGenerator = dynamic(() => import('../../components/tools/ImageGenerator'), {
-    loading: () => <div style={styles.loading}>Caricamento...</div>,
-    ssr: false
-});
-const CleanNoise = dynamic(() => import('../../components/tools/CleanNoise'), { ssr: false });
-const AudioTranscription = dynamic(() => import('../../components/tools/AudioTranscription'), { ssr: false });
-const OCRAdvanced = dynamic(() => import('../../components/tools/OCRAdvanced'), { ssr: false });
-const TextSummarizer = dynamic(() => import('../../components/tools/TextSummarizer'), { ssr: false });
-const GrammarChecker = dynamic(() => import('../../components/tools/GrammarChecker'), { ssr: false });
-const ThumbnailGenerator = dynamic(() => import('../../components/tools/ThumbnailGenerator'), { ssr: false });
-const CombineSplitPDF = dynamic(() => import('../../components/tools/CombineSplitPDF'), { ssr: false });
-const VideoCompressor = dynamic(() => import('../../components/tools/VideoCompressor'), { ssr: false });
-const DocumentTranslator = dynamic(() => import('../../components/tools/DocumentTranslator'), { ssr: false });
+import BackgroundRemover from '../../components/tools/BackgroundRemover';
+import ImageGenerator from '../../components/tools/ImageGenerator';
+import CleanNoise from '../../components/tools/CleanNoise';
+import AudioTranscription from '../../components/tools/AudioTranscription';
+import OCRAdvanced from '../../components/tools/OCRAdvanced';
+import TextSummarizer from '../../components/tools/TextSummarizer';
+import GrammarChecker from '../../components/tools/GrammarChecker';
+import ThumbnailGenerator from '../../components/tools/ThumbnailGenerator';
+import CombineSplitPDF from '../../components/tools/CombineSplitPDF';
+import VideoCompressor from '../../components/tools/VideoCompressor';
+import DocumentTranslator from '../../components/tools/DocumentTranslator';
 
 const ToolPage = ({ initialSlug, meta }) => {
     const router = useRouter();

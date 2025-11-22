@@ -1,6 +1,4 @@
-import dynamic from 'next/dynamic';
-
-const PdfConverter = dynamic(() => import('../../components/PdfConverter'), { ssr: false });
+import PdfConverter from '../../components/PdfConverter';
 
 export default function PdfIndexPage() {
   return <PdfConverter initialActive="jpg2pdf" />;

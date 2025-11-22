@@ -1,8 +1,6 @@
-import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-
-const PdfConverter = dynamic(() => import('../../components/PdfConverter'), { ssr: false });
+import PdfConverter from '../../components/PdfConverter';
 
 const TOOL_META = {
   jpg2pdf: {

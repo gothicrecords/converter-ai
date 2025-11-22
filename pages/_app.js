@@ -8,21 +8,11 @@ import Script from 'next/script';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import dynamic from 'next/dynamic';
 import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
 import { optimizeCoreWebVitals, setupLazyImages } from '../lib/performance';
-
-// Dynamic imports for better code splitting and performance
-const DownloadManager = dynamic(() => import('../components/DownloadManager'), {
-  ssr: false, // Client-side only component
-  loading: () => null, // No loading spinner needed
-});
-
-const ChatSupport = dynamic(() => import('../components/ChatSupport'), {
-  ssr: false, // Client-side only component
-  loading: () => null, // No loading spinner needed
-});
+import DownloadManager from '../components/DownloadManager';
+import ChatSupport from '../components/ChatSupport';
 
 import * as analytics from '../lib/analytics';
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { BsDownload, BsArchive } from 'react-icons/bs';
-import dynamic from 'next/dynamic';
 import Navbar from './Navbar';
+import JSZip from 'jszip';
 
 const tabs = [
   // Verso PDF
@@ -197,7 +197,6 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
             {!!outList.length && (
               <button className="primary download-btn" onClick={async ()=>{
                 try {
-                  const JSZip = (await import('jszip')).default;
                   const zip = new JSZip();
                   let i = 1;
                   for (const it of outList) {
