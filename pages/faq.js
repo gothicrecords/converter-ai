@@ -12,7 +12,7 @@ export default function FAQPage() {
             questions: [
                 {
                     q: 'Cos\'è MegaPixelAI?',
-                    a: 'MegaPixelAI è una piattaforma all-in-one che offre oltre 15 strumenti di elaborazione basati su intelligenza artificiale, tra cui rimozione sfondo, upscaling 4K, generazione immagini, OCR, conversione PDF e molto altro. Il nostro obiettivo è rendere strumenti AI professionali accessibili a tutti.'
+                    a: 'MegaPixelAI è una piattaforma all-in-one che offre oltre 300 strumenti di elaborazione basati su intelligenza artificiale, tra cui rimozione sfondo, upscaling 4K, generazione immagini, OCR, conversione PDF e molto altro. Il nostro obiettivo è rendere strumenti AI professionali accessibili a tutti.'
                 },
                 {
                     q: 'È davvero gratuito?',
