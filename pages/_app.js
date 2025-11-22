@@ -332,12 +332,16 @@ function MyApp({ Component, pageProps }) {
           {/* Performance: Preconnect to external domains */}
           <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
           <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://connect.facebook.net" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://www.clarity.ms" crossOrigin="anonymous" />
           <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           
           {/* DNS Prefetch for faster resolution */}
           <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
           <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+          <link rel="dns-prefetch" href="https://connect.facebook.net" />
+          <link rel="dns-prefetch" href="https://www.clarity.ms" />
           <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
           <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
           
@@ -434,8 +438,8 @@ function MyApp({ Component, pageProps }) {
         }}
       />
 
-      {/* Google Tag Manager */}
-      {analytics.ENABLE_ANALYTICS && analytics.GTM_ID !== 'GTM-XXXXXXX' && (
+      {/* Google Tag Manager - Always enabled if GTM_ID is configured */}
+      {analytics.GTM_ID && analytics.GTM_ID !== 'GTM-XXXXXXX' && (
         <>
           <Script
             id="gtm-script"
@@ -488,6 +492,56 @@ function MyApp({ Component, pageProps }) {
             }}
           />
         </>
+      )}
+
+      {/* Meta Pixel (Facebook Pixel) */}
+      {analytics.isMetaPixelEnabled && analytics.isMetaPixelEnabled() && (
+        <>
+          <Script
+            id="meta-pixel"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                !function(f,b,e,v,n,t,s)
+                {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                n.queue=[];t=b.createElement(e);t.async=!0;
+                t.src=v;s=b.getElementsByTagName(e)[0];
+                s.parentNode.insertBefore(t,s)}(window, document,'script',
+                'https://connect.facebook.net/en_US/fbevents.js');
+                fbq('init', '${analytics.META_PIXEL_ID}');
+                fbq('track', 'PageView');
+              `,
+            }}
+          />
+          <noscript>
+            <img
+              height="1"
+              width="1"
+              style={{ display: 'none' }}
+              src={`https://www.facebook.com/tr?id=${analytics.META_PIXEL_ID}&ev=PageView&noscript=1`}
+              alt=""
+            />
+          </noscript>
+        </>
+      )}
+
+      {/* Bing Webmaster Tools Tracking */}
+      {analytics.isBingWebmasterEnabled && analytics.isBingWebmasterEnabled() && (
+        <Script
+          id="bing-webmaster"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+              })(window, document, "clarity", "script", "${analytics.BING_WEBMASTER_ID}");
+            `,
+          }}
+        />
       )}
 
         <ToastContainer />
