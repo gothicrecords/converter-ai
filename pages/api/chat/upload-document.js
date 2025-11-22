@@ -2,7 +2,7 @@
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
-import { extractTextFromDocument, storeDocument, getDocument, getDocumentStats } from '../../../lib/documentAI';
+import { extractTextFromDocument, storeDocument } from '../../../lib/documentAI.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export const config = {
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Nessun file caricato' });
     }
 
-    // Processa i file in parallelo per velocità
+    // Processa i file in parallelo per velocità (max 3 alla volta)
     const processFile = async (file) => {
       try {
         // Leggi il file come buffer
@@ -50,11 +50,10 @@ export default async function handler(req, res) {
         const filename = file.originalFilename || file.newFilename;
         const mimeType = file.mimetype || 'application/octet-stream';
 
-        // Estrai testo dal documento
+        // Estrai testo dal documento usando pdfjs-dist, mammoth, xlsx, ecc.
         console.log(`Processing file: ${filename} (${mimeType})`);
         let text, metadata;
         try {
-          // Passa anche il filepath per le immagini (più efficiente per OCR)
           const result = await extractTextFromDocument(buffer, mimeType, filename, file.filepath);
           text = result.text;
           metadata = result.metadata || {};
@@ -83,48 +82,17 @@ export default async function handler(req, res) {
         console.log(`Storing document ${fileId} with filename ${filename}`);
         console.log(`Text length: ${text.length} characters`);
 
-        // Salva nel sistema
-        const stored = storeDocument(fileId, text, {
+        // Salva nello store in-memory con embeddings (async)
+        const storeResult = await storeDocument(fileId, text, {
           ...metadata,
-          filename: filename, // Aggiungi anche filename per compatibilità
           originalFilename: filename,
+          filename,
           mimeType,
           uploadedAt: new Date().toISOString(),
           size: buffer.length,
         });
 
-        console.log(`Document ${fileId} stored successfully. Chunks: ${stored.chunkCount}, Words: ${stored.wordCount}`);
-
-        // Verifica che sia stato salvato
-        const savedDoc = getDocument(fileId);
-        const stats = getDocumentStats();
-        
-        console.log(`Verification - Document ${fileId} exists:`, savedDoc ? 'YES' : 'NO');
-        console.log(`Total documents in store: ${stats.totalDocuments}`);
-        console.log(`Document text length: ${savedDoc ? savedDoc.text.length : 0}`);
-        console.log(`Document chunks: ${savedDoc ? savedDoc.chunks.length : 0}`);
-        
-        // Verifica doppia: se il documento non è stato salvato, prova a salvarlo di nuovo
-        if (!savedDoc) {
-          console.warn(`⚠️ Document ${fileId} not found after storage, attempting to re-save...`);
-          const reStored = storeDocument(fileId, text, {
-            ...metadata,
-            filename: filename,
-            originalFilename: filename,
-            mimeType,
-            uploadedAt: new Date().toISOString(),
-            size: buffer.length,
-          });
-          console.log(`Re-stored document:`, reStored);
-          
-          // Verifica di nuovo
-          const reSavedDoc = getDocument(fileId);
-          if (!reSavedDoc) {
-            console.error(`❌ CRITICAL: Document ${fileId} still not found after re-save!`);
-            throw new Error(`Errore critico: documento non salvato correttamente nello store`);
-          }
-          console.log(`✅ Document re-saved successfully`);
-        }
+        console.log(`Document ${fileId} stored in memory with ${storeResult.chunkCount} chunks and embeddings`);
 
         // Pulisci il file temporaneo
         try {
@@ -137,8 +105,8 @@ export default async function handler(req, res) {
           fileId,
           filename,
           success: true,
-          wordCount: stored.wordCount,
-          chunkCount: stored.chunkCount,
+          wordCount: storeResult.wordCount,
+          chunkCount: storeResult.chunkCount,
           pages: metadata.pages || 0,
           size: buffer.length,
         };
@@ -152,8 +120,8 @@ export default async function handler(req, res) {
       }
     };
 
-    // Processa tutti i file in parallelo (fino a 5 alla volta per non sovraccaricare)
-    const BATCH_SIZE = 5;
+    // Processa tutti i file in parallelo (max 3 alla volta per non sovraccaricare)
+    const BATCH_SIZE = 3;
     const results = [];
     
     for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {

@@ -145,8 +145,11 @@ const nextConfig = {
     return config;
   },
   
-  // Turbopack configuration (empty to silence warning)
-  turbopack: {},
+  // Turbopack configuration
+  turbopack: {
+    // Fix root inference so Next.js uses this project directory
+    root: __dirname,
+  },
   
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { 
