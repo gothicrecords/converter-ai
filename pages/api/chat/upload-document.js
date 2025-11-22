@@ -17,6 +17,10 @@ export default async function handler(req, res) {
   }
 
   try {
+    const isVercel = Boolean(process.env.VERCEL);
+    const MAX_FILE_MB = isVercel ? Number(process.env.VERCEL_MAX_MB || 9) : 200;
+    const MAX_FILES = isVercel ? Number(process.env.VERCEL_MAX_FILES || 3) : 10;
+
     const uploadDir = path.join(process.cwd(), 'uploads', 'chat');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
@@ -25,8 +29,8 @@ export default async function handler(req, res) {
     const form = formidable({
       uploadDir,
       keepExtensions: true,
-      // Aumenta il limite massimo di upload a 200MB
-      maxFileSize: 200 * 1024 * 1024, // 200MB
+      // Imposta limite massimo per file in base all'ambiente
+      maxFileSize: MAX_FILE_MB * 1024 * 1024,
       multiples: true,
     });
 
@@ -43,14 +47,28 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Nessun file caricato' });
     }
 
-    // Enforce max files per richiesta (limite temporaneo: 10)
-    const MAX_FILES = 10;
     if (fileArray.length > MAX_FILES) {
       return res.status(400).json({
         error: `Numero massimo di file per analisi superato: ${fileArray.length} > ${MAX_FILES}`,
-        details: `Carica al massimo ${MAX_FILES} file per volta.`,
+        details: isVercel
+          ? `Limite Vercel: ${MAX_FILES} file per richiesta (riduci o usa caricamento diretto su storage).`
+          : `Carica al massimo ${MAX_FILES} file per volta.`,
         limit: MAX_FILES,
       });
+    }
+
+    // Verifica dimensione file (utile per errori di payload su Vercel)
+    for (const f of fileArray) {
+      const size = f.size || (f.filepath && fs.existsSync(f.filepath) ? fs.statSync(f.filepath).size : 0);
+      if (size > MAX_FILE_MB * 1024 * 1024) {
+        return res.status(413).json({
+          error: `File troppo grande: ${(size / (1024 * 1024)).toFixed(1)}MB > ${MAX_FILE_MB}MB`,
+          details: isVercel
+            ? `Le funzioni serverless Vercel hanno un limite di payload. Usa file più piccoli, carica direttamente su storage (Vercel Blob/S3) o esegui in ambiente non serverless.`
+            : `Riduci la dimensione del file o carica meno contenuti.`,
+          limitMB: MAX_FILE_MB,
+        });
+      }
     }
 
     // Processa i file in parallelo per velocità (max 3 alla volta)
@@ -131,8 +149,8 @@ export default async function handler(req, res) {
       }
     };
 
-    // Processa tutti i file in parallelo (max 3 alla volta per non sovraccaricare)
-    const BATCH_SIZE = 3;
+    // Processa tutti i file (riduci concorrenza su Vercel per evitare timeout)
+    const BATCH_SIZE = isVercel ? 1 : 3;
     const results = [];
     
     for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {

@@ -11,8 +11,9 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   compress: true,
   poweredByHeader: false,
-  swcMinify: true,
   httpAgentOptions: { keepAlive: true },
+  // Use a custom dist directory to avoid OneDrive file locking on .next
+  distDir: '.next-build',
   
   // Image optimization
   images: {
