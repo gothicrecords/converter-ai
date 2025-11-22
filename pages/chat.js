@@ -71,24 +71,38 @@ function ChatPage() {
     setSending(true);
 
     // Log per debug
-    console.log('Sending message with fileIds:', fileIds);
-    console.log('Available files:', files);
+    console.log('=== SENDING MESSAGE ===');
+    console.log('Message content:', content);
+    console.log('FileIds passed explicitly:', fileIds);
+    console.log('Available files in state:', files);
+    console.log('Files count:', files.length);
 
     // Combina fileIds passati esplicitamente con quelli disponibili nello stato
     const allFileIds = new Set();
     
     if (fileIds && Array.isArray(fileIds)) {
-      fileIds.forEach(id => allFileIds.add(id));
+      fileIds.forEach(id => {
+        if (id) allFileIds.add(String(id));
+      });
     }
     
     // Aggiungi anche i fileId dei file caricati
     files.forEach(f => {
       const id = f.fileId || f.id;
-      if (id) allFileIds.add(id);
+      if (id) {
+        allFileIds.add(String(id));
+        console.log('Adding fileId from files state:', id, 'from file:', f.name);
+      }
     });
 
     const finalFileIds = Array.from(allFileIds);
-    console.log('Final fileIds to send:', finalFileIds);
+    console.log('Final fileIds to send to API:', finalFileIds);
+    console.log('Final fileIds count:', finalFileIds.length);
+    
+    if (finalFileIds.length === 0 && files.length > 0) {
+      console.warn('⚠️ WARNING: Files in state but no fileIds extracted!');
+      console.warn('Files structure:', files.map(f => ({ id: f.id, fileId: f.fileId, name: f.name })));
+    }
 
     // Add user message
     const userMsg = {
