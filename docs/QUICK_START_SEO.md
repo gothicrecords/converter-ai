@@ -6,28 +6,37 @@
 
 1. Vai su [Google Search Console](https://search.google.com/search-console)
 2. Aggiungi la proprietà del tuo sito
-3. Scegli **"Verifica tramite meta tag"**
-4. Copia il codice di verifica (es: `ABC123XYZ789...`)
+3. Google ti mostrerà le opzioni di verifica:
+   - **Se vedi "Verifica tramite meta tag"**: Vai al Passo 2A
+   - **Se vedi solo "Verifica tramite DNS"**: Vai al Passo 2B (guida DNS)
 
-### 2. Aggiungi la Variabile d'Ambiente
+### 2A. Verifica tramite Meta Tag (se disponibile)
 
 **Se usi Vercel:**
-1. Vai su [Vercel Dashboard](https://vercel.com/dashboard)
-2. Seleziona il tuo progetto
-3. Vai su **Settings** → **Environment Variables**
+1. Copia il codice di verifica da Google (es: `ABC123XYZ789...`)
+2. Vai su [Vercel Dashboard](https://vercel.com/dashboard)
+3. Seleziona il tuo progetto → **Settings** → **Environment Variables**
 4. Aggiungi:
    - **Name**: `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`
    - **Value**: `ABC123XYZ789...` (il codice che hai copiato)
-5. Seleziona tutti gli ambienti (Production, Preview, Development)
-6. Clicca **Save**
-7. **Riavvia il deployment**
+5. Seleziona tutti gli ambienti → **Save**
+6. **Riavvia il deployment**
 
-**Se usi un altro hosting:**
-1. Aggiungi nel file `.env.local`:
-   ```env
-   NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=ABC123XYZ789...
-   ```
-2. Riavvia il server
+### 2B. Verifica tramite DNS (se richiesto da Google)
+
+**Per Vercel con dominio gestito da Vercel:**
+1. Google ti darà un record TXT da aggiungere (es: `google-site-verification=ABC123XYZ789...`)
+2. Vai su [Vercel Dashboard](https://vercel.com/dashboard)
+3. Seleziona il progetto → **Settings** → **Domains**
+4. Clicca sul tuo dominio → **DNS Records**
+5. Clicca **"Add Record"**:
+   - **Type**: `TXT`
+   - **Name**: `@` (o lascia vuoto)
+   - **Value**: Il valore completo di Google (es: `ABC123XYZ789...`)
+6. Salva e attendi 5-30 minuti per la propagazione
+
+**Se il dominio è gestito esternamente** (Cloudflare, Namecheap, ecc.):
+Vedi la guida completa: [VERIFICA_DNS_VERCEL.md](./VERIFICA_DNS_VERCEL.md)
 
 ### 3. Verifica la Proprietà
 
@@ -72,5 +81,6 @@
 
 ## 📚 Documentazione Completa
 
-Per una guida dettagliata, vedi: [GOOGLE_SEARCH_CONSOLE_SETUP.md](./GOOGLE_SEARCH_CONSOLE_SETUP.md)
+- **Guida completa**: [GOOGLE_SEARCH_CONSOLE_SETUP.md](./GOOGLE_SEARCH_CONSOLE_SETUP.md)
+- **Verifica DNS su Vercel**: [VERIFICA_DNS_VERCEL.md](./VERIFICA_DNS_VERCEL.md) ⭐ **LEGGI QUESTA se Google richiede verifica DNS**
 
