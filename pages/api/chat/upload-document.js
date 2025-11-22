@@ -25,7 +25,8 @@ export default async function handler(req, res) {
     const form = formidable({
       uploadDir,
       keepExtensions: true,
-      maxFileSize: 50 * 1024 * 1024, // 50MB
+      // Aumenta il limite massimo di upload a 200MB
+      maxFileSize: 200 * 1024 * 1024, // 200MB
       multiples: true,
     });
 
