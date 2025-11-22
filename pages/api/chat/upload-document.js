@@ -101,6 +101,30 @@ export default async function handler(req, res) {
         
         console.log(`Verification - Document ${fileId} exists:`, savedDoc ? 'YES' : 'NO');
         console.log(`Total documents in store: ${stats.totalDocuments}`);
+        console.log(`Document text length: ${savedDoc ? savedDoc.text.length : 0}`);
+        console.log(`Document chunks: ${savedDoc ? savedDoc.chunks.length : 0}`);
+        
+        // Verifica doppia: se il documento non è stato salvato, prova a salvarlo di nuovo
+        if (!savedDoc) {
+          console.warn(`⚠️ Document ${fileId} not found after storage, attempting to re-save...`);
+          const reStored = storeDocument(fileId, text, {
+            ...metadata,
+            filename: filename,
+            originalFilename: filename,
+            mimeType,
+            uploadedAt: new Date().toISOString(),
+            size: buffer.length,
+          });
+          console.log(`Re-stored document:`, reStored);
+          
+          // Verifica di nuovo
+          const reSavedDoc = getDocument(fileId);
+          if (!reSavedDoc) {
+            console.error(`❌ CRITICAL: Document ${fileId} still not found after re-save!`);
+            throw new Error(`Errore critico: documento non salvato correttamente nello store`);
+          }
+          console.log(`✅ Document re-saved successfully`);
+        }
 
         // Pulisci il file temporaneo
         try {
