@@ -1,9 +1,9 @@
 import { tools } from '../lib/tools';
 import { getAllConversionTools } from '../lib/conversionRegistry';
 
-// Use environment variable or default to production domain
-const EXTERNAL_DATA_URL = process.env.NEXT_PUBLIC_SITE_URL || 
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://best-upscaler-ia.vercel.app');
+// Always use production domain - never use preview URLs in sitemap
+const PRODUCTION_DOMAIN = 'https://best-upscaler-ia.vercel.app';
+const EXTERNAL_DATA_URL = process.env.NEXT_PUBLIC_SITE_URL || PRODUCTION_DOMAIN;
 const SUPPORTED_LOCALES = ['en', 'it', 'es', 'fr', 'de', 'pt', 'ru', 'ja', 'zh', 'ar', 'hi', 'ko'];
 const CURRENT_DATE = new Date().toISOString().split('T')[0];
 
