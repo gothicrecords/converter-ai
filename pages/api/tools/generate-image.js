@@ -1,4 +1,4 @@
-import { generateImageWithDALLE } from '../../../lib/openai.js';
+import { generateImageWithDALLE, getImageUrlFromDALLE } from '../../../lib/openai.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -29,26 +29,74 @@ export default async function handler(req, res) {
         console.log('Generating image with DALL-E 3:', prompt);
         console.log('Size:', size, 'Quality:', mappedQuality, 'Style:', mappedStyle);
 
-        // Genera immagine con DALL-E 3
-        const imageBuffer = await generateImageWithDALLE(prompt, {
+        // Get image URL from DALL-E (faster, no download yet)
+        const imageUrl = await getImageUrlFromDALLE(prompt, {
             size: size,
-            quality: mappedQuality, // 'standard' or 'hd'
-            style: mappedStyle, // 'vivid' or 'natural'
+            quality: mappedQuality,
+            style: mappedStyle,
         });
 
-        console.log('Image generated, size:', (imageBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+        console.log('Image URL obtained, streaming download...');
 
+        // Stream the image directly from OpenAI to the client
         res.setHeader('Content-Type', 'image/png');
-        res.setHeader('Content-Length', imageBuffer.length);
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
-        res.status(200).send(imageBuffer);
+
+        // Fetch and stream the image
+        const imageResponse = await fetch(imageUrl);
+        if (!imageResponse.ok) {
+            throw new Error(`Errore nel download dell'immagine: ${imageResponse.status}`);
+        }
+
+        // Stream the response body directly to the client using ReadableStream
+        if (imageResponse.body) {
+            res.status(200);
+            
+            // Convert ReadableStream to chunks and stream to client
+            const reader = imageResponse.body.getReader();
+            
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        res.end();
+                        break;
+                    }
+                    // Write chunk to response immediately
+                    if (!res.headersSent) {
+                        res.writeHead(200, {
+                            'Content-Type': 'image/png',
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache',
+                            'Expires': '0'
+                        });
+                    }
+                    res.write(Buffer.from(value));
+                }
+            } catch (streamError) {
+                console.error('Streaming error:', streamError);
+                if (!res.headersSent) {
+                    res.status(500).json({ error: 'Errore durante lo streaming dell\'immagine' });
+                } else {
+                    res.end();
+                }
+                throw streamError;
+            }
+        } else {
+            // Fallback: download and send
+            const arrayBuffer = await imageResponse.arrayBuffer();
+            res.setHeader('Content-Length', arrayBuffer.byteLength);
+            res.status(200).send(Buffer.from(arrayBuffer));
+        }
 
     } catch (error) {
         console.error('Errore API Generate Image:', error);
-        res.status(500).json({ 
-            error: error.message || 'Errore interno del server durante la generazione dell\'immagine.' 
-        });
+        if (!res.headersSent) {
+            res.status(500).json({ 
+                error: error.message || 'Errore interno del server durante la generazione dell\'immagine.' 
+            });
+        }
     }
 }

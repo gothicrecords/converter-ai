@@ -42,14 +42,14 @@ export default function ImageGenerator() {
 
         const progressInterval = setInterval(() => {
             setProgress(prev => {
-                const newProgress = Math.min(prev + 5, 90);
+                const newProgress = Math.min(prev + 8, 90);
                 updateToast(toastId, { 
                     progress: newProgress,
-                    message: newProgress < 50 ? 'Elaborazione prompt...' : newProgress < 85 ? 'Generazione immagine...' : 'Finalizzazione...'
+                    message: newProgress < 40 ? 'Elaborazione prompt...' : newProgress < 80 ? 'Generazione immagine...' : 'Finalizzazione...'
                 });
                 return newProgress;
             });
-        }, 300);
+        }, 150);
 
         try {
             const response = await fetch('/api/tools/generate-image', {
