@@ -34,43 +34,12 @@ jobs:
         run: npm run lint || true
         continue-on-error: true
 
-      - name: Link to existing Vercel project
+      - name: Build project
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "Error: VERCEL_TOKEN is required"
-            exit 1
-          fi
-          
-          # Try to link to existing project if IDs are provided
-          if [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
-            echo "Linking to existing project: $VERCEL_PROJECT_ID"
-            # Create .vercel directory if it doesn't exist
-            mkdir -p .vercel
-            # Create project.json with project info
-            echo "{\"projectId\":\"$VERCEL_PROJECT_ID\",\"orgId\":\"$VERCEL_ORG_ID\"}" > .vercel/project.json
-            echo "Project linked successfully"
-          else
-            echo "Warning: VERCEL_ORG_ID or VERCEL_PROJECT_ID not set."
-            echo "Vercel will try to auto-detect the project from the repository connection."
-          fi
-        continue-on-error: true
-
-      - name: Build project with Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           NODE_ENV: production
         run: |
-          if [ -f ".vercel/project.json" ]; then
-            echo "Project settings found. Building with vercel build..."
-            vercel build --token "$VERCEL_TOKEN" --prod
-          else
-            echo "No project settings found. Building with npm run build..."
-            npm run build
-          fi
+          echo "Building project with npm run build..."
+          npm run build
 
 
       - name: Deploy to Vercel (Preview)
@@ -82,24 +51,8 @@ jobs:
             echo "Error: VERCEL_TOKEN secret is required for deployment"
             exit 1
           fi
-          # If .vercel/project.json exists (from vercel pull), use it automatically
-          if [ -f ".vercel/project.json" ]; then
-            echo "Using existing project configuration from .vercel/project.json"
-            if [ -d ".vercel/output" ]; then
-              echo "Deploying prebuilt output..."
-              vercel deploy --prebuilt --yes --token "$VERCEL_TOKEN"
-            else
-              echo "Deploying (Vercel will build)..."
-              vercel deploy --yes --token "$VERCEL_TOKEN"
-            fi
-          else
-            echo "No project configuration found. Vercel will link to existing project or create new one."
-            if [ -d ".vercel/output" ]; then
-              vercel deploy --prebuilt --yes --token "$VERCEL_TOKEN"
-            else
-              vercel deploy --yes --token "$VERCEL_TOKEN"
-            fi
-          fi
+          echo "Deploying to Vercel (Vercel will auto-detect project from repository connection)..."
+          vercel deploy --yes --token "$VERCEL_TOKEN"
 
       - name: Deploy to Vercel (Production)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -110,22 +63,6 @@ jobs:
             echo "Error: VERCEL_TOKEN secret is required for deployment"
             exit 1
           fi
-          # If .vercel/project.json exists (from vercel pull), use it automatically
-          if [ -f ".vercel/project.json" ]; then
-            echo "Using existing project configuration from .vercel/project.json"
-            if [ -d ".vercel/output" ]; then
-              echo "Deploying prebuilt output..."
-              vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN"
-            else
-              echo "Deploying (Vercel will build)..."
-              vercel deploy --prod --yes --token "$VERCEL_TOKEN"
-            fi
-          else
-            echo "No project configuration found. Vercel will link to existing project or create new one."
-            if [ -d ".vercel/output" ]; then
-              vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN"
-            else
-              vercel deploy --prod --yes --token "$VERCEL_TOKEN"
-            fi
-          fi
+          echo "Deploying to Vercel production (Vercel will auto-detect project from repository connection)..."
+          vercel deploy --prod --yes --token "$VERCEL_TOKEN"
 
