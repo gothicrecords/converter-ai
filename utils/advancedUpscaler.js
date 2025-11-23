@@ -63,13 +63,22 @@ class AdvancedUpscaler {
                 withoutEnlargement: false
             });
             
-            // Sharpening progressivo (più aggressivo negli ultimi passaggi)
-            const sharpenIntensity = 0.3 + (pass / passes) * 0.4;
-            currentImage = currentImage.sharpen({
-                sigma: 0.4 + sharpenIntensity,
-                m1: 0.3 + (pass / passes) * 0.2,
-                m2: 0.15 + (pass / passes) * 0.15
-            });
+            // Sharpening progressivo migliorato (più aggressivo negli ultimi passaggi)
+            const sharpenIntensity = 0.4 + (pass / passes) * 0.5;
+            const sharpenParams = {
+                sigma: 0.5 + sharpenIntensity,
+                m1: 0.4 + (pass / passes) * 0.3,
+                m2: 0.2 + (pass / passes) * 0.2
+            };
+            
+            // Negli ultimi passaggi, aggiungi parametri avanzati per dettagli ultra-fini
+            if (pass >= passes - 2) {
+                sharpenParams.x1 = 2;
+                sharpenParams.y2 = 2;
+                sharpenParams.y3 = 2;
+            }
+            
+            currentImage = currentImage.sharpen(sharpenParams);
             
             // Converti a buffer per il prossimo passaggio
             if (pass < passes - 1) {
@@ -84,25 +93,51 @@ class AdvancedUpscaler {
         return currentImage;
     }
 
-    // Applica enhancement finale
+    // Applica enhancement finale per massima qualità 4K
     async applyFinalEnhancement(image, quality = 'high') {
         let enhanced = image;
         
-        // Contrasto leggero per chiarezza
-        enhanced = enhanced.linear(1.02, -(128 * 0.02));
+        // Step 1: Contrasto migliorato per chiarezza e profondità
+        enhanced = enhanced.linear(1.05, -(128 * 0.05));
         
-        // Sharpening finale mirato
+        // Step 2: Sharpening avanzato multi-pass per dettagli ultra-definiti
+        // Primo passaggio: sharpening generale
         enhanced = enhanced.sharpen({
-            sigma: 1.2,
-            m1: 0.7,
-            m2: 0.4
+            sigma: 1.5,
+            m1: 0.8,
+            m2: 0.5,
+            x1: 2,
+            y2: 2,
+            y3: 2
         });
         
-        // Rimozione artefatti
-        enhanced = enhanced.png({
-            quality: 100,
-            compressionLevel: 6,
-            adaptiveFiltering: true
+        // Step 3: Enhancement locale per dettagli fini
+        // Usa unsharp mask per migliorare la nitidezza
+        enhanced = enhanced.sharpen({
+            sigma: 0.8,
+            m1: 1.0,
+            m2: 0.6,
+            x1: 3,
+            y2: 3,
+            y3: 3
+        });
+        
+        // Step 4: Slight saturation boost per colori più vividi
+        enhanced = enhanced.modulate({
+            saturation: 1.08,
+            brightness: 1.02
+        });
+        
+        // Step 5: Rimozione artefatti e compressione ottimale
+        // Usa JPEG con qualità massima per preservare dettagli
+        enhanced = enhanced.jpeg({
+            quality: 98,
+            chromaSubsampling: '4:4:4', // No chroma subsampling per massima qualità
+            mozjpeg: true,
+            trellisQuantisation: true,
+            overshootDeringing: true,
+            optimiseScans: true,
+            progressive: true
         });
         
         return enhanced;
@@ -134,10 +169,11 @@ class AdvancedUpscaler {
             
             console.log(`Upscaling: ${originalWidth}x${originalHeight} -> ${targetWidth}x${targetHeight}`);
             
-            // Step 1: Denoising (solo se immagine piccola o con noise evidente)
+            // Step 1: Denoising migliorato (applicato più spesso per immagini di qualità inferiore)
             let processed = input;
             const mp = (originalWidth * originalHeight) / 1e6;
-            if (mp < 2) {
+            // Applica denoising per immagini piccole o se la risoluzione è bassa
+            if (mp < 3 || Math.max(originalWidth, originalHeight) < 2000) {
                 processed = await this.denoise(processed);
             }
             
@@ -147,12 +183,14 @@ class AdvancedUpscaler {
                 targetHeight / originalHeight
             );
             
-            // Determina numero di passaggi basato su scala
-            let passes = 2;
-            if (scaleFactor > 3) {
-                passes = 4;
+            // Determina numero di passaggi basato su scala (più passaggi = migliore qualità)
+            let passes = 3; // Default aumentato da 2 a 3
+            if (scaleFactor > 4) {
+                passes = 6; // Per upscaling molto grandi, usa più passaggi
+            } else if (scaleFactor > 3) {
+                passes = 5;
             } else if (scaleFactor > 2) {
-                passes = 3;
+                passes = 4;
             }
             
             processed = await this.multiPassUpscale(
@@ -162,20 +200,11 @@ class AdvancedUpscaler {
                 passes
             );
             
-            // Step 3: Enhancement finale
+            // Step 3: Enhancement finale (converte già a JPEG)
             processed = await this.applyFinalEnhancement(processed, 'high');
             
-            // Converti a JPEG per output finale (migliore compressione)
-            const outputBuffer = await processed
-                .jpeg({
-                    quality: 98,
-                    chromaSubsampling: '4:4:4',
-                    mozjpeg: true,
-                    trellisQuantisation: true,
-                    overshootDeringing: true,
-                    optimiseScans: true
-                })
-                .toBuffer();
+            // L'enhancement finale restituisce già un'immagine processata, converti a buffer
+            const outputBuffer = await processed.toBuffer();
             
             console.log(`Upscale completato: ${(outputBuffer.length / 1024 / 1024).toFixed(2)} MB`);
             
