@@ -56,12 +56,18 @@ jobs:
           fi
 
           mkdir -p .vercel
+          VALID_IDS=0
           if [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
-            echo "Writing .vercel/project.json to bind project and org..."
+            if echo "$VERCEL_PROJECT_ID" | grep -q '^prj_' && echo "$VERCEL_ORG_ID" | grep -q '^team_\|^user_'; then
+              VALID_IDS=1
+            else
+              echo "Warning: Provided IDs don't match expected formats; will not bind via IDs."
+            fi
+          fi
+
+          if [ "$VALID_IDS" -eq 1 ]; then
+            echo "Writing .vercel/project.json to bind project and org (IDs validated)..."
             printf '{\n  "orgId": "%s",\n  "projectId": "%s"\n}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
-            # Light format checks (no secret values printed)
-            if ! echo "$VERCEL_PROJECT_ID" | grep -q '^prj_'; then echo "Warning: VERCEL_PROJECT_ID may be invalid (expected starts with prj_)"; fi
-            if ! echo "$VERCEL_ORG_ID" | grep -q '^team_\|^user_'; then echo "Warning: VERCEL_ORG_ID may be invalid (expected starts with team_ or user_)"; fi
           else
             if [ -z "$VERCEL_PROJECT_NAME" ]; then
               echo "Error: Provide either (VERCEL_ORG_ID and VERCEL_PROJECT_ID) or VERCEL_PROJECT_NAME"
@@ -82,6 +88,11 @@ jobs:
 
           if [ $PULL_EXIT -ne 0 ]; then
             echo "Primary pull failed. Attempting link by project name..."
+            # Remove any stale binding to avoid conflicts
+            if [ -f .vercel/project.json ]; then
+              echo "Removing stale .vercel/project.json before linking..."
+              rm -f .vercel/project.json
+            fi
             FALLBACK_NAME=${VERCEL_PROJECT_NAME:-$REPO_NAME}
             if [ -n "$FALLBACK_NAME" ]; then
               echo "Linking project: $FALLBACK_NAME"
