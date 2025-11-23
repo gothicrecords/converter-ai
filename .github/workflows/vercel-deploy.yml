@@ -48,6 +48,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
           VERCEL_PROJECT_NAME: ${{ secrets.VERCEL_PROJECT_NAME }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "Error: VERCEL_TOKEN secret is required"
@@ -81,14 +82,16 @@ jobs:
 
           if [ $PULL_EXIT -ne 0 ]; then
             echo "Primary pull failed. Attempting fallback by project name..."
-            if [ -n "$VERCEL_PROJECT_NAME" ]; then
+            FALLBACK_NAME=${VERCEL_PROJECT_NAME:-$REPO_NAME}
+            if [ -n "$FALLBACK_NAME" ]; then
+              echo "Using project name: $FALLBACK_NAME"
               if [ -n "$VERCEL_SCOPE" ]; then
-                vercel pull --yes --environment=production --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_NAME"
+                vercel pull --yes --environment=production --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$FALLBACK_NAME"
               else
-                vercel pull --yes --environment=production --token "$VERCEL_TOKEN" --project "$VERCEL_PROJECT_NAME"
+                vercel pull --yes --environment=production --token "$VERCEL_TOKEN" --project "$FALLBACK_NAME"
               fi
             else
-              echo "No VERCEL_PROJECT_NAME provided for fallback. Please set correct IDs or provide project name."
+              echo "No project name available for fallback. Please set VERCEL_PROJECT_NAME or correct IDs."
               exit 1
             fi
           fi
@@ -101,14 +104,16 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
           VERCEL_PROJECT_NAME: ${{ secrets.VERCEL_PROJECT_NAME }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
           echo "Deploying preview to existing Vercel project..."
-          if [ -n "$VERCEL_SCOPE" ] && [ -n "$VERCEL_PROJECT_NAME" ]; then
-            vercel deploy --prebuilt --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_NAME"
+          FALLBACK_NAME=${VERCEL_PROJECT_NAME:-$REPO_NAME}
+          if [ -n "$VERCEL_SCOPE" ] && [ -n "$FALLBACK_NAME" ]; then
+            vercel deploy --prebuilt --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$FALLBACK_NAME"
           elif [ -n "$VERCEL_SCOPE" ]; then
             vercel deploy --prebuilt --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
-          elif [ -n "$VERCEL_PROJECT_NAME" ]; then
-            vercel deploy --prebuilt --token "$VERCEL_TOKEN" --project "$VERCEL_PROJECT_NAME"
+          elif [ -n "$FALLBACK_NAME" ]; then
+            vercel deploy --prebuilt --token "$VERCEL_TOKEN" --project "$FALLBACK_NAME"
           else
             vercel deploy --prebuilt --token "$VERCEL_TOKEN"
           fi
@@ -121,14 +126,16 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
           VERCEL_PROJECT_NAME: ${{ secrets.VERCEL_PROJECT_NAME }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
           echo "Deploying to existing Vercel project (production)..."
-          if [ -n "$VERCEL_SCOPE" ] && [ -n "$VERCEL_PROJECT_NAME" ]; then
-            vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_NAME"
+          FALLBACK_NAME=${VERCEL_PROJECT_NAME:-$REPO_NAME}
+          if [ -n "$VERCEL_SCOPE" ] && [ -n "$FALLBACK_NAME" ]; then
+            vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$FALLBACK_NAME"
           elif [ -n "$VERCEL_SCOPE" ]; then
             vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
-          elif [ -n "$VERCEL_PROJECT_NAME" ]; then
-            vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" --project "$VERCEL_PROJECT_NAME"
+          elif [ -n "$FALLBACK_NAME" ]; then
+            vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" --project "$FALLBACK_NAME"
           else
             vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN"
           fi
