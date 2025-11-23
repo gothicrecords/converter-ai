@@ -41,28 +41,36 @@ jobs:
           echo "Building project with npm run build..."
           npm run build
 
+      - name: Pull Vercel Environment Information
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "Error: VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID secrets are required"
+            exit 1
+          fi
+          echo "Pulling Vercel project configuration..."
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       - name: Deploy to Vercel (Preview)
         if: github.event_name == 'pull_request'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "Error: VERCEL_TOKEN secret is required for deployment"
-            exit 1
-          fi
-          echo "Deploying to Vercel (Vercel will auto-detect project from repository connection)..."
-          vercel deploy --yes --token "$VERCEL_TOKEN"
+          echo "Deploying preview to existing Vercel project..."
+          vercel deploy --prebuilt --token="$VERCEL_TOKEN"
 
       - name: Deploy to Vercel (Production)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "Error: VERCEL_TOKEN secret is required for deployment"
-            exit 1
-          fi
-          echo "Deploying to Vercel production (Vercel will auto-detect project from repository connection)..."
-          vercel deploy --prod --yes --token "$VERCEL_TOKEN"
+          echo "Deploying to existing Vercel project (production)..."
+          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
 
