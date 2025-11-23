@@ -21,14 +21,8 @@ export default function Document() {
           <meta name="msvalidate.01" content={process.env.NEXT_PUBLIC_BING_VERIFICATION} />
         )}
         
-        {/* Preload critical fonts */}
-        <link
-          rel="preload"
-          href="/fonts/inter-var.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
+        {/* Preload critical fonts - disabled to prevent 404 errors */}
+        {/* Font file doesn't exist, preload removed */}
         
         {/* Performance: Minimize render-blocking resources */}
         <style dangerouslySetInnerHTML={{

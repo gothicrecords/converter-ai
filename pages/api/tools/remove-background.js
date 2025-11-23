@@ -1,6 +1,6 @@
-import { formidable } from 'formidable';
+import formidable from 'formidable';
 import FormData from 'form-data';
-import fs from 'fs';
+import fs from 'fs/promises';
 import { analyzeImageWithVision } from '../../../lib/openai.js';
 
 export const config = {
@@ -19,7 +19,10 @@ export default async function handler(req, res) {
     const removeBgApiKey = process.env.REMOVE_BG_API_KEY;
 
     const form = formidable({
-        allowEmptyFiles: false // Non permettere file vuoti
+        allowEmptyFiles: false, // Non permettere file vuoti
+        uploadDir: './tmp', // Directory temporanea per i file
+        keepExtensions: true,
+        maxFileSize: 50 * 1024 * 1024 // 50MB max
     });
 
     try {
@@ -51,8 +54,9 @@ export default async function handler(req, res) {
         }
 
         // Leggi il file come buffer
-        const imageBuffer = fs.readFileSync(imageFile.filepath);
+        const imageBuffer = await fs.readFile(imageFile.filepath);
         const mimeType = imageFile.mimetype || 'image/jpeg';
+        const imageFilePath = imageFile.filepath;
 
         // Se OpenAI è disponibile, usa Vision API per identificare il tipo di soggetto
         let detectedType = 'auto';
@@ -93,7 +97,7 @@ export default async function handler(req, res) {
         }
 
         const formData = new FormData();
-        formData.append('image_file', fs.createReadStream(imageFile.filepath));
+        formData.append('image_file', fs.createReadStream(imageFilePath));
         formData.append('size', size);
         if (type && type !== 'auto') formData.append('type', type);
         if (crop === 'true') {
@@ -125,9 +129,25 @@ export default async function handler(req, res) {
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
         const buffer = await imageBlob.arrayBuffer();
+        
+        // Cleanup temp file
+        try {
+            await fs.unlink(imageFilePath);
+        } catch (cleanupError) {
+            console.warn('Failed to cleanup temp file:', cleanupError);
+        }
+        
         res.status(200).send(Buffer.from(buffer));
 
     } catch (error) {
+        // Cleanup temp file on error
+        if (imageFilePath) {
+            try {
+                await fs.unlink(imageFilePath);
+            } catch (cleanupError) {
+                console.warn('Failed to cleanup temp file on error:', cleanupError);
+            }
+        }
         console.error("Errore durante l'elaborazione dell'immagine:", error);
         
         // Gestisci errori specifici
