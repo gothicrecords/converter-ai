@@ -273,6 +273,9 @@ export default function SEOHead({
             {/* Canonical */}
             {canonical && <link rel="canonical" href={fullUrl} />}
             
+            {/* Sitemap */}
+            <link rel="sitemap" type="application/xml" href={`${siteUrl}/sitemap.xml`} />
+            
             {/* Hreflang Tags for International SEO */}
             {generateHreflangTags()}
 
