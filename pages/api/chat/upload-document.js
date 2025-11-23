@@ -18,8 +18,8 @@ export default async function handler(req, res) {
 
   try {
     const isVercel = Boolean(process.env.VERCEL);
-    const MAX_FILE_MB = isVercel ? Number(process.env.VERCEL_MAX_MB || 9) : 200;
-    const MAX_FILES = isVercel ? Number(process.env.VERCEL_MAX_FILES || 3) : 10;
+    const MAX_FILE_MB = isVercel ? Number(process.env.VERCEL_MAX_MB || 25) : 200;
+    const MAX_FILES = isVercel ? Number(process.env.VERCEL_MAX_FILES || 5) : 10;
 
     const uploadDir = path.join(process.cwd(), 'uploads', 'chat');
     if (!fs.existsSync(uploadDir)) {
