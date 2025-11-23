@@ -27,9 +27,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Vercel CLI
-        run: npm i -g vercel@latest
-
       - name: Run linter
         run: npm run lint || true
         continue-on-error: true
@@ -40,68 +37,4 @@ jobs:
         run: |
           echo "Building project with npm run build..."
           npm run build
-
-      - name: Pull Vercel Environment Information
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
-          VERCEL_PROJECT_NAME: ${{ secrets.VERCEL_PROJECT_NAME }}
-          REPO_NAME: ${{ github.event.repository.name }}
-        run: |
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "Error: VERCEL_TOKEN secret is required"
-            exit 1
-          fi
-
-          # Always bypass ID-based binding and use project name linking
-          FALLBACK_NAME=${VERCEL_PROJECT_NAME:-$REPO_NAME}
-          if [ -z "$FALLBACK_NAME" ]; then
-            echo "Error: No project name available. Set VERCEL_PROJECT_NAME or ensure REPO_NAME is present."
-            exit 1
-          fi
-
-          echo "Bypassing IDs; linking by project name: $FALLBACK_NAME"
-          rm -rf .vercel
-          mkdir -p .vercel
-          unset VERCEL_PROJECT_ID VERCEL_ORG_ID
-          if [ -n "$VERCEL_SCOPE" ]; then
-            vercel link --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$FALLBACK_NAME"
-          else
-            vercel link --yes --token "$VERCEL_TOKEN" --project "$FALLBACK_NAME"
-          fi
-
-          echo "Pulling Vercel project configuration..."
-          if [ -n "$VERCEL_SCOPE" ]; then
-            vercel pull --yes --environment=production --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
-          else
-            vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
-          fi
-
-      - name: Deploy to Vercel (Preview)
-        if: github.event_name == 'pull_request'
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
-        run: |
-          echo "Deploying preview to existing Vercel project..."
-          if [ -n "$VERCEL_SCOPE" ]; then
-            vercel deploy --prebuilt --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
-          else
-            vercel deploy --prebuilt --token "$VERCEL_TOKEN"
-          fi
-
-      - name: Deploy to Vercel (Production)
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
-        run: |
-          echo "Deploying to existing Vercel project (production)..."
-          if [ -n "$VERCEL_SCOPE" ]; then
-            vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
-          else
-            vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN"
-          fi
 
