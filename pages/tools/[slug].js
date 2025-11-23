@@ -1,11 +1,12 @@
 import { useRouter } from 'next/router';
-import Head from 'next/head';
 import { tools } from '../../lib/tools';
 import { getConversionTool, listConversionSlugs } from '../../lib/conversionRegistry';
 import GenericConverter from '../../components/GenericConverter';
 import { HiArrowRight } from 'react-icons/hi';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
+import SEOHead from '../../components/SEOHead';
 import BackgroundRemover from '../../components/tools/BackgroundRemover';
 import ImageGenerator from '../../components/tools/ImageGenerator';
 import CleanNoise from '../../components/tools/CleanNoise';
@@ -18,6 +19,8 @@ import CombineSplitPDF from '../../components/tools/CombineSplitPDF';
 import VideoCompressor from '../../components/tools/VideoCompressor';
 import DocumentTranslator from '../../components/tools/DocumentTranslator';
 import Upscaler from '../../components/tools/Upscaler';
+import ProBadge from '../../components/ProBadge';
+import { toolSEOContent } from '../../lib/tool-seo-content';
 
 const ToolPage = ({ initialSlug, meta }) => {
     const router = useRouter();
@@ -89,14 +92,27 @@ const ToolPage = ({ initialSlug, meta }) => {
         }
     };
 
+    // Get SEO content for this tool
+    const seoContent = toolSEOContent[slug] || null;
+    const articleData = seoContent ? {
+        datePublished: '2024-01-01T00:00:00Z',
+        dateModified: new Date().toISOString(),
+        tags: seoContent.keywords || []
+    } : null;
+
     return (
         <div style={styles.pageWrap}>
-            <Head>
-                <title>{`${meta?.title || tool.title} | Suite di Strumenti AI`}</title>
-                <meta name="description" content={meta?.description || tool.description} />
-                <meta property="og:title" content={`${meta?.title || tool.title} | Suite di Strumenti AI`} />
-                <meta property="og:description" content={meta?.description || tool.description} />
-            </Head>
+            <SEOHead
+                title={seoContent?.title || `${meta?.title || tool.title} | Suite di Strumenti AI`}
+                description={seoContent?.description || meta?.description || tool.description}
+                canonical={`/tools/${slug}`}
+                toolName={tool.title}
+                toolCategory={aiTool?.category || 'Tool'}
+                keywords={seoContent?.keywords || []}
+                faqItems={seoContent?.faq || []}
+                articleData={articleData}
+                type={seoContent ? "article" : "website"}
+            />
 
             <Navbar />
 
@@ -111,17 +127,88 @@ const ToolPage = ({ initialSlug, meta }) => {
                             )}
                         </div>
                     )}
-                    <h1 style={styles.toolTitle}>
-                        {tool.title}
-                    </h1>
+                    <div style={styles.titleRow}>
+                        <h1 style={styles.toolTitle}>
+                            {tool.title}
+                        </h1>
+                        {aiTool && aiTool.pro && (
+                            <ProBadge size="medium" style={{ marginLeft: '12px' }} />
+                        )}
+                    </div>
                     <p style={styles.toolDescription}>
-                        {tool.description}
+                        {seoContent?.mainDescription || tool.description}
                     </p>
                 </header>
 
                 <div style={styles.toolContent}>
                     {renderToolComponent()}
                 </div>
+
+                {/* Rich Content Section for SEO */}
+                {seoContent && (
+                    <section style={styles.contentSection}>
+                        <h2 style={styles.sectionTitle}>Come Utilizzare {tool.title}</h2>
+                        <p style={styles.contentText}>
+                            {seoContent.mainDescription}
+                        </p>
+                        
+                        {seoContent.features && seoContent.features.length > 0 && (
+                            <>
+                                <h3 style={styles.subsectionTitle}>Caratteristiche Principali</h3>
+                                <ul style={styles.featureList}>
+                                    {seoContent.features.map((feature, index) => (
+                                        <li key={index} style={styles.featureListItem}>
+                                            <strong>{feature.title}:</strong> {feature.text}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        )}
+
+                        {seoContent.useCases && seoContent.useCases.length > 0 && (
+                            <>
+                                <h3 style={styles.subsectionTitle}>Casi d'Uso</h3>
+                                <p style={styles.contentText}>
+                                    Questo strumento è perfetto per:
+                                </p>
+                                <ul style={styles.useCaseList}>
+                                    {seoContent.useCases.map((useCase, index) => (
+                                        <li key={index} style={styles.useCaseListItem}>
+                                            <span style={styles.useCaseCheck}>✓</span> {useCase}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        )}
+
+                        {seoContent.faq && seoContent.faq.length > 0 && (
+                            <>
+                                <h3 style={styles.subsectionTitle}>FAQ - Domande Frequenti</h3>
+                                <div style={styles.faqSection}>
+                                    {seoContent.faq.map((faq, index) => (
+                                        <div key={index} style={styles.faqItem}>
+                                            <h4 style={styles.faqQuestion}>{faq.question}</h4>
+                                            <p style={styles.faqAnswer}>{faq.answer}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
+                        {seoContent.relatedTools && seoContent.relatedTools.length > 0 && (
+                            <>
+                                <h3 style={styles.subsectionTitle}>Strumenti Correlati</h3>
+                                <div style={styles.relatedTools}>
+                                    {seoContent.relatedTools.map((relatedTool, index) => (
+                                        <Link key={index} href={relatedTool.href} style={styles.relatedToolLink}>
+                                            {relatedTool.title}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </section>
+                )}
 
                 {/* Altri strumenti consigliati */}
                 <div style={styles.otherToolsSection}>
@@ -146,6 +233,7 @@ const ToolPage = ({ initialSlug, meta }) => {
                     </div>
                 </div>
             </main>
+            <Footer />
         </div>
     );
 };
@@ -232,6 +320,13 @@ const styles = {
         width: '40px',
         height: '40px',
         color: '#a78bfa'
+    },
+    titleRow: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexWrap: 'wrap',
+        gap: '12px',
     },
     toolTitle: {
         fontSize: 'clamp(28px, 5vw, 48px)',
@@ -367,5 +462,99 @@ const styles = {
         minHeight: '300px',
         fontSize: '16px',
         color: '#94a3b8'
+    },
+    contentSection: {
+        marginTop: '60px',
+        padding: '40px',
+        background: 'rgba(15, 23, 42, 0.5)',
+        borderRadius: '20px',
+        border: '1px solid rgba(102, 126, 234, 0.2)'
+    },
+    sectionTitle: {
+        fontSize: '28px',
+        fontWeight: 800,
+        marginBottom: '20px',
+        color: '#e2e8f0'
+    },
+    contentText: {
+        fontSize: '16px',
+        lineHeight: 1.8,
+        color: '#cbd5e1',
+        marginBottom: '20px'
+    },
+    subsectionTitle: {
+        fontSize: '22px',
+        fontWeight: 700,
+        marginTop: '32px',
+        marginBottom: '16px',
+        color: '#e2e8f0'
+    },
+    featureList: {
+        listStyle: 'none',
+        padding: 0,
+        marginBottom: '24px'
+    },
+    featureListItem: {
+        padding: '8px 0',
+        color: '#cbd5e1',
+        fontSize: '15px',
+        lineHeight: 1.7
+    },
+    useCaseList: {
+        listStyle: 'none',
+        padding: 0,
+        marginBottom: '24px'
+    },
+    useCaseListItem: {
+        padding: '8px 0',
+        color: '#cbd5e1',
+        fontSize: '15px',
+        lineHeight: 1.7,
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '8px'
+    },
+    useCaseCheck: {
+        color: '#a78bfa',
+        fontWeight: 'bold',
+        flexShrink: 0
+    },
+    faqSection: {
+        marginTop: '32px'
+    },
+    faqItem: {
+        marginBottom: '24px',
+        padding: '20px',
+        background: 'rgba(30, 41, 59, 0.5)',
+        borderRadius: '12px',
+        border: '1px solid rgba(102, 126, 234, 0.1)'
+    },
+    faqQuestion: {
+        fontSize: '18px',
+        fontWeight: 700,
+        marginBottom: '12px',
+        color: '#a78bfa'
+    },
+    faqAnswer: {
+        fontSize: '15px',
+        lineHeight: 1.7,
+        color: '#cbd5e1',
+        margin: 0
+    },
+    relatedTools: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        marginTop: '24px'
+    },
+    relatedToolLink: {
+        color: '#60a5fa',
+        textDecoration: 'none',
+        fontSize: '16px',
+        padding: '12px 16px',
+        background: 'rgba(96, 165, 250, 0.1)',
+        borderRadius: '8px',
+        border: '1px solid rgba(96, 165, 250, 0.2)',
+        transition: 'all 0.3s'
     }
 };

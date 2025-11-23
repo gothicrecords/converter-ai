@@ -25,12 +25,30 @@ const Navbar = () => {
     const buttonRefs = useRef({});
     const closeTimeoutRef = useRef(null);
     
-    // Safe client-side mobile detection
+    // Safe client-side mobile detection with throttling
     useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+        if (typeof window === 'undefined') return;
+        
+        const checkMobile = () => {
+            const width = window.innerWidth;
+            setIsMobile(width <= 768);
+        };
+        
+        // Check immediately
         checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
+        
+        // Throttle resize events for better performance
+        let resizeTimeout;
+        const handleResize = () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(checkMobile, 150);
+        };
+        
+        window.addEventListener('resize', handleResize, { passive: true });
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            clearTimeout(resizeTimeout);
+        };
     }, []);
     
     useEffect(() => {
@@ -151,17 +169,21 @@ const Navbar = () => {
             position: 'sticky',
             top: 0,
             zIndex: 100000,
-            background: scrolled ? 'rgba(10, 14, 26, 0.9)' : 'rgba(10, 14, 26, 0.95)',
+            background: scrolled ? 'rgba(10, 14, 26, 0.95)' : 'rgba(10, 14, 26, 0.98)',
+            WebkitBackdropFilter: 'blur(20px)',
             backdropFilter: 'blur(20px)',
             borderBottom: scrolled ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(102, 126, 234, 0.2)',
-            padding: scrolled ? '6px 0' : '10px 0',
+            padding: scrolled ? '8px 0' : '12px 0',
             boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.4), 0 0 20px rgba(102, 126, 234, 0.1)' : '0 2px 12px rgba(0,0,0,0.3)',
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
             width: '100%',
             maxWidth: '100%',
             overflowX: 'hidden',
             overflowY: 'visible',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)',
+            willChange: 'background, box-shadow, padding'
         },
         navContent: {
             width: '100%',
@@ -319,58 +341,85 @@ const Navbar = () => {
             display: isMobile ? 'flex' : 'none',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '8px',
+            padding: '10px',
             background: 'transparent',
             border: 'none',
             color: '#cbd5e1',
             cursor: 'pointer',
-            fontSize: '24px',
-            marginRight: '8px'
+            fontSize: '26px',
+            marginRight: '8px',
+            minWidth: '44px',
+            minHeight: '44px',
+            WebkitTapHighlightColor: 'transparent',
+            touchAction: 'manipulation',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
         },
         secondaryMenuBtn: {
             display: isMobile ? 'flex' : 'none',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '8px',
+            padding: '10px',
             background: 'transparent',
             border: 'none',
             color: '#cbd5e1',
             cursor: 'pointer',
-            fontSize: '24px',
-            marginRight: '12px'
+            fontSize: '26px',
+            marginRight: '12px',
+            minWidth: '44px',
+            minHeight: '44px',
+            WebkitTapHighlightColor: 'transparent',
+            touchAction: 'manipulation',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
         },
         mobileMenu: {
             position: 'fixed',
             top: 0,
             right: mobileMenuOpen ? 0 : '-100%',
             bottom: 0,
-            width: '80%',
-            maxWidth: '320px',
-            background: 'rgba(10, 14, 26, 0.98)',
-            backdropFilter: 'blur(16px)',
-            borderLeft: '1px solid rgba(102, 126, 234, 0.2)',
+            width: '85%',
+            maxWidth: '340px',
+            minWidth: '280px',
+            background: 'rgba(10, 14, 26, 0.99)',
+            WebkitBackdropFilter: 'blur(20px)',
+            backdropFilter: 'blur(20px)',
+            borderLeft: '1px solid rgba(102, 126, 234, 0.3)',
             overflowY: 'auto',
-            padding: '20px',
-            zIndex: 1002,
-            transition: 'right 0.3s ease',
-            boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)',
-            display: isMobile ? 'block' : 'none'
+            overflowX: 'hidden',
+            padding: '24px 20px',
+            zIndex: 100004,
+            transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.6)',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+            display: mobileMenuOpen ? 'block' : 'none',
+            visibility: mobileMenuOpen ? 'visible' : 'hidden',
+            opacity: mobileMenuOpen ? 1 : 0
         },
         mobileSecondaryMenu: {
             position: 'fixed',
             top: 0,
             right: mobileSecondaryMenuOpen ? 0 : '-100%',
             bottom: 0,
-            width: '280px',
-            background: 'rgba(10, 14, 26, 0.98)',
-            backdropFilter: 'blur(16px)',
-            borderLeft: '1px solid rgba(102, 126, 234, 0.2)',
+            width: '85%',
+            maxWidth: '320px',
+            minWidth: '260px',
+            background: 'rgba(10, 14, 26, 0.99)',
+            WebkitBackdropFilter: 'blur(20px)',
+            backdropFilter: 'blur(20px)',
+            borderLeft: '1px solid rgba(102, 126, 234, 0.3)',
             overflowY: 'auto',
-            padding: '20px',
-            zIndex: 1002,
-            transition: 'right 0.3s ease',
-            boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)',
-            display: isMobile ? 'block' : 'none'
+            overflowX: 'hidden',
+            padding: '24px 20px',
+            zIndex: 100004,
+            transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.6)',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+            display: mobileSecondaryMenuOpen ? 'block' : 'none',
+            visibility: mobileSecondaryMenuOpen ? 'visible' : 'hidden',
+            opacity: mobileSecondaryMenuOpen ? 1 : 0
         },
         mobileOverlay: {
             position: 'fixed',
@@ -378,9 +427,14 @@ const Navbar = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.7)',
-            zIndex: 1001,
-            backdropFilter: 'blur(4px)'
+            background: 'rgba(0, 0, 0, 0.75)',
+            WebkitBackdropFilter: 'blur(4px)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 100003,
+            opacity: (mobileMenuOpen || mobileSecondaryMenuOpen) ? 1 : 0,
+            visibility: (mobileMenuOpen || mobileSecondaryMenuOpen) ? 'visible' : 'hidden',
+            transition: 'opacity 0.3s ease, visibility 0.3s ease',
+            WebkitTapHighlightColor: 'transparent'
         },
         mobileMenuHeader: {
             display: 'flex',
@@ -400,53 +454,80 @@ const Navbar = () => {
             background: 'transparent',
             border: 'none',
             color: '#cbd5e1',
-            fontSize: '24px',
+            fontSize: '28px',
             cursor: 'pointer',
-            padding: '4px'
+            padding: '8px',
+            minWidth: '44px',
+            minHeight: '44px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            WebkitTapHighlightColor: 'rgba(102, 126, 234, 0.2)',
+            touchAction: 'manipulation',
+            borderRadius: '8px',
+            transition: 'background 0.2s ease'
         },
         mobileMenuItem: {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '14px 16px',
+            padding: '16px 18px',
             color: '#cbd5e1',
             textDecoration: 'none',
-            borderRadius: '8px',
+            borderRadius: '10px',
             fontSize: '15px',
             fontWeight: '600',
-            background: 'rgba(30, 41, 59, 0.5)',
-            border: '1px solid rgba(102, 126, 234, 0.2)',
-            marginBottom: '8px',
-            cursor: 'pointer'
+            background: 'rgba(30, 41, 59, 0.6)',
+            border: '1px solid rgba(102, 126, 234, 0.25)',
+            marginBottom: '10px',
+            cursor: 'pointer',
+            minHeight: '48px',
+            WebkitTapHighlightColor: 'rgba(102, 126, 234, 0.2)',
+            touchAction: 'manipulation',
+            transition: 'all 0.2s ease',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
         },
         mobileCategoryHeader: {
-            padding: '12px 16px',
+            padding: '14px 18px',
             color: '#667eea',
-            fontSize: '12px',
+            fontSize: '13px',
             fontWeight: '700',
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
             marginTop: '16px',
-            marginBottom: '8px',
+            marginBottom: '10px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             cursor: 'pointer',
-            background: 'rgba(102, 126, 234, 0.1)',
-            borderRadius: '8px'
+            background: 'rgba(102, 126, 234, 0.15)',
+            borderRadius: '10px',
+            minHeight: '48px',
+            WebkitTapHighlightColor: 'rgba(102, 126, 234, 0.3)',
+            touchAction: 'manipulation',
+            transition: 'all 0.2s ease',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
         },
         mobileDropdownItem: {
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            padding: '10px 16px 10px 32px',
+            padding: '12px 16px 12px 36px',
             color: '#cbd5e1',
             textDecoration: 'none',
             borderRadius: '8px',
             fontSize: '14px',
             fontWeight: '500',
             background: 'rgba(15, 23, 42, 0.7)',
-            marginBottom: '4px'
+            marginBottom: '6px',
+            minHeight: '44px',
+            WebkitTapHighlightColor: 'rgba(102, 126, 234, 0.2)',
+            touchAction: 'manipulation',
+            transition: 'all 0.2s ease',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
         }
     };
 
@@ -749,7 +830,13 @@ const Navbar = () => {
             {isMobile && (mobileMenuOpen || mobileSecondaryMenuOpen) && (
                 <div 
                     style={styles.mobileOverlay}
-                    onClick={() => {
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setMobileMenuOpen(false);
+                        setMobileSecondaryMenuOpen(false);
+                    }}
+                    onTouchStart={(e) => {
+                        e.stopPropagation();
                         setMobileMenuOpen(false);
                         setMobileSecondaryMenuOpen(false);
                     }}
@@ -757,7 +844,7 @@ const Navbar = () => {
             )}
 
             {/* Mobile menu principale (categorie e strumenti) */}
-            {isMobile && (
+            {isMobile && mobileMenuOpen && (
                 <div style={styles.mobileMenu}>
                     <div style={styles.mobileMenuHeader}>
                         <h3 style={styles.mobileMenuTitle}>Menu</h3>
@@ -829,13 +916,27 @@ const Navbar = () => {
             )}
 
             {/* Mobile menu secondario (login, pricing, faq, lingua) */}
-            {isMobile && (
-                <div style={styles.mobileSecondaryMenu}>
+            {isMobile && mobileSecondaryMenuOpen && (
+                <div 
+                    style={styles.mobileSecondaryMenu}
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                >
                     <div style={styles.mobileMenuHeader}>
                         <h3 style={styles.mobileMenuTitle}>Account</h3>
                         <button 
                             style={styles.closeBtn}
-                            onClick={() => setMobileSecondaryMenuOpen(false)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setMobileSecondaryMenuOpen(false);
+                            }}
+                            onTouchEnd={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setMobileSecondaryMenuOpen(false);
+                            }}
+                            aria-label="Chiudi menu"
+                            title="Chiudi menu"
                         >
                             <HiX />
                         </button>

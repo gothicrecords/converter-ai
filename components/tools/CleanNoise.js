@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { BsSoundwave, BsCloudUpload, BsDownload, BsX } from 'react-icons/bs';
 import { HiCheckCircle } from 'react-icons/hi';
+import ProBadge from '../ProBadge';
+import Link from 'next/link';
 
 export default function CleanNoise() {
     const [audio, setAudio] = useState(null);
@@ -79,6 +81,31 @@ export default function CleanNoise() {
             maxWidth: '900px',
             margin: '0 auto',
             padding: '20px'
+        },
+        proInfo: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '16px',
+            background: 'rgba(102, 126, 234, 0.1)',
+            border: '1px solid rgba(102, 126, 234, 0.3)',
+            borderRadius: '12px',
+            marginBottom: '24px',
+            flexWrap: 'wrap',
+        },
+        proInfoText: {
+            fontSize: '13px',
+            color: '#cbd5e1',
+            margin: 0,
+            flex: 1,
+            lineHeight: '1.6',
+        },
+        proLink: {
+            color: '#667eea',
+            textDecoration: 'none',
+            fontWeight: '600',
+            marginLeft: '8px',
+            transition: 'color 0.2s',
         },
         dropzone: {
             border: '3px dashed #ccc',
@@ -246,6 +273,17 @@ export default function CleanNoise() {
 
     return (
         <div style={styles.container}>
+            {/* Badge PRO e info limiti */}
+            <div style={styles.proInfo}>
+                <ProBadge size="medium" />
+                <p style={styles.proInfoText}>
+                    <strong>Piano Gratuito:</strong> 5 documenti/giorno • 
+                    <Link href="/pricing" style={styles.proLink}>
+                        <strong>Passa a PRO</strong>
+                    </Link> per utilizzi illimitati
+                </p>
+            </div>
+
             {!audio ? (
                 <div
                     {...getRootProps()}

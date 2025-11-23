@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { BsTranslate, BsCloudUpload, BsDownload, BsX, BsFileText } from 'react-icons/bs';
 import { HiCheckCircle } from 'react-icons/hi';
+import ProBadge from '../ProBadge';
+import Link from 'next/link';
 
 export default function DocumentTranslator() {
     const [document, setDocument] = useState(null);
@@ -65,11 +67,54 @@ export default function DocumentTranslator() {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Errore durante la traduzione');
+                // Prova a leggere come JSON, altrimenti usa il testo
+                let errorMessage = 'Errore durante la traduzione';
+                let errorData = null;
+                
+                try {
+                    errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch (jsonError) {
+                    // Se non è JSON, prova a leggere come testo
+                    try {
+                        const errorText = await response.text();
+                        if (errorText) {
+                            errorMessage = errorText;
+                        } else {
+                            errorMessage = `Errore ${response.status}: ${response.statusText || 'Errore del server'}`;
+                        }
+                    } catch (textError) {
+                        errorMessage = `Errore ${response.status}: ${response.statusText || 'Errore del server'}`;
+                    }
+                }
+                
+                // Se è un errore di limite, mostra messaggio di upgrade
+                if (errorData && errorData.requiresPro) {
+                    const limitError = new Error(errorMessage);
+                    limitError.isLimitError = true;
+                    limitError.upgradeMessage = errorData.upgradeMessage || 'Passa a PRO per utilizzare questo tool senza limiti!';
+                    limitError.limitType = errorData.limitType;
+                    limitError.current = errorData.current;
+                    limitError.max = errorData.max;
+                    throw limitError;
+                }
+                
+                throw new Error(errorMessage);
+            }
+
+            // Verifica che la risposta sia un blob valido
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/') && !contentType.includes('text/')) {
+                throw new Error('Risposta del server non valida. Il documento potrebbe non essere stato tradotto correttamente.');
             }
 
             const blob = await response.blob();
+            
+            // Verifica che il blob non sia vuoto
+            if (blob.size === 0) {
+                throw new Error('Il documento tradotto è vuoto. Riprova con un file diverso.');
+            }
+            
             const url = URL.createObjectURL(blob);
             
             // Determina il nome del file in base al tipo originale
@@ -78,7 +123,8 @@ export default function DocumentTranslator() {
             
             setResult({ url, filename });
         } catch (err) {
-            setError(err.message);
+            console.error('Errore traduzione:', err);
+            setError(err.message || 'Errore sconosciuto durante la traduzione. Riprova più tardi.');
         } finally {
             setLoading(false);
         }
@@ -116,7 +162,7 @@ export default function DocumentTranslator() {
             background: 'rgba(15, 23, 42, 0.4)'
         },
         dropzoneActive: {
-            borderColor: '#667eea',
+            border: '3px dashed #667eea',
             background: 'rgba(102, 126, 234, 0.1)'
         },
         uploadIcon: {
@@ -285,11 +331,47 @@ export default function DocumentTranslator() {
             fontSize: '14px',
             color: '#94a3b8',
             marginBottom: '20px'
-        }
+        },
+        proInfo: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '16px',
+            background: 'rgba(102, 126, 234, 0.1)',
+            border: '1px solid rgba(102, 126, 234, 0.3)',
+            borderRadius: '12px',
+            marginBottom: '24px',
+            flexWrap: 'wrap',
+        },
+        proInfoText: {
+            fontSize: '13px',
+            color: '#cbd5e1',
+            margin: 0,
+            flex: 1,
+            lineHeight: '1.6',
+        },
+        proLink: {
+            color: '#667eea',
+            textDecoration: 'none',
+            fontWeight: '600',
+            marginLeft: '8px',
+            transition: 'color 0.2s',
+        },
     };
 
     return (
         <div style={styles.container}>
+            {/* Badge PRO e info limiti */}
+            <div style={styles.proInfo}>
+                <ProBadge size="medium" />
+                <p style={styles.proInfoText}>
+                    <strong>Piano Gratuito:</strong> 5 documenti/giorno • 
+                    <Link href="/pricing" style={styles.proLink}>
+                        <strong>Passa a PRO</strong>
+                    </Link> per utilizzi illimitati
+                </p>
+            </div>
+
             {!document ? (
                 <div
                     {...getRootProps()}
@@ -297,8 +379,15 @@ export default function DocumentTranslator() {
                         ...styles.dropzone,
                         ...(isDragActive ? styles.dropzoneActive : {})
                     }}
+                    role="button"
+                    aria-label="Area di caricamento documento. Trascina un file qui o clicca per selezionare"
+                    tabIndex={0}
                 >
-                    <input {...getInputProps()} />
+                    <input 
+                        {...getInputProps()} 
+                        aria-label="Seleziona documento da tradurre (PDF, DOC, DOCX, TXT, MD)"
+                        title="Seleziona documento da tradurre"
+                    />
                     <BsTranslate style={styles.uploadIcon} />
                     <p style={styles.dropzoneText}>
                         {isDragActive ? 'Rilascia qui...' : 'Carica un documento'}
@@ -376,7 +465,69 @@ export default function DocumentTranslator() {
 
                     {error && (
                         <div style={styles.errorBox}>
-                            <p style={styles.errorText}>{error}</p>
+                            <p style={styles.errorText}>
+                                {error.split('\n').map((line, index) => (
+                                    <span key={index}>
+                                        {line}
+                                        {index < error.split('\n').length - 1 && <br />}
+                                    </span>
+                                ))}
+                            </p>
+                            
+                            {/* Messaggio di upgrade per limiti */}
+                            {error.includes('limite') || error.includes('Limite') || error.includes('raggiunto') ? (
+                                <div style={{ marginTop: '15px' }}>
+                                    <div style={{ 
+                                        padding: '16px', 
+                                        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)', 
+                                        border: '1px solid rgba(102, 126, 234, 0.3)',
+                                        borderRadius: '12px', 
+                                        marginBottom: '12px' 
+                                    }}>
+                                        <p style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#cbd5e1', fontWeight: '600' }}>
+                                            🚀 Passa a PRO per utilizzare questo tool senza limiti!
+                                        </p>
+                                        <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#94a3b8' }}>
+                                            Con PRO ottieni utilizzi illimitati, file più grandi e funzionalità avanzate.
+                                        </p>
+                                        <Link href="/pricing" style={{
+                                            display: 'inline-block',
+                                            padding: '10px 20px',
+                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                            color: '#fff',
+                                            borderRadius: '8px',
+                                            textDecoration: 'none',
+                                            fontWeight: '600',
+                                            fontSize: '14px',
+                                            transition: 'transform 0.2s',
+                                        }}>
+                                            Vedi Piani PRO →
+                                        </Link>
+                                    </div>
+                                </div>
+                            ) : (error.includes('limite di richieste') || error.includes('rate')) && (
+                                <div style={{ marginTop: '15px' }}>
+                                    <div style={{ padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px', marginBottom: '12px' }}>
+                                        <p style={{ margin: 0, fontSize: '14px', color: '#93c5fd' }}>
+                                            💡 <strong>Suggerimento:</strong> Se il PDF contiene testo nativo (non scansionato), 
+                                            prova a convertirlo in DOCX o TXT usando il tool di conversione, poi traduci il file convertito.
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={handleTranslate}
+                                        disabled={loading}
+                                        style={{
+                                            ...styles.button,
+                                            ...styles.buttonPrimary,
+                                            ...(loading ? styles.buttonDisabled : {}),
+                                            width: '100%',
+                                            marginTop: '10px'
+                                        }}
+                                    >
+                                        {loading ? 'Riprova in corso...' : '🔄 Riprova Traduzione'}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 

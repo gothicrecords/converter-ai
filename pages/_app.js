@@ -333,7 +333,14 @@ function MyApp({ Component, pageProps }) {
       <QueryClientProvider client={queryClient}>
         <LanguageProvider initialTranslations={pageProps.translations || {}}>
         <Head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+          <meta name="apple-mobile-web-app-title" content="MegaPixelAI ToolSuite" />
+          <meta name="theme-color" content="#0a0e1a" />
+          <meta name="msapplication-TileColor" content="#0a0e1a" />
+          <meta name="msapplication-navbutton-color" content="#0a0e1a" />
           <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
           <link rel="alternate icon" href="/logo.svg" type="image/svg+xml" />
           <link rel="apple-touch-icon" href="/logo-with-text.jpg" />
@@ -407,18 +414,51 @@ function MyApp({ Component, pageProps }) {
             * {
               -webkit-font-smoothing: antialiased;
               -moz-osx-font-smoothing: grayscale;
+              -webkit-tap-highlight-color: transparent;
             }
             /* GPU acceleration per animazioni */
             [style*="transform"], [style*="opacity"] {
               will-change: transform, opacity;
             }
-            /* Smooth scrolling */
-            html {
-              scroll-behavior: smooth;
+            /* Smooth scrolling - disabilitato su mobile per performance */
+            @media (prefers-reduced-motion: no-preference) {
+              html {
+                scroll-behavior: smooth;
+              }
             }
             /* Ottimizzazione rendering */
             img, video {
               content-visibility: auto;
+            }
+            /* Mobile optimizations */
+            @media (max-width: 768px) {
+              * {
+                -webkit-tap-highlight-color: rgba(102, 126, 234, 0.2);
+                touch-action: manipulation;
+              }
+              button, a, [role="button"] {
+                -webkit-tap-highlight-color: rgba(102, 126, 234, 0.3);
+                touch-action: manipulation;
+                user-select: none;
+                -webkit-user-select: none;
+              }
+              /* Prevent text selection on buttons */
+              input, textarea {
+                -webkit-user-select: text;
+                user-select: text;
+              }
+              /* iOS Safari specific fixes */
+              @supports (-webkit-touch-callout: none) {
+                body {
+                  -webkit-overflow-scrolling: touch;
+                }
+              }
+            }
+            /* Android Chrome optimizations */
+            @media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
+              * {
+                -webkit-font-smoothing: antialiased;
+              }
             }
           `}</style>
         </Head>

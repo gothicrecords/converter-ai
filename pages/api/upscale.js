@@ -11,6 +11,8 @@ import {
   ProcessingError,
   FileSystemError
 } from '../../errors';
+import { canUseTool, getUpgradeMessage } from '../../lib/usage-limits.js';
+import { getUsageStats, incrementUsage, getUserPlan, getUserId } from '../../lib/usage-tracker.js';
 
 export const config = {
   api: {
@@ -76,6 +78,37 @@ export default async function handler(req, res) {
       throw new FileTooLargeError(MAX_FILE_SIZE, file.size);
     }
 
+    // Verifica limiti d'uso (tool PRO)
+    const userId = getUserId(req);
+    const userPlan = getUserPlan(req);
+    const toolSlug = 'upscaler-ai';
+    const usageStats = getUsageStats(userId, toolSlug);
+    const fileInfo = {
+      size: file.size,
+    };
+
+    const limitCheck = canUseTool(toolSlug, userPlan, usageStats, fileInfo);
+    
+    if (!limitCheck.allowed) {
+      // Cleanup file prima di ritornare errore
+      if (filePath) {
+        try { 
+          await fs.unlink(filePath);
+        } catch (cleanupError) {
+          console.warn('Failed to cleanup temp file:', cleanupError);
+        }
+      }
+      
+      return res.status(403).json({
+        error: limitCheck.reason,
+        limitType: limitCheck.limitType,
+        current: limitCheck.current,
+        max: limitCheck.max,
+        upgradeMessage: getUpgradeMessage(toolSlug, userPlan),
+        requiresPro: true,
+      });
+    }
+
     filePath = file.filepath || file.path; // v3 vs older
     if (!filePath) {
       throw new ValidationError('Uploaded file path missing');
@@ -116,6 +149,9 @@ export default async function handler(req, res) {
           // Continue with upscaled result if AI enhancement fails
         }
       }
+      
+      // Incrementa contatore uso (solo se la richiesta è andata a buon fine)
+      incrementUsage(userId, toolSlug);
       
       // Cleanup temp file
       if (filePath) {

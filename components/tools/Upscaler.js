@@ -1,6 +1,8 @@
 // components/tools/Upscaler.js - Wrapper component for Upscaler tool
 import { useState, useRef, useEffect } from 'react';
 import { HiSparkles, HiUpload, HiDownload, HiPhotograph } from 'react-icons/hi';
+import Link from 'next/link';
+import ProBadge from '../ProBadge';
 
 // Safe analytics loader: defers import to client and no-ops if unavailable
 function useSafeAnalytics() {
@@ -96,7 +98,19 @@ export default function Upscaler() {
     try {
       const res = await fetch('/api/upscale', { method: 'POST', body: fd });
       const j = await res.json();
-      if (!res.ok) throw new Error(j.details || j.error || 'Upscale failed');
+      if (!res.ok) {
+        // Se è un errore di limite, crea un errore speciale
+        if (j.requiresPro || j.limitType) {
+          const limitError = new Error(j.error || 'Limite raggiunto');
+          limitError.isLimitError = true;
+          limitError.upgradeMessage = j.upgradeMessage || 'Passa a PRO per utilizzare questo tool senza limiti!';
+          limitError.limitType = j.limitType;
+          limitError.current = j.current;
+          limitError.max = j.max;
+          throw limitError;
+        }
+        throw new Error(j.details || j.error || 'Upscale failed');
+      }
       
       clearInterval(progressInterval);
       setProgress(100);
@@ -128,7 +142,13 @@ export default function Upscaler() {
         analytics.trackToolComplete('Image Upscaler', duration, false);
         analytics.trackError(err.message, 'Upscaler', 'upscale_error');
       } catch {}
-      setStatus(`Errore: ${err.message}`);
+      
+      // Mostra messaggio di errore con upgrade se è un limite
+      if (err.isLimitError) {
+        setStatus(`⚠️ ${err.message} ${err.upgradeMessage ? `- ${err.upgradeMessage}` : ''}`);
+      } else {
+        setStatus(`Errore: ${err.message}`);
+      }
       setProgress(0);
     } finally {
       setLoading(false);
@@ -214,6 +234,17 @@ export default function Upscaler() {
 
   return (
     <div style={styles.container}>
+      {/* Badge PRO e info limiti */}
+      <div style={styles.proInfo}>
+        <ProBadge size="medium" />
+        <p style={styles.proInfoText}>
+          <strong>Piano Gratuito:</strong> 5 documenti/giorno • 
+          <Link href="/pricing" style={styles.proLink}>
+            <strong>Passa a PRO</strong>
+          </Link> per utilizzi illimitati
+        </p>
+      </div>
+
       {!originalUrl && (
         <div style={styles.card}>
           <div
@@ -262,11 +293,65 @@ export default function Upscaler() {
               <div style={styles.progressText}>{progress}%</div>
             </div>
           )}
-          {status && <div style={styles.status}>{status}</div>}
+          {status && (
+            <div style={{
+              ...styles.status,
+              ...(status.includes('⚠️') || status.includes('limite') || status.includes('Limite') || status.includes('raggiunto') ? {
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#fca5a5',
+              } : {})
+            }}>
+              {status}
+              {(status.includes('limite') || status.includes('Limite') || status.includes('raggiunto')) && (
+                <div style={{ marginTop: '12px' }}>
+                  <Link href="/pricing" style={{
+                    display: 'inline-block',
+                    padding: '8px 16px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: '#fff',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontWeight: '600',
+                    fontSize: '13px',
+                  }}>
+                    Vedi Piani PRO →
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
-      {!originalUrl && status && <div style={styles.status}>{status}</div>}
+      {!originalUrl && status && (
+        <div style={{
+          ...styles.status,
+          ...(status.includes('⚠️') || status.includes('limite') || status.includes('Limite') || status.includes('raggiunto') ? {
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: '#fca5a5',
+          } : {})
+        }}>
+          {status}
+          {(status.includes('limite') || status.includes('Limite') || status.includes('raggiunto')) && (
+            <div style={{ marginTop: '12px' }}>
+              <Link href="/pricing" style={{
+                display: 'inline-block',
+                padding: '8px 16px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: '#fff',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontWeight: '600',
+                fontSize: '13px',
+              }}>
+                Vedi Piani PRO →
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
 
       {originalUrl && upscaledUrl && (
         <div style={styles.card}>
@@ -326,6 +411,31 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '24px'
+  },
+  proInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '16px',
+    background: 'rgba(102, 126, 234, 0.1)',
+    border: '1px solid rgba(102, 126, 234, 0.3)',
+    borderRadius: '12px',
+    marginBottom: '24px',
+    flexWrap: 'wrap',
+  },
+  proInfoText: {
+    fontSize: '13px',
+    color: '#cbd5e1',
+    margin: 0,
+    flex: 1,
+    lineHeight: '1.6',
+  },
+  proLink: {
+    color: '#667eea',
+    textDecoration: 'none',
+    fontWeight: '600',
+    marginLeft: '8px',
+    transition: 'color 0.2s',
   },
   card: {
     background: 'rgba(15, 23, 42, 0.7)',

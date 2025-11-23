@@ -4,6 +4,8 @@ import ExportModal from '../ExportModal';
 import { LoadingOverlay, ProgressBar } from '../Loading';
 import { showToast, updateToast } from '../Toast';
 import { saveToHistory } from '../../utils/history';
+import ProBadge from '../ProBadge';
+import Link from 'next/link';
 
 export default function ImageGenerator() {
     const [prompt, setPrompt] = useState('');
@@ -130,6 +132,17 @@ export default function ImageGenerator() {
 
     return (
         <div style={styles.container}>
+            {/* Badge PRO e info limiti */}
+            <div style={styles.proInfo}>
+                <ProBadge size="medium" />
+                <p style={styles.proInfoText}>
+                    <strong>Piano Gratuito:</strong> 5 documenti/giorno • 
+                    <Link href="/pricing" style={styles.proLink}>
+                        <strong>Passa a PRO</strong>
+                    </Link> per utilizzi illimitati
+                </p>
+            </div>
+
             {loading && (
                 <LoadingOverlay message={`Generazione in corso... ${Math.round(progress)}%`} />
             )}
@@ -312,6 +325,31 @@ const styles = {
         maxWidth: '900px',
         margin: '0 auto',
         padding: '24px'
+    },
+    proInfo: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '16px',
+        background: 'rgba(102, 126, 234, 0.1)',
+        border: '1px solid rgba(102, 126, 234, 0.3)',
+        borderRadius: '12px',
+        marginBottom: '24px',
+        flexWrap: 'wrap',
+    },
+    proInfoText: {
+        fontSize: '13px',
+        color: '#cbd5e1',
+        margin: 0,
+        flex: 1,
+        lineHeight: '1.6',
+    },
+    proLink: {
+        color: '#667eea',
+        textDecoration: 'none',
+        fontWeight: '600',
+        marginLeft: '8px',
+        transition: 'color 0.2s',
     },
     card: {
         background: 'rgba(15, 23, 42, 0.7)',

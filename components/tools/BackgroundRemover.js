@@ -6,6 +6,8 @@ import ExportModal from '../ExportModal';
 import { LoadingOverlay, ProgressBar } from '../Loading';
 import { showToast, updateToast } from '../Toast';
 import { saveToHistory } from '../../utils/history';
+import ProBadge from '../ProBadge';
+import Link from 'next/link';
 
 const PRESETS = {
     portrait: { type: 'person', quality: 90, crop: true, cropMargin: 5, name: 'Ritratto' },
@@ -348,6 +350,17 @@ const BackgroundRemover = () => {
 
     return (
         <div style={styles.container}>
+            {/* Badge PRO e info limiti */}
+            <div style={styles.proInfo}>
+                <ProBadge size="medium" />
+                <p style={styles.proInfoText}>
+                    <strong>Piano Gratuito:</strong> 5 documenti/giorno • 
+                    <Link href="/pricing" style={styles.proLink}>
+                        <strong>Passa a PRO</strong>
+                    </Link> per utilizzi illimitati
+                </p>
+            </div>
+
             {isLoading && (
                 <LoadingOverlay message={`Rimozione sfondo in corso... ${progress}%`} />
             )}
@@ -549,6 +562,31 @@ export default BackgroundRemover;
 
 const styles = {
     container: { width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '24px', background: 'rgba(30, 41, 59, 0.8)', border: '1px solid rgba(148, 163, 184, 0.2)', borderRadius: '12px' },
+    proInfo: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '16px',
+        background: 'rgba(102, 126, 234, 0.1)',
+        border: '1px solid rgba(102, 126, 234, 0.3)',
+        borderRadius: '12px',
+        marginBottom: '24px',
+        flexWrap: 'wrap',
+    },
+    proInfoText: {
+        fontSize: '13px',
+        color: '#cbd5e1',
+        margin: 0,
+        flex: 1,
+        lineHeight: '1.6',
+    },
+    proLink: {
+        color: '#667eea',
+        textDecoration: 'none',
+        fontWeight: '600',
+        marginLeft: '8px',
+        transition: 'color 0.2s',
+    },
     dropzone: { position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '240px', padding: '24px', border: '2px dashed rgba(148, 163, 184, 0.4)', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s' },
     dropzoneActive: { borderColor: '#a78bfa', background: 'rgba(167, 139, 250, 0.1)' },
     uploadIcon: { width: '48px', height: '48px', color: '#94a3b8', marginBottom: '16px' },
