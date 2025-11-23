@@ -181,7 +181,17 @@ export default function Upscaler() {
             className="dropzone"
             onDrop={onDrop}
             onDragOver={(e) => e.preventDefault()}
-            style={{ minHeight: '280px', position: 'relative' }}
+            onDragEnter={(e) => e.preventDefault()}
+            style={{ 
+              minHeight: '280px', 
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              visibility: 'visible',
+              opacity: 1,
+              width: '100%'
+            }}
           >
             <div className="dropzone-content">
               <HiPhotograph className="dropzone-icon" />
@@ -192,8 +202,20 @@ export default function Upscaler() {
               id="fileInput"
               type="file"
               accept="image/*"
-              onChange={(e) => onFileSelect(e.target.files?.[0])}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', zIndex: 2 }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onFileSelect(file);
+              }}
+              style={{ 
+                position: 'absolute', 
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0, 
+                cursor: 'pointer', 
+                zIndex: 2 
+              }}
             />
           </div>
         </div>
@@ -211,7 +233,7 @@ export default function Upscaler() {
         </div>
       )}
 
-      {!originalUrl && <div className="status">{status}</div>}
+      {!originalUrl && status && <div className="status">{status}</div>}
 
       {originalUrl && upscaledUrl && (
         <div style={styles.card}>
