@@ -186,18 +186,86 @@ const BackgroundRemover = () => {
             const processTime = ((Date.now() - startTime) / 1000).toFixed(2);
             const outputSize = (blob.size / 1024 / 1024).toFixed(2);
 
-            // Save to history
-            const reader = new FileReader();
-            reader.onload = () => {
+            // Save to history - converti il blob in data URL per renderlo persistente
+            if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const resultDataUrl = reader.result; // Data URL del risultato completo
+                    
+                    // Crea un thumbnail più piccolo per la history (max 200x200)
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const img = new Image();
+                        img.onload = () => {
+                            const maxSize = 200;
+                            let thumbWidth = img.width;
+                            let thumbHeight = img.height;
+                            
+                            if (thumbWidth > maxSize || thumbHeight > maxSize) {
+                                const ratio = Math.min(maxSize / thumbWidth, maxSize / thumbHeight);
+                                thumbWidth = Math.round(thumbWidth * ratio);
+                                thumbHeight = Math.round(thumbHeight * ratio);
+                            }
+                            
+                            canvas.width = thumbWidth;
+                            canvas.height = thumbHeight;
+                            ctx.drawImage(img, 0, 0, thumbWidth, thumbHeight);
+                            const thumbnail = canvas.toDataURL('image/png', 0.7);
+                            
+                            saveToHistory({
+                                tool: 'Rimozione Sfondo AI',
+                                filename: file.name,
+                                thumbnail: thumbnail,
+                                params: { subjectType, quality: mappedSize, crop, cropMargin },
+                                result: resultDataUrl // Data URL persistente invece di blob URL
+                            });
+                        };
+                        img.onerror = () => {
+                            // Fallback: usa il data URL completo come thumbnail
+                            saveToHistory({
+                                tool: 'Rimozione Sfondo AI',
+                                filename: file.name,
+                                thumbnail: resultDataUrl,
+                                params: { subjectType, quality: mappedSize, crop, cropMargin },
+                                result: resultDataUrl
+                            });
+                        };
+                        img.src = resultDataUrl;
+                    } catch (canvasError) {
+                        console.warn('Canvas not available, using full data URL:', canvasError);
+                        // Fallback: usa il data URL completo
+                        saveToHistory({
+                            tool: 'Rimozione Sfondo AI',
+                            filename: file.name,
+                            thumbnail: resultDataUrl,
+                            params: { subjectType, quality: mappedSize, crop, cropMargin },
+                            result: resultDataUrl
+                        });
+                    }
+                };
+                reader.onerror = (err) => {
+                    console.error('Failed to read blob for history:', err);
+                    // Fallback: salva comunque con il blob URL
+                    saveToHistory({
+                        tool: 'Rimozione Sfondo AI',
+                        filename: file.name,
+                        thumbnail: null,
+                        params: { subjectType, quality: mappedSize, crop, cropMargin },
+                        result: imageUrl
+                    });
+                };
+                reader.readAsDataURL(blob);
+            } else {
+                // Fallback se non siamo in browser
                 saveToHistory({
                     tool: 'Rimozione Sfondo AI',
                     filename: file.name,
-                    thumbnail: reader.result,
+                    thumbnail: null,
                     params: { subjectType, quality: mappedSize, crop, cropMargin },
                     result: imageUrl
                 });
-            };
-            reader.readAsDataURL(blob);
+            }
 
             setTimeout(() => {
                 if (toastIdRef.current) {
