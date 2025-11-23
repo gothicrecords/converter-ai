@@ -70,10 +70,10 @@ jobs:
             printf '{\n  "orgId": "%s",\n  "projectId": "%s"\n}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
           else
             if [ -z "$VERCEL_PROJECT_NAME" ]; then
-              echo "Error: Provide either (VERCEL_ORG_ID and VERCEL_PROJECT_ID) or VERCEL_PROJECT_NAME"
-              exit 1
+              echo "No VERCEL_PROJECT_NAME provided; falling back to repository name: $REPO_NAME"
+              VERCEL_PROJECT_NAME="$REPO_NAME"
             fi
-            echo "No IDs provided; will use project name fallback."
+            echo "No valid IDs; will use project name fallback."
           fi
           echo "Pulling Vercel project configuration..."
           set +e
