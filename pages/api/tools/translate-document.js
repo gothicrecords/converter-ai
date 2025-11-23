@@ -1,9 +1,13 @@
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
-import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import PDFDocument from 'pdfkit';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
 
 export const config = {
     api: {
@@ -16,14 +20,35 @@ async function extractText(filePath, mimeType, originalFilename) {
     const ext = path.extname(originalFilename).toLowerCase();
     
     if (mimeType === 'application/pdf' || ext === '.pdf') {
-        const dataBuffer = fs.readFileSync(filePath);
-        const data = await pdfParse(dataBuffer);
-        return data.text;
+        // Usa OpenAI per estrarre testo da PDF (più affidabile)
+        try {
+            const fileStream = fs.createReadStream(filePath);
+            const response = await openai.chat.completions.create({
+                model: 'gpt-4o',
+                messages: [
+                    {
+                        role: 'user',
+                        content: [
+                            { type: 'text', text: 'Estrai tutto il testo da questo documento PDF mantenendo la struttura. Restituisci solo il testo estratto senza commenti.' },
+                            {
+                                type: 'image_url',
+                                image_url: {
+                                    url: `data:application/pdf;base64,${fs.readFileSync(filePath).toString('base64')}`
+                                }
+                            }
+                        ]
+                    }
+                ],
+            });
+            return response.choices[0].message.content;
+        } catch (error) {
+            console.error('Errore estrazione PDF con OpenAI:', error);
+            throw new Error('Errore durante l\'estrazione del testo dal PDF');
+        }
     } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || ext === '.docx') {
         const result = await mammoth.extractRawText({ path: filePath });
         return result.value;
     } else if (mimeType === 'application/msword' || ext === '.doc') {
-        // Per .doc potremmo usare mammoth o altri parser, ma per semplicità restituiamo un messaggio
         throw new Error('I file .doc non sono supportati. Converti in .docx o .pdf');
     } else if (mimeType === 'text/plain' || ext === '.txt') {
         return fs.readFileSync(filePath, 'utf-8');
@@ -34,17 +59,42 @@ async function extractText(filePath, mimeType, originalFilename) {
     }
 }
 
-// Funzione per tradurre testo (placeholder - in produzione usare API di traduzione)
+// Funzione per tradurre testo usando OpenAI
 async function translateText(text, targetLanguage, preserveFormatting) {
-    // PLACEHOLDER: In produzione, qui useresti:
-    // - Google Translate API
-    // - DeepL API
-    // - Azure Translator
-    // - OpenAI GPT con prompt di traduzione
-    
-    // Per ora restituiamo il testo originale con un prefisso
-    // In produzione, sostituire con chiamata API reale
-    return `[TRADOTTO IN ${targetLanguage.toUpperCase()}]\n\n${text}`;
+    try {
+        const languageNames = {
+            'it': 'Italiano',
+            'en': 'Inglese',
+            'es': 'Spagnolo',
+            'fr': 'Francese',
+            'de': 'Tedesco',
+            'pt': 'Portoghese',
+            'ru': 'Russo',
+            'ja': 'Giapponese',
+            'zh': 'Cinese',
+            'ar': 'Arabo'
+        };
+        
+        const targetLangName = languageNames[targetLanguage] || targetLanguage;
+        
+        const prompt = preserveFormatting 
+            ? `Traduci il seguente testo in ${targetLangName} mantenendo ESATTAMENTE la stessa formattazione, struttura, interruzioni di riga e spaziatura. Non aggiungere commenti o spiegazioni, restituisci solo il testo tradotto:\n\n${text}`
+            : `Traduci il seguente testo in ${targetLangName}. Restituisci solo la traduzione senza commenti:\n\n${text}`;
+        
+        const response = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+                { role: 'system', content: 'Sei un traduttore professionale. Traduci il testo mantenendo il tono e lo stile originale.' },
+                { role: 'user', content: prompt }
+            ],
+            temperature: 0.3,
+        });
+        
+        return response.choices[0].message.content;
+    } catch (error) {
+        console.error('Errore traduzione con OpenAI:', error);
+        throw new Error('Errore durante la traduzione del testo');
+    }
 }
 
 // Funzione per creare documento tradotto
