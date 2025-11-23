@@ -173,67 +173,94 @@ export default function Upscaler() {
   }, [upscaledUrl]);
 
   return (
-    <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '24px' }}>
+    <div style={styles.container}>
       {!originalUrl && (
-        <div
-          id="dropzone"
-          className="dropzone"
-          onDrop={onDrop}
-          onDragOver={(e) => e.preventDefault()}
-          style={{ minHeight: '280px' }}
-        >
-          <div className="dropzone-content">
-            <HiPhotograph className="dropzone-icon" />
-            <p className="dropzone-text">Trascina qui la tua immagine o clicca per selezionare</p>
-            <div className="file-formats">JPG, PNG, WebP supportati</div>
+        <div style={styles.card}>
+          <div
+            id="dropzone"
+            className="dropzone"
+            onDrop={onDrop}
+            onDragOver={(e) => e.preventDefault()}
+            style={{ minHeight: '280px', position: 'relative' }}
+          >
+            <div className="dropzone-content">
+              <HiPhotograph className="dropzone-icon" />
+              <p className="dropzone-text">Trascina qui la tua immagine o clicca per selezionare</p>
+              <div className="file-formats">JPG, PNG, WebP supportati</div>
+            </div>
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/*"
+              onChange={(e) => onFileSelect(e.target.files?.[0])}
+              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', zIndex: 2 }}
+            />
           </div>
-          <input
-            id="fileInput"
-            type="file"
-            accept="image/*"
-            onChange={(e) => onFileSelect(e.target.files?.[0])}
-            style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', zIndex: 2 }}
-          />
         </div>
       )}
 
       {originalUrl && !upscaledUrl && (
-        <div className="controls">
-          <button className="btn-primary" onClick={handleUpscale} disabled={loading}>
-            <HiUpload className="btn-icon" />
-            {loading ? 'Upscaling…' : 'Upscale'}
-          </button>
+        <div style={styles.card}>
+          <div className="controls">
+            <button className="btn-primary" onClick={handleUpscale} disabled={loading}>
+              <HiUpload className="btn-icon" />
+              {loading ? 'Upscaling…' : 'Upscale'}
+            </button>
+          </div>
+          <div className="status">{status}</div>
         </div>
       )}
 
-      <div className="status">{status}</div>
+      {!originalUrl && <div className="status">{status}</div>}
 
       {originalUrl && upscaledUrl && (
-        <div className="result">
-          <div ref={sliderRef} className="slider" role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(sliderPos)}>
-            <img src={originalUrl} alt="Originale" />
-            <div className="badge left">Originale</div>
-            <div
-              className="clip"
-              style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
-            >
-              <img src={upscaledUrl} alt="Upscalata" />
+        <div style={styles.card}>
+          <div className="result">
+            <div ref={sliderRef} className="slider" role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(sliderPos)}>
+              <img src={originalUrl} alt="Originale" />
+              <div className="badge left">Originale</div>
+              <div
+                className="clip"
+                style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
+              >
+                <img src={upscaledUrl} alt="Upscalata" />
+              </div>
+              <div className="divider" style={{ left: `${sliderPos}%`, transform: 'translateX(-50%)' }}>
+                <div className="handle">↔</div>
+              </div>
+              <div className="badge right">Upscalata 2x</div>
             </div>
-            <div className="divider" style={{ left: `${sliderPos}%`, transform: 'translateX(-50%)' }}>
-              <div className="handle">↔</div>
+            <div className="download-actions">
+              <button onClick={handleDownload} className="btn-download">
+                <HiDownload className="btn-icon" />
+                Download
+              </button>
+              <a href={upscaledUrl} target="_blank" rel="noreferrer" className="open-link">Apri a piena risoluzione</a>
             </div>
-            <div className="badge right">Upscalata 2x</div>
-          </div>
-          <div className="download-actions">
-            <button onClick={handleDownload} className="btn-download">
-              <HiDownload className="btn-icon" />
-              Download
-            </button>
-            <a href={upscaledUrl} target="_blank" rel="noreferrer" className="open-link">Apri a piena risoluzione</a>
           </div>
         </div>
       )}
     </div>
   );
 }
+
+const styles = {
+  container: {
+    maxWidth: '900px',
+    margin: '0 auto',
+    padding: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px'
+  },
+  card: {
+    background: 'rgba(15, 23, 42, 0.7)',
+    backdropFilter: 'blur(12px)',
+    border: '1px solid rgba(102, 126, 234, 0.2)',
+    borderRadius: '16px',
+    padding: '32px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+    marginBottom: '32px'
+  }
+};
 
