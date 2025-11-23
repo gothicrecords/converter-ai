@@ -15,6 +15,7 @@ import DownloadManager from '../components/DownloadManager';
 import ChatSupport from '../components/ChatSupport';
 
 import * as analytics from '../lib/analytics';
+import { cleanupHistory } from '../utils/history';
 
 // Error Boundary Component
 class ErrorBoundary extends Component {
@@ -122,6 +123,14 @@ function MyApp({ Component, pageProps }) {
 
   useEffect(() => {
     setMounted(true);
+    // Pulisci la history se è troppo grande
+    if (typeof window !== 'undefined') {
+      try {
+        cleanupHistory();
+      } catch (error) {
+        console.warn('Failed to cleanup history on mount:', error);
+      }
+    }
   }, []);
   
   // Applica classe per abilitare animazioni solo lato client

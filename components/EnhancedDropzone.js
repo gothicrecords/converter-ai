@@ -115,7 +115,11 @@ export default function EnhancedDropzone({
                     transform: dropzoneDragActive ? 'scale(1.02)' : 'scale(1)'
                 }}
             >
-                <input {...getInputProps()} />
+                <input 
+                    {...getInputProps()} 
+                    aria-label="Carica file immagine"
+                    id="file-upload-input"
+                />
                 <div style={styles.uploadIcon}>
                     <HiOutlineUpload style={{ width: 48, height: 48 }} />
                 </div>

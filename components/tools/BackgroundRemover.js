@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { HiDownload, HiRefresh, HiX } from 'react-icons/hi';
 import { SafeMotionDiv, SafeAnimatePresence, fadeInUp, scaleIn } from '../../lib/animations';
 import EnhancedDropzone from '../EnhancedDropzone';
@@ -25,9 +25,11 @@ const BackgroundRemover = () => {
     const [crop, setCrop] = useState(true);
     const [cropMargin, setCropMargin] = useState(8);
     const [bgPreview, setBgPreview] = useState('checker');
-    const [autoProcess, setAutoProcess] = useState(true);
+    const [autoProcess, setAutoProcess] = useState(false); // Disabilitato di default - l'utente deve cliccare manualmente
     const [compare, setCompare] = useState(50);
     const [showExportModal, setShowExportModal] = useState(false);
+    const progressIntervalRef = useRef(null);
+    const toastIdRef = useRef(null);
 
     const onFilesAccepted = useCallback((acceptedFiles) => {
         setProcessedImage(null);
@@ -45,10 +47,13 @@ const BackgroundRemover = () => {
 
     const handleProcessImage = async () => {
         if (files.length === 0) {
-            showToast('Carica prima un\'immagine', 'error', 4000, {
-                details: 'Nessun file selezionato per l\'elaborazione',
-                technical: 'Status: No file provided'
-            });
+            // Usa setTimeout per evitare chiamate durante il render
+            setTimeout(() => {
+                showToast('Carica prima un\'immagine', 'error', 4000, {
+                    details: 'Nessun file selezionato per l\'elaborazione',
+                    technical: 'Status: No file provided'
+                });
+            }, 0);
             return;
         }
 
@@ -61,10 +66,36 @@ const BackgroundRemover = () => {
         const file = files[0];
         const fileSize = (file.size / 1024 / 1024).toFixed(2);
         
-        const toastId = showToast('Elaborazione in corso...', 'progress', 0, {
-            progress: 0,
-            details: `File: ${file.name.substring(0, 25)}${file.name.length > 25 ? '...' : ''} • ${fileSize} MB`,
-            technical: `Type: ${subjectType} • Size: ${mappedSize} • Crop: ${crop ? 'Yes' : 'No'}`
+        // Usa setTimeout per evitare chiamate durante il render
+        let toastId;
+        await new Promise(resolve => {
+            setTimeout(() => {
+                toastId = showToast('Elaborazione in corso...', 'progress', 0, {
+                    progress: 0,
+                    details: `File: ${file.name.substring(0, 25)}${file.name.length > 25 ? '...' : ''} • ${fileSize} MB`,
+                    technical: `Type: ${subjectType} • Size: ${mappedSize} • Crop: ${crop ? 'Yes' : 'No'}`
+                });
+                resolve();
+            }, 0);
+        });
+
+        // Verifica che il file sia valido prima di inviare
+        if (!file || !file.size || file.size === 0) {
+            setError('Il file selezionato non è valido o è vuoto.');
+            setIsLoading(false);
+            updateToast(toastId, {
+                type: 'error',
+                message: 'File non valido',
+                details: 'Il file selezionato è vuoto o corrotto.'
+            });
+            return;
+        }
+
+        console.log('Sending file to API:', {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            lastModified: file.lastModified
         });
 
         const formData = new FormData();
@@ -74,40 +105,76 @@ const BackgroundRemover = () => {
         formData.append('crop', crop ? 'true' : 'false');
         if (crop) formData.append('crop_margin', `${cropMargin}%`);
 
-        // Simulate progress
-        const progressInterval = setInterval(() => {
+        // Verifica che il file sia nel FormData
+        console.log('FormData entries:', Array.from(formData.entries()).map(([key, value]) => [
+            key, 
+            value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+        ]));
+
+        // Salva il toastId in un ref per usarlo nel progress interval
+        toastIdRef.current = toastId;
+        
+        // Simulate progress - usa setTimeout per evitare chiamate durante il render
+        progressIntervalRef.current = setInterval(() => {
             setProgress(prev => {
                 const newProgress = Math.min(prev + 10, 90);
-                updateToast(toastId, { progress: newProgress });
+                // Usa setTimeout per evitare chiamate durante il render
+                setTimeout(() => {
+                    if (toastIdRef.current) {
+                        updateToast(toastIdRef.current, { progress: newProgress });
+                    }
+                }, 0);
                 return newProgress;
             });
         }, 200);
 
         try {
+            console.log('Sending request to /api/tools/remove-background...');
             const response = await fetch('/api/tools/remove-background', {
                 method: 'POST',
                 body: formData,
             });
 
-            clearInterval(progressInterval);
+            console.log('Response received:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok,
+                headers: Object.fromEntries(response.headers.entries())
+            });
+
+            if (progressIntervalRef.current) {
+                clearInterval(progressIntervalRef.current);
+                progressIntervalRef.current = null;
+            }
             setProgress(95);
-            updateToast(toastId, { progress: 95, message: 'Finalizzazione...' });
+            setTimeout(() => {
+                if (toastIdRef.current) {
+                    updateToast(toastIdRef.current, { progress: 95, message: 'Finalizzazione...' });
+                }
+            }, 0);
 
             if (!response.ok) {
+                console.error('Response not OK:', response.status, response.statusText);
                 // Prova a leggere come JSON, altrimenti come testo
                 let errorMessage = 'Qualcosa è andato storto';
+                let errorDetails = '';
                 try {
                     const contentType = response.headers.get('content-type');
                     if (contentType && contentType.includes('application/json')) {
                         const errorData = await response.json();
                         errorMessage = errorData.error || errorMessage;
+                        errorDetails = errorData.debug ? JSON.stringify(errorData.debug, null, 2) : '';
+                        console.error('Error details from server:', errorData);
                     } else {
                         const errorText = await response.text();
                         errorMessage = errorText || errorMessage;
+                        console.error('Error text from server:', errorText);
                     }
                 } catch (e) {
+                    console.error('Error reading response:', e);
                     errorMessage = `Errore HTTP ${response.status}: ${response.statusText}`;
                 }
+                console.error('Full error:', { status: response.status, message: errorMessage, details: errorDetails });
                 throw new Error(errorMessage);
             }
 
@@ -132,25 +199,41 @@ const BackgroundRemover = () => {
             };
             reader.readAsDataURL(blob);
 
-            updateToast(toastId, {
-                type: 'success',
-                message: 'Sfondo rimosso con successo!',
-                progress: 100,
-                details: `Tempo elaborazione: ${processTime}s • Output: ${outputSize} MB`,
-                technical: `Algorithm: AI Background Removal • Quality: ${mappedSize} • Compression: ${((1 - blob.size / file.size) * 100).toFixed(1)}%`
-            });
+            setTimeout(() => {
+                if (toastIdRef.current) {
+                    updateToast(toastIdRef.current, {
+                        type: 'success',
+                        message: 'Sfondo rimosso con successo!',
+                        progress: 100,
+                        details: `Tempo elaborazione: ${processTime}s • Output: ${outputSize} MB`,
+                        technical: `Algorithm: AI Background Removal • Quality: ${mappedSize} • Compression: ${((1 - blob.size / file.size) * 100).toFixed(1)}%`
+                    });
+                }
+            }, 0);
 
         } catch (err) {
             setError(err.message);
-            updateToast(toastId, {
-                type: 'error',
-                message: err.message,
-                details: 'Errore durante l\'elaborazione dell\'immagine',
-                technical: `Error: ${err.message} • File: ${file.name}`
-            });
-            clearInterval(progressInterval);
+            setTimeout(() => {
+                if (toastIdRef.current) {
+                    updateToast(toastIdRef.current, {
+                        type: 'error',
+                        message: err.message,
+                        details: 'Errore durante l\'elaborazione dell\'immagine',
+                        technical: `Error: ${err.message} • File: ${file.name}`
+                    });
+                }
+            }, 0);
+            if (progressIntervalRef.current) {
+                clearInterval(progressIntervalRef.current);
+                progressIntervalRef.current = null;
+            }
         } finally {
             setIsLoading(false);
+            toastIdRef.current = null;
+            if (progressIntervalRef.current) {
+                clearInterval(progressIntervalRef.current);
+                progressIntervalRef.current = null;
+            }
             setTimeout(() => setProgress(0), 1000);
         }
     };
@@ -174,10 +257,22 @@ const BackgroundRemover = () => {
         setProgress(0);
     };
 
-    // Auto-process when file or main controls change
+    // Auto-process when file or main controls change (solo se autoProcess è abilitato)
     useEffect(() => {
-        if (autoProcess && files.length > 0) {
-            const id = setTimeout(() => handleProcessImage(), 300);
+        if (autoProcess && files.length > 0 && !isLoading) {
+            const file = files[0];
+            // Verifica che il file sia valido e pronto
+            if (!file || !file.size || file.size === 0) {
+                console.warn('File not ready for processing:', file);
+                return;
+            }
+            // Usa setTimeout per evitare chiamate durante il render e dare tempo al file di essere completamente caricato
+            const id = setTimeout(() => {
+                // Verifica di nuovo prima di processare
+                if (files.length > 0 && files[0] && files[0].size > 0 && !isLoading) {
+                    handleProcessImage();
+                }
+            }, 1000); // Aumentato a 1 secondo per dare più tempo al file di essere completamente caricato
             return () => clearTimeout(id);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -198,8 +293,14 @@ const BackgroundRemover = () => {
 
             <div style={styles.presetsRow}>
                 <div style={styles.controlBox}>
-                    <label style={styles.label}>Tipo soggetto</label>
-                    <select value={subjectType} onChange={(e)=>setSubjectType(e.target.value)} style={styles.select}>
+                    <label htmlFor="subject-type-select" style={styles.label}>Tipo soggetto</label>
+                    <select 
+                        id="subject-type-select"
+                        value={subjectType} 
+                        onChange={(e)=>setSubjectType(e.target.value)} 
+                        style={styles.select}
+                        aria-label="Seleziona il tipo di soggetto dell'immagine"
+                    >
                         <option value="auto">Auto</option>
                         <option value="person">Persona</option>
                         <option value="product">Prodotto</option>
@@ -209,10 +310,22 @@ const BackgroundRemover = () => {
                 </div>
                 <div style={styles.controlBox}>
                     <div style={styles.flexBetween}>
-                        <label style={styles.label}>Qualità/Dettagli</label>
+                        <label htmlFor="quality-range" style={styles.label}>Qualità/Dettagli</label>
                         <span style={styles.badge}>{mappedSize}</span>
                     </div>
-                    <input type="range" min="0" max="100" value={quality} onChange={(e)=>setQuality(parseInt(e.target.value,10))} style={styles.slider} />
+                    <input 
+                        id="quality-range"
+                        type="range" 
+                        min="0" 
+                        max="100" 
+                        value={quality} 
+                        onChange={(e)=>setQuality(parseInt(e.target.value,10))} 
+                        style={styles.slider}
+                        aria-label={`Qualità immagine: ${quality}%`}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={quality}
+                    />
                 </div>
                 <div style={styles.controlBox}>
                     <label style={styles.label}>Ritaglio intelligente</label>
@@ -222,17 +335,39 @@ const BackgroundRemover = () => {
                     </div>
                     <div style={{...styles.marginControl, opacity: crop ? 1 : 0.5, pointerEvents: crop ? 'auto' : 'none'}}>
                         <div style={styles.flexBetween}>
-                            <span style={styles.label}>Margine</span>
+                            <label htmlFor="crop-margin-range" style={styles.label}>Margine</label>
                             <span style={styles.badgeSmall}>{cropMargin}%</span>
                         </div>
-                        <input type="range" min="0" max="30" value={cropMargin} onChange={(e)=>setCropMargin(parseInt(e.target.value,10))} style={styles.slider} />
+                        <input 
+                            id="crop-margin-range"
+                            type="range" 
+                            min="0" 
+                            max="30" 
+                            value={cropMargin} 
+                            onChange={(e)=>setCropMargin(parseInt(e.target.value,10))} 
+                            style={styles.slider}
+                            aria-label={`Margine ritaglio: ${cropMargin}%`}
+                            aria-valuemin={0}
+                            aria-valuemax={30}
+                            aria-valuenow={cropMargin}
+                            disabled={!crop}
+                        />
                     </div>
                 </div>
                 <div style={styles.controlBox}>
                     <label style={styles.label}>Anteprima sfondo</label>
                     <div style={styles.bgGrid}>
                         {['checker','transparent','white','black'].map(opt => (
-                            <button key={opt} onClick={()=>setBgPreview(opt)} style={{...styles.bgBtn, ...(bgPreview===opt ? styles.bgBtnActive : {}), ...(opt==='checker' ? styles.bgChecker : opt==='white' ? styles.bgWhite : opt==='black' ? styles.bgBlack : styles.bgTransparent)}}>
+                            <button 
+                                key={opt} 
+                                onClick={()=>setBgPreview(opt)} 
+                                style={{...styles.bgBtn, ...(bgPreview===opt ? styles.bgBtnActive : {}), ...(opt==='checker' ? styles.bgChecker : opt==='white' ? styles.bgWhite : opt==='black' ? styles.bgBlack : styles.bgTransparent)}}
+                                aria-label={`Anteprima sfondo: ${opt === 'checker' ? 'Scacchiera' : opt === 'transparent' ? 'Trasparente' : opt === 'white' ? 'Bianco' : 'Nero'}`}
+                                title={opt === 'checker' ? 'Scacchiera' : opt === 'transparent' ? 'Trasparente' : opt === 'white' ? 'Bianco' : 'Nero'}
+                            >
+                            <span style={{position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0}}>
+                                {opt === 'checker' ? 'Scacchiera' : opt === 'transparent' ? 'Trasparente' : opt === 'white' ? 'Bianco' : 'Nero'}
+                            </span>
                             </button>
                         ))}
                     </div>
@@ -321,7 +456,18 @@ const BackgroundRemover = () => {
                         </div>
                         <div style={styles.sliderRow}>
                             <span style={styles.sliderLabel}>Prima</span>
-                            <input type="range" min="0" max="100" value={compare} onChange={(e)=>setCompare(parseInt(e.target.value,10))} style={styles.compareSlider} />
+                            <input 
+                                type="range" 
+                                min="0" 
+                                max="100" 
+                                value={compare} 
+                                onChange={(e)=>setCompare(parseInt(e.target.value,10))} 
+                                style={styles.compareSlider}
+                                aria-label={`Confronto prima/dopo: ${compare}%`}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                aria-valuenow={compare}
+                            />
                             <span style={styles.sliderLabel}>Dopo</span>
                         </div>
                     </SafeMotionDiv>
@@ -377,13 +523,24 @@ const styles = {
     downloadBtnDisabled: { padding: '12px 24px', background: '#4b5563', color: '#9ca3af', fontWeight: 700, borderRadius: '8px', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'not-allowed', fontSize: '15px' },
     downloadIcon: { width: '20px', height: '20px', marginRight: '8px' },
     errorBox: { marginTop: '24px', padding: '16px', background: 'rgba(153, 27, 27, 0.8)', border: '1px solid rgba(220, 38, 38, 0.6)', borderRadius: '8px', color: '#fecaca', textAlign: 'center' },
-    compareSection: { marginTop: '32px' },
-    compareTitle: { fontSize: '24px', fontWeight: 700, color: '#fff', textAlign: 'center', marginBottom: '16px' },
-    compareBox: { position: 'relative', width: '100%', overflow: 'hidden', borderRadius: '12px', border: '1px solid rgba(148, 163, 184, 0.2)' },
+    compareSection: { marginTop: '32px', width: '100%' },
+    compareTitle: { fontSize: '24px', fontWeight: 700, color: '#fff', textAlign: 'center', marginBottom: '24px' },
+    compareBox: { 
+        position: 'relative', 
+        width: '100%', 
+        maxWidth: '100%',
+        minHeight: '400px',
+        overflow: 'hidden', 
+        borderRadius: '12px', 
+        border: '1px solid rgba(148, 163, 184, 0.2)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
     checkerBg: { position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(45deg, #4a5568 25%, transparent 25%), linear-gradient(-45deg, #4a5568 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #4a5568 75%), linear-gradient(-45deg, transparent 75%, #4a5568 75%)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px' },
-    imageContainer: { position: 'relative', width: '100%' },
-    beforeImg: { display: 'block', width: '100%', height: 'auto', userSelect: 'none' },
-    afterImg: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' },
+    imageContainer: { position: 'relative', width: '100%', height: '100%', minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    beforeImg: { display: 'block', maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', objectFit: 'contain', userSelect: 'none' },
+    afterImg: { position: 'absolute', inset: 0, maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', margin: 'auto', objectFit: 'contain' },
     divider: { position: 'absolute', top: 0, bottom: 0 },
     dividerLine: { width: '2px', height: '100%', background: '#a78bfa', boxShadow: '0 0 8px rgba(167, 139, 250, 0.6)' },
     sliderRow: { marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px' },
