@@ -17,6 +17,7 @@ import ThumbnailGenerator from '../../components/tools/ThumbnailGenerator';
 import CombineSplitPDF from '../../components/tools/CombineSplitPDF';
 import VideoCompressor from '../../components/tools/VideoCompressor';
 import DocumentTranslator from '../../components/tools/DocumentTranslator';
+import Upscaler from '../../components/tools/Upscaler';
 
 const ToolPage = ({ initialSlug, meta }) => {
     const router = useRouter();
@@ -74,6 +75,8 @@ const ToolPage = ({ initialSlug, meta }) => {
                 return <VideoCompressor />;
             case 'traduzione-documenti-ai':
                 return <DocumentTranslator />;
+            case 'upscaler-ai':
+                return <Upscaler />;
             default:
                 return (
                     <div style={styles.comingSoon}>
@@ -246,7 +249,8 @@ const styles = {
     },
     toolContent: {
         maxWidth: '900px',
-        margin: '0 auto'
+        margin: '0 auto',
+        padding: '0 24px'
     },
     notFound: {
         display: 'flex',
