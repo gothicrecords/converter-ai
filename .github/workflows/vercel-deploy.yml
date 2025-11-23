@@ -57,12 +57,7 @@ jobs:
           mkdir -p .vercel
           if [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
             echo "Writing .vercel/project.json to bind project and org..."
-            cat > .vercel/project.json <<EOF
-            {
-              "orgId": "${{ secrets.VERCEL_ORG_ID }}",
-              "projectId": "${{ secrets.VERCEL_PROJECT_ID }}"
-            }
-            EOF
+            printf '{\n  "orgId": "%s",\n  "projectId": "%s"\n}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
             # Light format checks (no secret values printed)
             if ! echo "$VERCEL_PROJECT_ID" | grep -q '^prj_'; then echo "Warning: VERCEL_PROJECT_ID may be invalid (expected starts with prj_)"; fi
             if ! echo "$VERCEL_ORG_ID" | grep -q '^team_\|^user_'; then echo "Warning: VERCEL_ORG_ID may be invalid (expected starts with team_ or user_)"; fi
