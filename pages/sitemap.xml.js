@@ -1,7 +1,9 @@
 import { tools } from '../lib/tools';
 import { getAllConversionTools } from '../lib/conversionRegistry';
 
-const EXTERNAL_DATA_URL = 'https://best-upscaler-ia.vercel.app';
+// Use environment variable or default to production domain
+const EXTERNAL_DATA_URL = process.env.NEXT_PUBLIC_SITE_URL || 
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://best-upscaler-ia.vercel.app');
 const SUPPORTED_LOCALES = ['en', 'it', 'es', 'fr', 'de', 'pt', 'ru', 'ja', 'zh', 'ar', 'hi', 'ko'];
 const CURRENT_DATE = new Date().toISOString().split('T')[0];
 
@@ -57,25 +59,9 @@ function generateSiteMap(allTools) {
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <!-- Static Pages -->`;
 
-  // Add static pages
+  // Add static pages (without duplicate locale entries that create invalid URLs)
   staticPages.forEach(page => {
     sitemap += generateUrlEntry(page.path, page.priority, page.changefreq);
-    
-    // Add alternate language versions
-    SUPPORTED_LOCALES.forEach(locale => {
-      if (locale !== 'en') {
-        const localePath = `${page.path}`;
-        sitemap += `
-    <url>
-      <loc>${EXTERNAL_DATA_URL}${localePath}</loc>
-      <xhtml:link rel="alternate" hreflang="${locale}" href="${EXTERNAL_DATA_URL}${localePath}" />
-      <xhtml:link rel="alternate" hreflang="x-default" href="${EXTERNAL_DATA_URL}${page.path}" />
-      <lastmod>${CURRENT_DATE}</lastmod>
-      <changefreq>${page.changefreq}</changefreq>
-      <priority>${page.priority}</priority>
-    </url>`;
-      }
-    });
   });
 
   // Add PDF conversion pages
