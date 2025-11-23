@@ -71,11 +71,9 @@ jobs:
           fi
 
           if [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
-            if echo "$VERCEL_PROJECT_ID" | grep -q '^prj_' && echo "$VERCEL_ORG_ID" | grep -q '^team_\|^user_'; then
-              VALID_IDS=1
-            else
-              echo "Warning: Provided IDs don't match expected formats; will not bind via IDs."
-            fi
+            VALID_IDS=1
+            if ! echo "$VERCEL_PROJECT_ID" | grep -q '^prj_'; then echo "Warning: VERCEL_PROJECT_ID may not be in 'prj_' format"; fi
+            if ! echo "$VERCEL_ORG_ID" | grep -q '^team_\|^user_'; then echo "Warning: VERCEL_ORG_ID may not be in 'team_' or 'user_' format"; fi
           fi
 
           if [ "$VALID_IDS" -eq 1 ]; then
