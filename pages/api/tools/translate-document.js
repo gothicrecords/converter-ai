@@ -4,6 +4,7 @@ import path from 'path';
 import mammoth from 'mammoth';
 import PDFDocument from 'pdfkit';
 import OpenAI from 'openai';
+import Tesseract from 'tesseract.js';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -20,31 +21,71 @@ async function extractText(filePath, mimeType, originalFilename) {
     const ext = path.extname(originalFilename).toLowerCase();
     
     if (mimeType === 'application/pdf' || ext === '.pdf') {
-        // Usa OpenAI per estrarre testo da PDF (più affidabile)
+        // Estrazione testo da PDF usando pdf-parse con fallback OCR
+        let text = '';
+        
+        // Tentativo 1: pdf-parse per PDF con testo nativo
         try {
-            const fileStream = fs.createReadStream(filePath);
-            const response = await openai.chat.completions.create({
-                model: 'gpt-4o',
-                messages: [
-                    {
-                        role: 'user',
-                        content: [
-                            { type: 'text', text: 'Estrai tutto il testo da questo documento PDF mantenendo la struttura. Restituisci solo il testo estratto senza commenti.' },
-                            {
-                                type: 'image_url',
-                                image_url: {
-                                    url: `data:application/pdf;base64,${fs.readFileSync(filePath).toString('base64')}`
-                                }
-                            }
-                        ]
-                    }
-                ],
-            });
-            return response.choices[0].message.content;
-        } catch (error) {
-            console.error('Errore estrazione PDF con OpenAI:', error);
-            throw new Error('Errore durante l\'estrazione del testo dal PDF');
+            console.log('[PDF Extract] Inizio estrazione PDF:', originalFilename);
+            
+            // Prova diversi modi di importare pdf-parse per compatibilità Turbopack
+            let pdfParse;
+            try {
+                const mod = await import('pdf-parse');
+                pdfParse = mod.default || mod;
+            } catch (e) {
+                console.log('[PDF Extract] Import ESM fallito, provo require dinamico');
+                // Fallback per ambienti che non supportano ESM import di CommonJS
+                pdfParse = require('pdf-parse');
+            }
+            
+            if (typeof pdfParse !== 'function') {
+                throw new Error('pdf-parse non disponibile come funzione');
+            }
+            
+            console.log('[PDF Extract] pdf-parse caricato correttamente');
+            
+            const dataBuffer = fs.readFileSync(filePath);
+            console.log('[PDF Extract] Buffer letto, dimensione:', dataBuffer.length, 'bytes');
+            
+            const result = await pdfParse(dataBuffer);
+            console.log('[PDF Extract] Parsing completato, testo estratto:', result?.text?.length || 0, 'caratteri');
+            
+            text = (result && result.text) ? result.text.trim() : '';
+        } catch (pdfError) {
+            console.log('[PDF Extract] pdf-parse fallito:', pdfError.message);
+            text = ''; // Continua con OCR
         }
+
+        // Tentativo 2: OCR se pdf-parse ha fallito o testo insufficiente
+        if (!text || text.length < 50) {
+            console.log('[PDF Extract] Testo insufficiente, uso OCR automatico...');
+            try {
+                const { data: { text: ocrText } } = await Tesseract.recognize(
+                    filePath,
+                    'ita+eng',
+                    {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                console.log(`[OCR] Progress: ${Math.round(m.progress * 100)}%`);
+                            }
+                        }
+                    }
+                );
+                
+                if (ocrText && ocrText.trim().length > 0) {
+                    console.log('[OCR] Testo estratto via OCR:', ocrText.length, 'caratteri');
+                    return ocrText.trim();
+                }
+            } catch (ocrError) {
+                console.error('[OCR] Errore OCR:', ocrError.message);
+            }
+            
+            throw new Error('Il PDF non contiene testo estraibile. Impossibile leggere il contenuto.');
+        }
+
+        console.log('[PDF Extract] Estrazione completata con successo');
+        return text;
     } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || ext === '.docx') {
         const result = await mammoth.extractRawText({ path: filePath });
         return result.value;

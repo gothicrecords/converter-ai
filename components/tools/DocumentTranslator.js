@@ -311,11 +311,14 @@ export default function DocumentTranslator() {
                 <>
                     <div style={styles.optionsSection}>
                         <div style={styles.optionGroup}>
-                            <label style={styles.optionLabel}>Lingua di destinazione</label>
+                            <label htmlFor="targetLanguage" style={styles.optionLabel}>Lingua di destinazione</label>
                             <select
+                                id="targetLanguage"
+                                name="targetLanguage"
                                 value={targetLanguage}
                                 onChange={(e) => setTargetLanguage(e.target.value)}
                                 style={styles.languageSelect}
+                                aria-label="Seleziona lingua di destinazione"
                             >
                                 {languages.map((lang) => (
                                     <option key={lang.code} value={lang.code}>
@@ -331,12 +334,15 @@ export default function DocumentTranslator() {
                                 onClick={() => setPreserveFormatting(!preserveFormatting)}
                             >
                                 <input
+                                    id="preserveFormatting"
+                                    name="preserveFormatting"
                                     type="checkbox"
                                     checked={preserveFormatting}
                                     onChange={(e) => setPreserveFormatting(e.target.checked)}
                                     style={styles.checkbox}
+                                    aria-label="Mantieni la formattazione originale"
                                 />
-                                <label style={styles.checkboxLabel}>
+                                <label htmlFor="preserveFormatting" style={styles.checkboxLabel}>
                                     Mantieni la formattazione originale
                                 </label>
                             </div>
@@ -353,6 +359,8 @@ export default function DocumentTranslator() {
                         </div>
                         <button
                             onClick={handleReset}
+                            aria-label="Rimuovi documento"
+                            title="Rimuovi documento"
                             style={{
                                 padding: '8px',
                                 background: 'rgba(239, 68, 68, 0.1)',
