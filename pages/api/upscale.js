@@ -1,7 +1,7 @@
 import formidable from 'formidable';
 import fs from 'fs/promises';
 import upscaleImage from '../../utils/upscale.js';
-import { upscaleImageWithDALLE } from '../../lib/openai.js';
+import { enhanceImageQualityWithAI } from '../../lib/openai.js';
 import { 
   handleApiError, 
   ValidationError, 
@@ -93,70 +93,43 @@ export default async function handler(req, res) {
       throw new ValidationError('File is empty or corrupted');
     }
 
-    let upscaledBuffer;
+    let upscaledUrl;
     try {
-      // Try OpenAI DALL-E upscaling first if API key is available
+      // Use advanced local upscaler as primary method (improves existing image quality)
+      console.log('Using advanced local upscaler to enhance image quality');
+      upscaledUrl = await upscaleImage(buffer);
+      
+      // Optional: If OpenAI API key is available, use it for additional quality enhancement
+      // This analyzes the image and applies AI-based improvements
       if (process.env.OPENAI_API_KEY) {
-        console.log('Using OpenAI DALL-E for image upscaling');
-        const mimeType = file.mimetype || 'image/jpeg';
-        upscaledBuffer = await upscaleImageWithDALLE(buffer, mimeType);
-        
-        // Convert buffer to data URL
-        const base64 = upscaledBuffer.toString('base64');
-        const url = `data:${mimeType};base64,${base64}`;
-        
-        // Cleanup temp file
-        if (filePath) {
-          try { 
-            await fs.unlink(filePath);
-            filePath = null;
-          } catch (cleanupError) {
-            console.warn('Failed to cleanup temp file:', cleanupError);
-          }
-        }
-        
-        return res.status(200).json({ url });
-      } else {
-        // Fallback to local upscaler
-        console.log('Using local upscaler (OpenAI API key not configured)');
-        const url = await upscaleImage(buffer);
-        
-        // Cleanup temp file
-        if (filePath) {
-          try { 
-            await fs.unlink(filePath);
-            filePath = null;
-          } catch (cleanupError) {
-            console.warn('Failed to cleanup temp file:', cleanupError);
-          }
-        }
-        
-        return res.status(200).json({ url });
-      }
-    } catch (upscaleError) {
-      // If OpenAI fails, try local upscaler as fallback
-      if (process.env.OPENAI_API_KEY && upscaleError.message) {
-        console.warn('OpenAI upscaling failed, trying local upscaler:', upscaleError.message);
         try {
-          const url = await upscaleImage(buffer);
+          console.log('Applying AI-based quality enhancement with OpenAI Vision...');
+          const enhancedBuffer = await enhanceImageQualityWithAI(buffer, file.mimetype);
           
-          // Cleanup temp file
-          if (filePath) {
-            try { 
-              await fs.unlink(filePath);
-              filePath = null;
-            } catch (cleanupError) {
-              console.warn('Failed to cleanup temp file:', cleanupError);
-            }
-          }
+          // Convert enhanced buffer to data URL
+          const base64 = enhancedBuffer.toString('base64');
+          upscaledUrl = `data:${file.mimetype || 'image/jpeg'};base64,${base64}`;
           
-          return res.status(200).json({ url });
-        } catch (fallbackError) {
-          throw new ProcessingError('Failed to upscale image with both OpenAI and local methods', fallbackError);
+          console.log('AI enhancement applied successfully');
+        } catch (aiError) {
+          console.warn('AI enhancement failed, using upscaled result:', aiError.message);
+          // Continue with upscaled result if AI enhancement fails
         }
-      } else {
-        throw new ProcessingError('Failed to upscale image', upscaleError);
       }
+      
+      // Cleanup temp file
+      if (filePath) {
+        try { 
+          await fs.unlink(filePath);
+          filePath = null;
+        } catch (cleanupError) {
+          console.warn('Failed to cleanup temp file:', cleanupError);
+        }
+      }
+      
+      return res.status(200).json({ url: upscaledUrl });
+    } catch (upscaleError) {
+      throw new ProcessingError('Failed to upscale image', upscaleError);
     }
 
   } catch (error) {
