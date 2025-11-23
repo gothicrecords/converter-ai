@@ -2,7 +2,7 @@ import { tools } from '../lib/tools';
 import { getAllConversionTools } from '../lib/conversionRegistry';
 
 // Always use production domain - never use preview URLs in sitemap
-const PRODUCTION_DOMAIN = 'https://best-upscaler-ia.vercel.app';
+const PRODUCTION_DOMAIN = 'https://megapixelsuite.com';
 const EXTERNAL_DATA_URL = process.env.NEXT_PUBLIC_SITE_URL || PRODUCTION_DOMAIN;
 const SUPPORTED_LOCALES = ['en', 'it', 'es', 'fr', 'de', 'pt', 'ru', 'ja', 'zh', 'ar', 'hi', 'ko'];
 const CURRENT_DATE = new Date().toISOString().split('T')[0];
