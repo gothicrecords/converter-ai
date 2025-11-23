@@ -1,5 +1,4 @@
-import ProceduralImageGenerator from '../../../utils/proceduralImageGenerator';
-import AdvancedUpscaler from '../../../utils/advancedUpscaler';
+import { generateImageWithDALLE } from '../../../lib/openai.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -7,49 +6,40 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { prompt, aspect = '1:1', detail = 1.0, realism = true } = req.body || {};
+        const { prompt, aspect = '1:1', quality = 'hd', style = 'vivid' } = req.body || {};
 
         if (!prompt || typeof prompt !== 'string') {
             return res.status(400).json({ error: 'Il prompt è richiesto e deve essere una stringa.' });
         }
 
-        // Dimensions - generiamo direttamente in alta risoluzione
-        const baseLong = 2048; // Base generation più alta per qualità migliore
-        const targetLong = 3840; // 4K target
-        const aspectMap = {
-            '1:1': [1, 1],
-            '16:9': [16, 9],
-            '9:16': [9, 16],
-            '4:3': [4, 3],
-            '3:4': [3, 4],
+        // Map aspect ratios to DALL-E 3 sizes
+        const sizeMap = {
+            '1:1': '1024x1024',
+            '16:9': '1792x1024',
+            '9:16': '1024x1792',
+            '4:3': '1792x1024',
+            '3:4': '1024x1792',
         };
-        const ratio = aspectMap[aspect] || aspectMap['1:1'];
-        const rW = ratio[0];
-        const rH = ratio[1];
-        const baseW = Math.round((rW >= rH ? baseLong : (baseLong * rW) / rH));
-        const baseH = Math.round((rH > rW ? baseLong : (baseLong * rH) / rW));
+        const size = sizeMap[aspect] || sizeMap['1:1'];
 
-        console.log('Generating image procedurally (completely local):', prompt);
-        console.log('Base dimensions:', baseW, 'x', baseH);
+        console.log('Generating image with DALL-E 3:', prompt);
+        console.log('Size:', size, 'Quality:', quality, 'Style:', style);
 
-        // Genera immagine base usando generatore procedurale locale
-        const generator = new ProceduralImageGenerator();
-        const baseImageBuffer = await generator.generate(prompt, baseW, baseH, detail, realism);
+        // Genera immagine con DALL-E 3
+        const imageBuffer = await generateImageWithDALLE(prompt, {
+            size: size,
+            quality: quality, // 'standard' or 'hd'
+            style: style, // 'vivid' or 'natural'
+        });
 
-        console.log('Base image generated, size:', (baseImageBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+        console.log('Image generated, size:', (imageBuffer.length / 1024 / 1024).toFixed(2), 'MB');
 
-        // Upscale a 4K usando upscaler avanzato
-        const upscaler = new AdvancedUpscaler();
-        const upscaledBuffer = await upscaler.upscaleTo4K(baseImageBuffer);
-
-        console.log('Final 4K output size:', (upscaledBuffer.byteLength / 1024 / 1024).toFixed(2), 'MB');
-
-        res.setHeader('Content-Type', 'image/jpeg');
-        res.setHeader('Content-Length', upscaledBuffer.byteLength);
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Content-Length', imageBuffer.length);
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
-        res.status(200).send(upscaledBuffer);
+        res.status(200).send(imageBuffer);
 
     } catch (error) {
         console.error('Errore API Generate Image:', error);

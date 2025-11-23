@@ -1,6 +1,7 @@
 import formidable from 'formidable';
 import fs from 'fs/promises';
 import upscaleImage from '../../utils/upscale.js';
+import { upscaleImageWithDALLE } from '../../lib/openai.js';
 import { 
   handleApiError, 
   ValidationError, 
@@ -92,25 +93,71 @@ export default async function handler(req, res) {
       throw new ValidationError('File is empty or corrupted');
     }
 
-    let url;
+    let upscaledBuffer;
     try {
-      url = await upscaleImage(buffer);
+      // Try OpenAI DALL-E upscaling first if API key is available
+      if (process.env.OPENAI_API_KEY) {
+        console.log('Using OpenAI DALL-E for image upscaling');
+        const mimeType = file.mimetype || 'image/jpeg';
+        upscaledBuffer = await upscaleImageWithDALLE(buffer, mimeType);
+        
+        // Convert buffer to data URL
+        const base64 = upscaledBuffer.toString('base64');
+        const url = `data:${mimeType};base64,${base64}`;
+        
+        // Cleanup temp file
+        if (filePath) {
+          try { 
+            await fs.unlink(filePath);
+            filePath = null;
+          } catch (cleanupError) {
+            console.warn('Failed to cleanup temp file:', cleanupError);
+          }
+        }
+        
+        return res.status(200).json({ url });
+      } else {
+        // Fallback to local upscaler
+        console.log('Using local upscaler (OpenAI API key not configured)');
+        const url = await upscaleImage(buffer);
+        
+        // Cleanup temp file
+        if (filePath) {
+          try { 
+            await fs.unlink(filePath);
+            filePath = null;
+          } catch (cleanupError) {
+            console.warn('Failed to cleanup temp file:', cleanupError);
+          }
+        }
+        
+        return res.status(200).json({ url });
+      }
     } catch (upscaleError) {
-      throw new ProcessingError('Failed to upscale image', upscaleError);
-    }
-
-    // Cleanup temp file
-    if (filePath) {
-      try { 
-        await fs.unlink(filePath);
-        filePath = null;
-      } catch (cleanupError) {
-        // Log but don't fail the request
-        console.warn('Failed to cleanup temp file:', cleanupError);
+      // If OpenAI fails, try local upscaler as fallback
+      if (process.env.OPENAI_API_KEY && upscaleError.message) {
+        console.warn('OpenAI upscaling failed, trying local upscaler:', upscaleError.message);
+        try {
+          const url = await upscaleImage(buffer);
+          
+          // Cleanup temp file
+          if (filePath) {
+            try { 
+              await fs.unlink(filePath);
+              filePath = null;
+            } catch (cleanupError) {
+              console.warn('Failed to cleanup temp file:', cleanupError);
+            }
+          }
+          
+          return res.status(200).json({ url });
+        } catch (fallbackError) {
+          throw new ProcessingError('Failed to upscale image with both OpenAI and local methods', fallbackError);
+        }
+      } else {
+        throw new ProcessingError('Failed to upscale image', upscaleError);
       }
     }
-
-    return res.status(200).json({ url });
 
   } catch (error) {
     // Cleanup on error

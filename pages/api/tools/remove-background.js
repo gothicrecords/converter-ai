@@ -1,6 +1,7 @@
 import { formidable } from 'formidable';
 import FormData from 'form-data';
 import fs from 'fs';
+import { analyzeImageWithVision } from '../../../lib/openai.js';
 
 export const config = {
     api: {
@@ -13,11 +14,9 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // Try OpenAI first if available, otherwise use remove.bg
+    const useOpenAI = Boolean(process.env.OPENAI_API_KEY);
     const removeBgApiKey = process.env.REMOVE_BG_API_KEY;
-    if (!removeBgApiKey) {
-        console.error('API key per la rimozione dello sfondo non trovata.');
-        return res.status(500).json({ error: 'Servizio non configurato correttamente.' });
-    }
 
     const form = formidable({
         allowEmptyFiles: false // Non permettere file vuoti
@@ -51,13 +50,47 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Il file è vuoto. Carica un file valido.' });
         }
 
+        // Leggi il file come buffer
+        const imageBuffer = fs.readFileSync(imageFile.filepath);
+        const mimeType = imageFile.mimetype || 'image/jpeg';
+
+        // Se OpenAI è disponibile, usa Vision API per identificare il tipo di soggetto
+        let detectedType = 'auto';
+        if (useOpenAI) {
+            try {
+                console.log('Using OpenAI Vision API to detect subject type');
+                const analysisPrompt = 'Analizza questa immagine e identifica il tipo principale di soggetto. Rispondi con una sola parola: "person", "product", "car", "animal", o "other".';
+                const analysis = await analyzeImageWithVision(imageBuffer, mimeType, analysisPrompt);
+                const lowerAnalysis = analysis.toLowerCase();
+                if (lowerAnalysis.includes('person') || lowerAnalysis.includes('persona') || lowerAnalysis.includes('uomo') || lowerAnalysis.includes('donna')) {
+                    detectedType = 'person';
+                } else if (lowerAnalysis.includes('product') || lowerAnalysis.includes('prodotto') || lowerAnalysis.includes('oggetto')) {
+                    detectedType = 'product';
+                } else if (lowerAnalysis.includes('car') || lowerAnalysis.includes('auto') || lowerAnalysis.includes('veicolo')) {
+                    detectedType = 'car';
+                } else if (lowerAnalysis.includes('animal') || lowerAnalysis.includes('animale') || lowerAnalysis.includes('cane') || lowerAnalysis.includes('gatto')) {
+                    detectedType = 'animal';
+                }
+                console.log('Detected subject type:', detectedType);
+            } catch (visionError) {
+                console.warn('OpenAI Vision API failed, using default type:', visionError.message);
+            }
+        }
+
         // Opzioni aggiuntive dal client per migliorare il risultato
         // Supportate da remove.bg: type, size, crop, crop_margin, bg_color, channels, format
-        const type = (fields.type?.[0] || 'auto').toString(); // auto | person | product | car | animal
+        const type = (fields.type?.[0] || detectedType).toString(); // Usa il tipo rilevato da OpenAI se disponibile
         const size = (fields.size?.[0] || 'full').toString(); // preview | small | regular | medium | full | auto
         const crop = (fields.crop?.[0] || 'false').toString(); // 'true' | 'false'
         const cropMargin = (fields.crop_margin?.[0] || '0').toString(); // e.g. '10%'
         const bgColor = (fields.bg_color?.[0] || '').toString(); // e.g. 'ffffff'
+
+        // Usa remove.bg per la rimozione effettiva (OpenAI non ha API diretta per rimozione sfondo)
+        if (!removeBgApiKey) {
+            return res.status(500).json({ 
+                error: 'Servizio non configurato correttamente. REMOVE_BG_API_KEY richiesta.' 
+            });
+        }
 
         const formData = new FormData();
         formData.append('image_file', fs.createReadStream(imageFile.filepath));
