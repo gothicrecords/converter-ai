@@ -177,26 +177,16 @@ export default function Upscaler() {
       {!originalUrl && (
         <div style={styles.card}>
           <div
-            id="dropzone"
-            className="dropzone"
+            id="upscaler-dropzone"
             onDrop={onDrop}
             onDragOver={(e) => e.preventDefault()}
             onDragEnter={(e) => e.preventDefault()}
-            style={{ 
-              minHeight: '280px', 
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              visibility: 'visible',
-              opacity: 1,
-              width: '100%'
-            }}
+            style={styles.dropzone}
           >
-            <div className="dropzone-content">
-              <HiPhotograph className="dropzone-icon" />
-              <p className="dropzone-text">Trascina qui la tua immagine o clicca per selezionare</p>
-              <div className="file-formats">JPG, PNG, WebP supportati</div>
+            <div style={styles.dropzoneContent}>
+              <HiPhotograph style={styles.dropzoneIcon} />
+              <p style={styles.dropzoneText}>Trascina qui la tua immagine o clicca per selezionare</p>
+              <div style={styles.fileFormats}>JPG, PNG, WebP supportati</div>
             </div>
             <input
               id="fileInput"
@@ -206,16 +196,7 @@ export default function Upscaler() {
                 const file = e.target.files?.[0];
                 if (file) onFileSelect(file);
               }}
-              style={{ 
-                position: 'absolute', 
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                opacity: 0, 
-                cursor: 'pointer', 
-                zIndex: 2 
-              }}
+              style={styles.fileInput}
             />
           </div>
         </div>
@@ -283,6 +264,62 @@ const styles = {
     padding: '32px',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
     marginBottom: '32px'
+  },
+  dropzone: {
+    border: '2px dashed rgba(148, 163, 184, 0.4)',
+    padding: 'clamp(32px, 5vw, 48px)',
+    borderRadius: '20px',
+    textAlign: 'center',
+    cursor: 'pointer',
+    position: 'relative',
+    minHeight: 'clamp(240px, 35vh, 320px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    background: 'rgba(15, 23, 42, 0.5)',
+    backdropFilter: 'blur(16px)',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
+    overflow: 'hidden',
+    width: '100%',
+    visibility: 'visible',
+    opacity: 1
+  },
+  dropzoneContent: {
+    pointerEvents: 'none',
+    position: 'relative',
+    zIndex: 1
+  },
+  dropzoneIcon: {
+    width: '64px',
+    height: '64px',
+    color: '#667eea',
+    margin: '0 auto 16px',
+    opacity: 0.9,
+    filter: 'drop-shadow(0 0 8px rgba(102, 126, 234, 0.4))',
+    transition: 'all 0.3s ease'
+  },
+  dropzoneText: {
+    fontSize: 'clamp(15px, 2.5vw, 18px)',
+    color: '#e2e8f0',
+    margin: '0 0 12px',
+    fontWeight: 600,
+    letterSpacing: '-0.01em'
+  },
+  fileFormats: {
+    fontSize: '13px',
+    color: '#64748b',
+    fontWeight: 500
+  },
+  fileInput: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0,
+    cursor: 'pointer',
+    zIndex: 2
   }
 };
 
