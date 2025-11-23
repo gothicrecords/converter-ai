@@ -81,14 +81,20 @@ jobs:
           set -e
 
           if [ $PULL_EXIT -ne 0 ]; then
-            echo "Primary pull failed. Attempting fallback by project name..."
+            echo "Primary pull failed. Attempting link by project name..."
             FALLBACK_NAME=${VERCEL_PROJECT_NAME:-$REPO_NAME}
             if [ -n "$FALLBACK_NAME" ]; then
-              echo "Using project name: $FALLBACK_NAME"
+              echo "Linking project: $FALLBACK_NAME"
               if [ -n "$VERCEL_SCOPE" ]; then
-                vercel pull --yes --environment=production --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$FALLBACK_NAME"
+                vercel link --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$FALLBACK_NAME"
               else
-                vercel pull --yes --environment=production --token "$VERCEL_TOKEN" --project "$FALLBACK_NAME"
+                vercel link --yes --token "$VERCEL_TOKEN" --project "$FALLBACK_NAME"
+              fi
+              echo "Retrying vercel pull after link..."
+              if [ -n "$VERCEL_SCOPE" ]; then
+                vercel pull --yes --environment=production --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
+              else
+                vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
               fi
             else
               echo "No project name available for fallback. Please set VERCEL_PROJECT_NAME or correct IDs."
@@ -107,13 +113,8 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
           echo "Deploying preview to existing Vercel project..."
-          FALLBACK_NAME=${VERCEL_PROJECT_NAME:-$REPO_NAME}
-          if [ -n "$VERCEL_SCOPE" ] && [ -n "$FALLBACK_NAME" ]; then
-            vercel deploy --prebuilt --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$FALLBACK_NAME"
-          elif [ -n "$VERCEL_SCOPE" ]; then
+          if [ -n "$VERCEL_SCOPE" ]; then
             vercel deploy --prebuilt --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
-          elif [ -n "$FALLBACK_NAME" ]; then
-            vercel deploy --prebuilt --token "$VERCEL_TOKEN" --project "$FALLBACK_NAME"
           else
             vercel deploy --prebuilt --token "$VERCEL_TOKEN"
           fi
@@ -129,13 +130,8 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
           echo "Deploying to existing Vercel project (production)..."
-          FALLBACK_NAME=${VERCEL_PROJECT_NAME:-$REPO_NAME}
-          if [ -n "$VERCEL_SCOPE" ] && [ -n "$FALLBACK_NAME" ]; then
-            vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$FALLBACK_NAME"
-          elif [ -n "$VERCEL_SCOPE" ]; then
+          if [ -n "$VERCEL_SCOPE" ]; then
             vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
-          elif [ -n "$FALLBACK_NAME" ]; then
-            vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" --project "$FALLBACK_NAME"
           else
             vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN"
           fi
