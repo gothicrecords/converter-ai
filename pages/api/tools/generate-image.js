@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { prompt, aspect = '1:1', quality = 'hd', style = 'vivid' } = req.body || {};
+        const { prompt, aspect = '1:1', quality, style, detail, realism } = req.body || {};
 
         if (!prompt || typeof prompt !== 'string') {
             return res.status(400).json({ error: 'Il prompt è richiesto e deve essere una stringa.' });
@@ -22,14 +22,18 @@ export default async function handler(req, res) {
         };
         const size = sizeMap[aspect] || sizeMap['1:1'];
 
+        // Map old parameters (detail, realism) to new ones (quality, style) for backward compatibility
+        const mappedQuality = quality || (detail && detail > 0.8 ? 'hd' : 'standard');
+        const mappedStyle = style || (realism ? 'natural' : 'vivid');
+
         console.log('Generating image with DALL-E 3:', prompt);
-        console.log('Size:', size, 'Quality:', quality, 'Style:', style);
+        console.log('Size:', size, 'Quality:', mappedQuality, 'Style:', mappedStyle);
 
         // Genera immagine con DALL-E 3
         const imageBuffer = await generateImageWithDALLE(prompt, {
             size: size,
-            quality: quality, // 'standard' or 'hd'
-            style: style, // 'vivid' or 'natural'
+            quality: mappedQuality, // 'standard' or 'hd'
+            style: mappedStyle, // 'vivid' or 'natural'
         });
 
         console.log('Image generated, size:', (imageBuffer.length / 1024 / 1024).toFixed(2), 'MB');
