@@ -34,20 +34,28 @@ jobs:
         run: npm run lint || true
         continue-on-error: true
 
-      - name: Pull Vercel environment info
+      - name: Link to existing Vercel project
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
-            if [ "${{ github.event_name }}" == "pull_request" ]; then
-              vercel pull --yes --environment=preview --token "$VERCEL_TOKEN" || echo "Warning: vercel pull failed, continuing without project settings"
-            elif [ "${{ github.ref }}" == "refs/heads/main" ] || [ "${{ github.ref }}" == "refs/heads/master" ]; then
-              vercel pull --yes --environment=production --token "$VERCEL_TOKEN" || echo "Warning: vercel pull failed, continuing without project settings"
-            fi
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "Error: VERCEL_TOKEN is required"
+            exit 1
+          fi
+          
+          # Try to link to existing project if IDs are provided
+          if [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "Linking to existing project: $VERCEL_PROJECT_ID"
+            # Create .vercel directory if it doesn't exist
+            mkdir -p .vercel
+            # Create project.json with project info
+            echo "{\"projectId\":\"$VERCEL_PROJECT_ID\",\"orgId\":\"$VERCEL_ORG_ID\"}" > .vercel/project.json
+            echo "Project linked successfully"
           else
-            echo "Warning: Vercel secrets not fully configured. Will use vercel deploy without --prebuilt."
+            echo "Warning: VERCEL_ORG_ID or VERCEL_PROJECT_ID not set."
+            echo "Vercel will try to auto-detect the project from the repository connection."
           fi
         continue-on-error: true
 
