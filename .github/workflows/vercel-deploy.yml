@@ -46,6 +46,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
         run: |
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
             echo "Error: VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID secrets are required"
@@ -60,7 +61,12 @@ jobs:
           }
           EOF
           echo "Pulling Vercel project configuration..."
-          vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+          if [ -n "$VERCEL_SCOPE" ]; then
+            echo "Using scope: [set]"
+            vercel pull --yes --environment=production --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
+          else
+            vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+          fi
 
       - name: Deploy to Vercel (Preview)
         if: github.event_name == 'pull_request'
@@ -68,9 +74,14 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
         run: |
           echo "Deploying preview to existing Vercel project..."
-          vercel deploy --prebuilt --token "$VERCEL_TOKEN"
+          if [ -n "$VERCEL_SCOPE" ]; then
+            vercel deploy --prebuilt --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
+          else
+            vercel deploy --prebuilt --token "$VERCEL_TOKEN"
+          fi
 
       - name: Deploy to Vercel (Production)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -78,7 +89,12 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
         run: |
           echo "Deploying to existing Vercel project (production)..."
-          vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN"
+          if [ -n "$VERCEL_SCOPE" ]; then
+            vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"
+          else
+            vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN"
+          fi
 
