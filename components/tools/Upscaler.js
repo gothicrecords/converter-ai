@@ -204,41 +204,62 @@ export default function Upscaler() {
 
       {originalUrl && !upscaledUrl && (
         <div style={styles.card}>
-          <div className="controls">
-            <button className="btn-primary" onClick={handleUpscale} disabled={loading}>
-              <HiUpload className="btn-icon" />
+          <div style={styles.controls}>
+            <button 
+              style={loading ? { ...styles.btnPrimary, ...styles.btnPrimaryDisabled } : styles.btnPrimary} 
+              onClick={handleUpscale} 
+              disabled={loading}
+            >
+              <HiUpload style={styles.btnIcon} />
               {loading ? 'Upscaling…' : 'Upscale'}
             </button>
           </div>
-          <div className="status">{status}</div>
+          {status && <div style={styles.status}>{status}</div>}
         </div>
       )}
 
-      {!originalUrl && status && <div className="status">{status}</div>}
+      {!originalUrl && status && <div style={styles.status}>{status}</div>}
 
       {originalUrl && upscaledUrl && (
         <div style={styles.card}>
-          <div className="result">
-            <div ref={sliderRef} className="slider" role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(sliderPos)}>
-              <img src={originalUrl} alt="Originale" />
-              <div className="badge left">Originale</div>
+          <div style={styles.result}>
+            <div 
+              ref={sliderRef} 
+              style={styles.slider}
+              role="slider" 
+              aria-valuemin={0} 
+              aria-valuemax={100} 
+              aria-valuenow={Math.round(sliderPos)}
+            >
+              <img src={originalUrl} alt="Originale" style={styles.sliderImg} />
+              <div style={styles.badgeLeft}>Originale</div>
               <div
-                className="clip"
-                style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
+                style={{
+                  ...styles.clip,
+                  clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)`
+                }}
               >
-                <img src={upscaledUrl} alt="Upscalata" />
+                <img src={upscaledUrl} alt="Upscalata" style={styles.sliderImg} />
               </div>
-              <div className="divider" style={{ left: `${sliderPos}%`, transform: 'translateX(-50%)' }}>
-                <div className="handle">↔</div>
+              <div 
+                style={{
+                  ...styles.divider,
+                  left: `${sliderPos}%`,
+                  transform: 'translateX(-50%)'
+                }}
+              >
+                <div style={styles.handle}>↔</div>
               </div>
-              <div className="badge right">Upscalata 2x</div>
+              <div style={styles.badgeRight}>Upscalata 2x</div>
             </div>
-            <div className="download-actions">
-              <button onClick={handleDownload} className="btn-download">
-                <HiDownload className="btn-icon" />
+            <div style={styles.downloadActions}>
+              <button onClick={handleDownload} style={styles.btnDownload}>
+                <HiDownload style={styles.btnIcon} />
                 Download
               </button>
-              <a href={upscaledUrl} target="_blank" rel="noreferrer" className="open-link">Apri a piena risoluzione</a>
+              <a href={upscaledUrl} target="_blank" rel="noreferrer" style={styles.openLink}>
+                Apri a piena risoluzione
+              </a>
             </div>
           </div>
         </div>
@@ -320,6 +341,187 @@ const styles = {
     opacity: 0,
     cursor: 'pointer',
     zIndex: 2
+  },
+  controls: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginTop: 'clamp(20px, 3vw, 28px)',
+    gap: '12px',
+    flexWrap: 'wrap'
+  },
+  btnPrimary: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    border: 'none',
+    cursor: 'pointer',
+    fontWeight: 700,
+    borderRadius: '12px',
+    fontSize: 'clamp(15px, 2.5vw, 16px)',
+    padding: '14px 28px',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    backgroundSize: '200% 200%',
+    color: '#fff',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(102, 126, 234, 0.3)',
+    letterSpacing: '0.01em'
+  },
+  btnPrimaryDisabled: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+    transform: 'none !important'
+  },
+  btnDownload: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    border: 'none',
+    cursor: 'pointer',
+    fontWeight: 700,
+    borderRadius: '12px',
+    fontSize: 'clamp(15px, 2.5vw, 16px)',
+    padding: '14px 28px',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    backgroundSize: '200% 200%',
+    color: '#fff',
+    boxShadow: '0 8px 16px rgba(67, 233, 123, 0.3)'
+  },
+  btnIcon: {
+    width: '20px',
+    height: '20px',
+    transition: 'transform 0.3s ease'
+  },
+  status: {
+    marginTop: 'clamp(16px, 2vw, 20px)',
+    textAlign: 'center',
+    color: '#94a3b8',
+    fontSize: 'clamp(14px, 2vw, 16px)',
+    minHeight: '24px',
+    padding: '14px 20px',
+    background: 'rgba(15, 23, 42, 0.6)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(148, 163, 184, 0.2)',
+    borderRadius: '12px',
+    fontWeight: 500,
+    transition: 'all 0.3s ease'
+  },
+  result: {
+    marginTop: 'clamp(24px, 3vw, 32px)',
+    textAlign: 'center',
+    width: '100%'
+  },
+  slider: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: '100%',
+    height: 'clamp(450px, 80vh, 800px)',
+    background: '#0b0f18',
+    borderRadius: '20px',
+    overflow: 'hidden',
+    cursor: 'ew-resize',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(102, 126, 234, 0.3)',
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+    touchAction: 'none',
+    transition: 'box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    border: '1px solid rgba(102, 126, 234, 0.2)',
+    margin: '0 auto'
+  },
+  sliderImg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
+    background: '#000',
+    transition: 'opacity 0.3s ease'
+  },
+  clip: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    overflow: 'hidden'
+  },
+  divider: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: '3px',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.9) 100%)',
+    boxShadow: '0 0 12px rgba(255,255,255,0.6), 0 0 20px rgba(102, 126, 234, 0.4)',
+    filter: 'drop-shadow(0 0 8px rgba(102, 126, 234, 0.5))'
+  },
+  handle: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 'clamp(44px, 8vw, 56px)',
+    height: 'clamp(44px, 8vw, 56px)',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    backgroundSize: '200% 200%',
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 800,
+    fontSize: 'clamp(18px, 3vw, 22px)',
+    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.5), 0 0 0 4px rgba(255,255,255,0.15), 0 0 20px rgba(102, 126, 234, 0.4)',
+    pointerEvents: 'none',
+    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+  },
+  badgeLeft: {
+    position: 'absolute',
+    top: 'clamp(12px, 2vw, 16px)',
+    left: 'clamp(12px, 2vw, 16px)',
+    padding: 'clamp(6px, 1vw, 10px) clamp(10px, 1.5vw, 14px)',
+    borderRadius: '999px',
+    background: 'rgba(0,0,0,0.8)',
+    backdropFilter: 'blur(16px)',
+    color: '#fff',
+    fontWeight: 700,
+    fontSize: 'clamp(11px, 1.8vw, 14px)',
+    letterSpacing: '0.5px',
+    border: '1px solid rgba(255,255,255,0.2)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    transition: 'all 0.3s ease'
+  },
+  badgeRight: {
+    position: 'absolute',
+    top: 'clamp(12px, 2vw, 16px)',
+    right: 'clamp(12px, 2vw, 16px)',
+    padding: 'clamp(6px, 1vw, 10px) clamp(10px, 1.5vw, 14px)',
+    borderRadius: '999px',
+    background: 'rgba(0,0,0,0.8)',
+    backdropFilter: 'blur(16px)',
+    color: '#fff',
+    fontWeight: 700,
+    fontSize: 'clamp(11px, 1.8vw, 14px)',
+    letterSpacing: '0.5px',
+    border: '1px solid rgba(255,255,255,0.2)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    transition: 'all 0.3s ease'
+  },
+  downloadActions: {
+    marginTop: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '12px'
+  },
+  openLink: {
+    color: '#60a5fa',
+    fontSize: '14px',
+    fontWeight: 500,
+    textDecoration: 'none',
+    transition: 'color 0.2s'
   }
 };
 
