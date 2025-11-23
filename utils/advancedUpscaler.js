@@ -93,14 +93,73 @@ class AdvancedUpscaler {
         return currentImage;
     }
 
+    // Micro-ricostruzione pixel: edge enhancement e detail recovery
+    async microPixelReconstruction(image) {
+        let reconstructed = image;
+        
+        // Step 1: Edge detection e enhancement per ricostruire bordi netti
+        // Usa unsharp mask avanzato per migliorare i bordi
+        reconstructed = reconstructed.sharpen({
+            sigma: 0.5,
+            m1: 1.2,
+            m2: 0.8,
+            x1: 1,
+            y2: 1,
+            y3: 1
+        });
+        
+        // Step 2: Detail recovery usando contrasto locale
+        // Aumenta il contrasto locale per recuperare dettagli persi
+        reconstructed = reconstructed.normalise();
+        
+        // Step 3: Micro-sharpening per pixel-level detail
+        reconstructed = reconstructed.sharpen({
+            sigma: 0.3,
+            m1: 0.9,
+            m2: 0.5
+        });
+        
+        return reconstructed;
+    }
+    
+    // Miglioramento luce avanzato: exposure, brightness, contrast
+    async enhanceLighting(image) {
+        let enhanced = image;
+        
+        // Step 1: Auto-exposure adjustment
+        // Normalizza l'esposizione per bilanciare luci e ombre
+        enhanced = enhanced.normalise();
+        
+        // Step 2: Brightness adjustment intelligente
+        // Aumenta leggermente la luminosità senza sovraesporre
+        enhanced = enhanced.modulate({
+            brightness: 1.05,
+            saturation: 1.1,
+            hue: 0
+        });
+        
+        // Step 3: Contrast enhancement per profondità
+        // Aumenta il contrasto per dare profondità all'immagine
+        enhanced = enhanced.linear(1.08, -(128 * 0.08));
+        
+        // Step 4: Shadow/highlight recovery
+        // Usa gamma correction per recuperare dettagli in ombre e luci
+        enhanced = enhanced.gamma(1.1);
+        
+        return enhanced;
+    }
+    
     // Applica enhancement finale per massima qualità 4K
     async applyFinalEnhancement(image, quality = 'high') {
         let enhanced = image;
         
-        // Step 1: Contrasto migliorato per chiarezza e profondità
-        enhanced = enhanced.linear(1.05, -(128 * 0.05));
+        // Step 1: Miglioramento luce (exposure, brightness, contrast)
+        enhanced = await this.enhanceLighting(enhanced);
         
-        // Step 2: Sharpening avanzato multi-pass per dettagli ultra-definiti
+        // Step 2: Micro-ricostruzione pixel per dettagli ultra-fini
+        enhanced = await this.microPixelReconstruction(enhanced);
+        
+        // Step 3: Sharpening avanzato multi-pass per dettagli ultra-definiti
         // Primo passaggio: sharpening generale
         enhanced = enhanced.sharpen({
             sigma: 1.5,
@@ -111,7 +170,7 @@ class AdvancedUpscaler {
             y3: 2
         });
         
-        // Step 3: Enhancement locale per dettagli fini
+        // Step 4: Enhancement locale per dettagli fini
         // Usa unsharp mask per migliorare la nitidezza
         enhanced = enhanced.sharpen({
             sigma: 0.8,
@@ -120,12 +179,6 @@ class AdvancedUpscaler {
             x1: 3,
             y2: 3,
             y3: 3
-        });
-        
-        // Step 4: Slight saturation boost per colori più vividi
-        enhanced = enhanced.modulate({
-            saturation: 1.08,
-            brightness: 1.02
         });
         
         // Step 5: Rimozione artefatti e compressione ottimale

@@ -32,8 +32,10 @@ export default function Upscaler() {
   const [originalUrl, setOriginalUrl] = useState(null);
   const [upscaledUrl, setUpscaledUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('');
   const [sliderPos, setSliderPos] = useState(50);
+  const [upscaledResolution, setUpscaledResolution] = useState(null);
   const sliderRef = useRef(null);
   const dragging = useRef(false);
   const rafId = useRef(null);
@@ -66,14 +68,46 @@ export default function Upscaler() {
   const handleUpscale = async () => {
     if (!originalFile) return;
     setLoading(true);
-    setStatus('Upscaling in corso...');
+    setProgress(0);
+    setStatus('Preparazione immagine...');
     const startTime = Date.now();
+    
+    // Simula progresso durante l'upscaling
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        const newProgress = Math.min(prev + 3, 95);
+        if (newProgress < 20) {
+          setStatus('Analisi immagine...');
+        } else if (newProgress < 40) {
+          setStatus('Denoising e pre-processing...');
+        } else if (newProgress < 60) {
+          setStatus('Upscaling multi-pass in corso...');
+        } else if (newProgress < 80) {
+          setStatus('Micro-ricostruzione pixel...');
+        } else if (newProgress < 95) {
+          setStatus('Enhancement finale e ottimizzazione...');
+        }
+        return newProgress;
+      });
+    }, 300);
+    
     const fd = new FormData();
     fd.append('image', originalFile);
     try {
       const res = await fetch('/api/upscale', { method: 'POST', body: fd });
       const j = await res.json();
       if (!res.ok) throw new Error(j.details || j.error || 'Upscale failed');
+      
+      clearInterval(progressInterval);
+      setProgress(100);
+      setStatus('Completato!');
+      
+      // Estrai risoluzione dall'immagine upscalata
+      const img = new Image();
+      img.onload = () => {
+        setUpscaledResolution(`${img.width}x${img.height}`);
+      };
+      img.src = j.url;
       
       const duration = Date.now() - startTime;
       try {
@@ -82,14 +116,20 @@ export default function Upscaler() {
       } catch {}
       
       setUpscaledUrl(j.url);
-      setStatus('Fatto!');
+      
+      setTimeout(() => {
+        setProgress(0);
+        setStatus('');
+      }, 2000);
     } catch (err) {
+      clearInterval(progressInterval);
       const duration = Date.now() - startTime;
       try {
         analytics.trackToolComplete('Image Upscaler', duration, false);
         analytics.trackError(err.message, 'Upscaler', 'upscale_error');
       } catch {}
       setStatus(`Errore: ${err.message}`);
+      setProgress(0);
     } finally {
       setLoading(false);
     }
@@ -211,9 +251,17 @@ export default function Upscaler() {
               disabled={loading}
             >
               <HiUpload style={styles.btnIcon} />
-              {loading ? 'Upscaling…' : 'Upscale'}
+              {loading ? 'Upscaling…' : 'Upscale a 4K'}
             </button>
           </div>
+          {loading && (
+            <div style={styles.progressContainer}>
+              <div style={styles.progressBar}>
+                <div style={{ ...styles.progressFill, width: `${progress}%` }} />
+              </div>
+              <div style={styles.progressText}>{progress}%</div>
+            </div>
+          )}
           {status && <div style={styles.status}>{status}</div>}
         </div>
       )}
@@ -250,7 +298,9 @@ export default function Upscaler() {
               >
                 <div style={styles.handle}>↔</div>
               </div>
-              <div style={styles.badgeRight}>Upscalata 2x</div>
+              <div style={styles.badgeRight}>
+                {upscaledResolution ? `${upscaledResolution} 4K` : 'Upscalata 4K'}
+              </div>
             </div>
             <div style={styles.downloadActions}>
               <button onClick={handleDownload} style={styles.btnDownload}>
@@ -522,6 +572,33 @@ const styles = {
     fontWeight: 500,
     textDecoration: 'none',
     transition: 'color 0.2s'
+  },
+  progressContainer: {
+    marginTop: '20px',
+    width: '100%'
+  },
+  progressBar: {
+    width: '100%',
+    height: '8px',
+    background: 'rgba(15, 23, 42, 0.6)',
+    borderRadius: '4px',
+    overflow: 'hidden',
+    position: 'relative'
+  },
+  progressFill: {
+    height: '100%',
+    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+    backgroundSize: '200% 100%',
+    borderRadius: '4px',
+    transition: 'width 0.3s ease',
+    animation: 'gradientShift 2s ease infinite'
+  },
+  progressText: {
+    marginTop: '8px',
+    textAlign: 'center',
+    fontSize: '14px',
+    color: '#94a3b8',
+    fontWeight: 500
   }
 };
 
