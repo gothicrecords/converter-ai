@@ -52,7 +52,10 @@ jobs:
             exit 1
           fi
           echo "Pulling Vercel project configuration..."
-          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          # Link the repo to the existing Vercel project explicitly
+          vercel link --project "$VERCEL_PROJECT_ID" --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
+          # Pull env and project settings for the linked project
+          vercel pull --project "$VERCEL_PROJECT_ID" --yes --environment=production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
 
       - name: Deploy to Vercel (Preview)
         if: github.event_name == 'pull_request'
@@ -62,7 +65,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           echo "Deploying preview to existing Vercel project..."
-          vercel deploy --prebuilt --token="$VERCEL_TOKEN"
+          vercel deploy --prebuilt --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
 
       - name: Deploy to Vercel (Production)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -72,5 +75,5 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           echo "Deploying to existing Vercel project (production)..."
-          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+          vercel deploy --prebuilt --prod --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
 
