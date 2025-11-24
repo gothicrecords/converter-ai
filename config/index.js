@@ -99,14 +99,15 @@ export const config = {
       appId: process.env.FACEBOOK_APP_ID,
       appSecret: process.env.FACEBOOK_APP_SECRET,
     },
-    // Prefer explicit APP_URL, else infer from Vercel's provided URL in production
+    // Use production domain for OAuth in production, localhost/VERCEL_URL elsewhere
     redirectBaseUrl: (() => {
-      const baseUrl = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-      // Normalize to HTTPS in production (Vercel always uses HTTPS)
-      if (process.env.NODE_ENV === 'production' && baseUrl.startsWith('http://')) {
-        return baseUrl.replace('http://', 'https://');
+      // In production environment, use explicit APP_URL or fallback to production domain
+      if (process.env.VERCEL_ENV === 'production') {
+        return process.env.APP_URL || 'https://megapixelsuite.com';
       }
-      return baseUrl;
+      // In preview/development, prefer APP_URL, else use VERCEL_URL or localhost
+      return process.env.APP_URL || 
+             (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
     })(),
   },
 };
