@@ -7,6 +7,11 @@
   "outputDirectory": ".next-build",
   "regions": ["iad1"],
   "functions": {
+    "pages/api/**/*.js": {
+      "includeFiles": "node_modules/ffmpeg-static/**"
+    }
+  },
+  "functions": {
     "pages/api/upscale.js": {
       "maxDuration": 300
     },

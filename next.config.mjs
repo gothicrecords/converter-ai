@@ -63,6 +63,20 @@ const nextConfig = {
       config.resolve.mainFields = ['main', 'module', 'browser'];
     }
     
+    // Assicurati che ffmpeg-static e altre dipendenze native siano incluse
+    if (isServer) {
+      config.externals = config.externals || [];
+      // Non escludere ffmpeg-static, deve essere incluso
+      if (Array.isArray(config.externals)) {
+        config.externals = config.externals.filter(ext => {
+          if (typeof ext === 'string') {
+            return !ext.includes('ffmpeg-static');
+          }
+          return true;
+        });
+      }
+    }
+    
     // Production optimizations
     if (!dev && !isServer) {
       // Enhanced code splitting

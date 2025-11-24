@@ -442,8 +442,18 @@ export default async function handler(req, res) {
       
       if (!outputBuffer && (audioFormats.includes(lowerTarget) || videoFormats.includes(lowerTarget))) {
         try {
-          // Configura ffmpeg con ottimizzazioni
-          if (ffmpegStatic) {
+          // Verifica che ffmpeg-static sia disponibile
+          if (!ffmpegStatic) {
+            // Prova a importare dinamicamente se non disponibile
+            const ffmpegStaticDynamic = await import('ffmpeg-static');
+            const ffmpegPath = ffmpegStaticDynamic.default || ffmpegStaticDynamic;
+            if (ffmpegPath) {
+              ffmpeg.setFfmpegPath(ffmpegPath);
+            } else {
+              throw new Error('FFmpeg non disponibile');
+            }
+          } else {
+            // Configura ffmpeg con ottimizzazioni
             ffmpeg.setFfmpegPath(ffmpegStatic);
           }
           
@@ -678,12 +688,51 @@ export default async function handler(req, res) {
           }
         } catch (ffmpegError) {
           console.error('FFmpeg conversion error:', ffmpegError);
-          // Se FFmpeg non è disponibile o fallisce, restituisci un errore chiaro
-          if (ffmpegError.message && ffmpegError.message.includes('non è disponibile')) {
-            throw new ProcessingError(ffmpegError.message);
+          console.error('FFmpeg path:', ffmpegStatic);
+          console.error('FFmpeg error details:', {
+            message: ffmpegError.message,
+            code: ffmpegError.code,
+            errno: ffmpegError.errno,
+            syscall: ffmpegError.syscall
+          });
+          
+          // Se FFmpeg non è disponibile, prova a reimportare dinamicamente
+          if (!ffmpegStatic || ffmpegError.code === 'ENOENT' || ffmpegError.message?.includes('ENOENT') || ffmpegError.message?.includes('not found')) {
+            try {
+              console.log('Tentativo reimport ffmpeg-static...');
+              const ffmpegStaticRetry = await import('ffmpeg-static');
+              const ffmpegPath = ffmpegStaticRetry.default || ffmpegStaticRetry;
+              console.log('FFmpeg path trovato:', ffmpegPath);
+              
+              if (ffmpegPath && fs.existsSync(ffmpegPath)) {
+                // Verifica permessi di esecuzione
+                try {
+                  fs.accessSync(ffmpegPath, fs.constants.X_OK);
+                  console.log('FFmpeg è eseguibile');
+                } catch (permError) {
+                  // Su Vercel/Linux, potrebbe essere necessario rendere eseguibile
+                  try {
+                    fs.chmodSync(ffmpegPath, 0o755);
+                    console.log('Permessi FFmpeg aggiornati');
+                  } catch (chmodError) {
+                    console.warn('Impossibile modificare permessi FFmpeg:', chmodError);
+                  }
+                }
+                
+                // Riprova con il path corretto
+                ffmpeg.setFfmpegPath(ffmpegPath);
+                throw new ProcessingError('FFmpeg trovato, riprova la conversione');
+              } else {
+                throw new ProcessingError(`FFmpeg non trovato nel percorso: ${ffmpegPath || 'undefined'}`);
+              }
+            } catch (retryError) {
+              console.error('Errore reimport FFmpeg:', retryError);
+              throw new ProcessingError(`FFmpeg non disponibile: ${ffmpegError.message || retryError.message || 'Errore sconosciuto'}`);
+            }
           }
+          
           // Per altri errori, prova a dare un messaggio più utile
-          throw new ProcessingError(`Conversione audio/video fallita: ${ffmpegError.message || 'FFmpeg non disponibile o errore durante la conversione'}`);
+          throw new ProcessingError(`Conversione audio/video fallita: ${ffmpegError.message || 'Errore durante la conversione con FFmpeg'}`);
         }
       }
 

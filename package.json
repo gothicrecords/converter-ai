@@ -9,6 +9,7 @@
     "dev": "next dev -p 3000",
     "dev:3100": "next dev -p 3100",
     "build": "next build",
+    "postinstall": "node -e \"try { const ffmpeg = require('ffmpeg-static'); const fs = require('fs'); if (ffmpeg && fs.existsSync(ffmpeg)) { fs.chmodSync(ffmpeg, 0o755); console.log('FFmpeg permissions set'); } } catch(e) { console.warn('FFmpeg postinstall:', e.message); }\"",
     "lint": "next lint",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
