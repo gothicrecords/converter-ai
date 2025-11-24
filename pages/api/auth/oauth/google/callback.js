@@ -122,6 +122,13 @@ export default async function googleCallbackHandler(req, res) {
     // Register or login user
     let result;
     try {
+      console.log('Attempting to register/login OAuth user:', {
+        provider: 'google',
+        providerId: String(providerId),
+        email,
+        name: name || email.split('@')[0],
+      });
+      
       result = await registerOrLoginOAuthUser({
         provider: 'google',
         providerId: String(providerId),
@@ -129,9 +136,19 @@ export default async function googleCallbackHandler(req, res) {
         name: name || email.split('@')[0],
         avatarUrl: avatarUrl || null,
       });
+      
+      console.log('registerOrLoginOAuthUser result:', {
+        hasUser: !!result?.user,
+        userId: result?.user?.id,
+        hasSessionToken: !!result?.sessionToken,
+      });
     } catch (authError) {
-      console.error('Error in registerOrLoginOAuthUser:', authError);
-      return res.redirect(`/login?error=${encodeURIComponent('Failed to create user session')}`);
+      console.error('Error in registerOrLoginOAuthUser:', {
+        error: authError.message,
+        stack: authError.stack,
+        name: authError.name,
+      });
+      return res.redirect(`/login?error=${encodeURIComponent(`Failed to create user: ${authError.message || 'Unknown error'}`)}`);
     }
 
     if (!result || !result.user) {
@@ -139,18 +156,24 @@ export default async function googleCallbackHandler(req, res) {
       return res.redirect(`/login?error=${encodeURIComponent('Failed to authenticate')}`);
     }
 
-    // Create session
-    let sessionToken;
-    try {
-      const sessionResult = await createUserSession(result.user.id);
-      sessionToken = sessionResult.sessionToken;
-    } catch (sessionError) {
-      console.error('Error creating session:', sessionError);
-      return res.redirect(`/login?error=${encodeURIComponent('Failed to create session')}`);
-    }
-
+    // Use session token from registerOrLoginOAuthUser (it already creates the session)
+    let sessionToken = result.sessionToken;
+    
     if (!sessionToken) {
-      console.error('No session token created');
+      console.error('No session token in result, creating manually:', result);
+      // Try to create session manually as fallback
+      try {
+        const sessionResult = await createUserSession(result.user.id);
+        sessionToken = sessionResult.sessionToken;
+        console.log('Created session manually:', !!sessionToken);
+      } catch (sessionError) {
+        console.error('Error creating session manually:', sessionError);
+        return res.redirect(`/login?error=${encodeURIComponent('Failed to create session')}`);
+      }
+    }
+    
+    if (!sessionToken) {
+      console.error('No session token available after all attempts');
       return res.redirect(`/login?error=${encodeURIComponent('Failed to create session')}`);
     }
 

@@ -9,7 +9,14 @@ export const config = {
     name: process.env.APP_NAME || 'Tool Suite',
     env: process.env.NODE_ENV || 'development',
     port: parseInt(process.env.PORT || '3000', 10),
-    url: process.env.APP_URL || 'http://localhost:3000',
+    url: (() => {
+      const appUrl = process.env.APP_URL || 'http://localhost:3000';
+      // Normalize to HTTPS in production (Vercel always uses HTTPS)
+      if (process.env.NODE_ENV === 'production' && appUrl.startsWith('http://')) {
+        return appUrl.replace('http://', 'https://');
+      }
+      return appUrl;
+    })(),
   },
 
   // Database
@@ -93,7 +100,14 @@ export const config = {
       appSecret: process.env.FACEBOOK_APP_SECRET,
     },
     // Prefer explicit APP_URL, else infer from Vercel's provided URL in production
-    redirectBaseUrl: process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'),
+    redirectBaseUrl: (() => {
+      const baseUrl = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+      // Normalize to HTTPS in production (Vercel always uses HTTPS)
+      if (process.env.NODE_ENV === 'production' && baseUrl.startsWith('http://')) {
+        return baseUrl.replace('http://', 'https://');
+      }
+      return baseUrl;
+    })(),
   },
 };
 

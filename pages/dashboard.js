@@ -21,6 +21,29 @@ function DashboardPage() {
 
     useEffect(() => {
         const loadUserData = async () => {
+            // If coming from OAuth redirect, sync session from cookie to localStorage
+            if (router.query.welcome === 'true' && !isAuthenticated()) {
+                try {
+                    const response = await fetch('/api/auth/session', {
+                        method: 'GET',
+                        credentials: 'include', // Include cookies
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.sessionToken) {
+                            // Save token to localStorage
+                            localStorage.setItem('megapixelai_session', data.sessionToken);
+                            if (data.user) {
+                                localStorage.setItem('megapixelai_user_cache', JSON.stringify(data.user));
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to sync session:', error);
+                }
+            }
+            
             if (!isAuthenticated()) {
                 router.push('/login');
                 return;
@@ -32,7 +55,17 @@ function DashboardPage() {
                 return;
             }
 
-            setUser(userData);
+            // Ensure user has all required fields with defaults
+            const userWithDefaults = {
+                ...userData,
+                plan: userData.plan || 'free',
+                images_processed: userData.images_processed || 0,
+                tools_used: userData.tools_used || [],
+                has_discount: userData.has_discount !== undefined ? userData.has_discount : true,
+                created_at: userData.created_at || userData.createdAt || new Date().toISOString(),
+            };
+
+            setUser(userWithDefaults);
             const userStats = getUserStats(userData);
             setStats(userStats);
             setHistory(getHistory());
@@ -176,15 +209,15 @@ function DashboardPage() {
                                 <div style={styles.planCard}>
                                     <div style={styles.planHeader}>
                                         <div>
-                                            <div style={styles.planName}>Piano {user.plan === 'free' ? 'Gratuito' : user.plan.toUpperCase()}</div>
+                                            <div style={styles.planName}>Piano {(!user.plan || user.plan === 'free') ? 'Gratuito' : (user.plan.toUpperCase ? user.plan.toUpperCase() : user.plan)}</div>
                                             <div style={styles.planDesc}>
-                                                {user.plan === 'free' 
+                                                {(!user.plan || user.plan === 'free')
                                                     ? '10 elaborazioni al giorno • File fino a 10MB'
                                                     : 'Elaborazioni illimitate • File fino a 100MB'
                                                 }
                                             </div>
                                         </div>
-                                        {user.plan === 'free' && (
+                                        {(!user.plan || user.plan === 'free') && (
                                             <button style={styles.upgradeButton} onClick={() => router.push('/pricing')}>
                                                 Passa a Pro con 5% sconto
                                             </button>

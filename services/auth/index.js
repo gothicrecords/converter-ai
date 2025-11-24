@@ -128,7 +128,16 @@ export async function getUserFromSession(sessionToken) {
 export async function registerOrLoginOAuthUser({ provider, providerId, email, name, avatarUrl }) {
   // Validate input
   const validatedEmail = validateEmail(email);
-  const validatedName = validateName(name || email.split('@')[0]);
+  // For OAuth, use a more permissive name validation - fallback to email username if name is invalid
+  let validatedName;
+  try {
+    validatedName = validateName(name || email.split('@')[0]);
+  } catch (nameError) {
+    // If name validation fails, use email username as fallback
+    const emailUsername = email.split('@')[0];
+    validatedName = emailUsername.length >= 2 ? emailUsername : `user_${Date.now()}`;
+    console.warn('Name validation failed for OAuth user, using fallback:', validatedName);
+  }
 
   // Check if user exists with this provider+providerId
   const existingOAuthUser = await getUserByProvider(provider, providerId);
