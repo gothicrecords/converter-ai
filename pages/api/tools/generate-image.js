@@ -1,6 +1,12 @@
 import { generateImageWithDALLE, getImageUrlFromDALLE } from '../../../lib/openai.js';
 
 export default async function handler(req, res) {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+    
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
