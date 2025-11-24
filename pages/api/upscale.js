@@ -30,10 +30,14 @@ export default async function handler(req, res) {
   const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
   const TIMEOUT_MS = 120000; // 2 minutes
 
+  // Su Vercel, usa /tmp (unico filesystem scrivibile)
+  const tmpDir = process.env.VERCEL ? '/tmp' : os.tmpdir();
+
   const form = formidable({ 
     multiples: false,
     maxFileSize: MAX_FILE_SIZE,
     keepExtensions: true,
+    uploadDir: tmpDir, // Usa /tmp su Vercel
   });
 
   let filePath = null;

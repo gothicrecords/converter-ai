@@ -1,6 +1,7 @@
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 export const config = {
     api: {
@@ -19,8 +20,12 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const uploadDir = path.join(process.cwd(), 'uploads');
-    if (!fs.existsSync(uploadDir)) {
+    // Su Vercel, usa /tmp (unico filesystem scrivibile)
+    const tmpDir = process.env.VERCEL ? '/tmp' : os.tmpdir();
+    const uploadDir = process.env.VERCEL ? '/tmp' : path.join(process.cwd(), 'uploads');
+    
+    // Su Vercel, /tmp esiste sempre, non serve crearlo
+    if (!process.env.VERCEL && !fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
     }
 

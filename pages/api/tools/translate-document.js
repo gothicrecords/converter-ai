@@ -1,6 +1,7 @@
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import mammoth from 'mammoth';
 import PDFDocument from 'pdfkit';
 import OpenAI from 'openai';
@@ -401,8 +402,12 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const uploadDir = path.join(process.cwd(), 'uploads');
-    if (!fs.existsSync(uploadDir)) {
+    // Su Vercel, usa /tmp (unico filesystem scrivibile)
+    const tmpDir = process.env.VERCEL ? '/tmp' : os.tmpdir();
+    const uploadDir = process.env.VERCEL ? '/tmp' : path.join(process.cwd(), 'uploads');
+    
+    // Su Vercel, /tmp esiste sempre, non serve crearlo
+    if (!process.env.VERCEL && !fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
     }
 
@@ -510,7 +515,10 @@ export default async function handler(req, res) {
         try {
             fs.unlinkSync(documentFile.filepath);
             // Pulisci anche i file temporanei creati
-            const tempFiles = fs.readdirSync(uploadDir).filter(f => f.startsWith('translated_'));
+            // Su Vercel, pulisci solo file temporanei nella stessa sessione
+            const tempFiles = process.env.VERCEL 
+              ? [] // Su Vercel non puliamo altri file in /tmp
+              : fs.existsSync(uploadDir) ? fs.readdirSync(uploadDir).filter(f => f.startsWith('translated_')) : [];
             tempFiles.forEach(f => {
                 try {
                     fs.unlinkSync(path.join(uploadDir, f));

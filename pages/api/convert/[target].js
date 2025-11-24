@@ -25,6 +25,7 @@ import { createExtractorFromData } from 'node-unrar-js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 const execAsync = promisify(exec);
+import os from 'os';
 import { 
   handleApiError, 
   ValidationError, 
@@ -292,7 +293,6 @@ export default async function handler(req, res) {
   }
 
   // Su Vercel, usa /tmp per i file temporanei (unico filesystem scrivibile)
-  const os = require('os');
   const tmpDir = process.env.VERCEL ? '/tmp' : os.tmpdir();
   
   const form = formidable({ 
@@ -2150,17 +2150,41 @@ export default async function handler(req, res) {
     } catch (e) {
       // Assicurati che inputExt sia sempre definito
       const safeInputExt = inputExt || (file?.originalFilename ? path.extname(file.originalFilename).replace('.', '').toLowerCase() : '') || '';
+      
+      // Verifica che la risposta non sia già stata inviata
+      if (!res.headersSent) {
+        return handleApiError(
+          new ProcessingError('Conversion failed: ' + (e.message || 'Unknown error'), e),
+          res,
+          {
+            method: req.method,
+            url: req.url,
+            endpoint: '/api/convert/[target]',
+            target,
+            inputExt: safeInputExt,
+          }
+        );
+      }
+      
+      // Se la risposta è già stata inviata, logga solo l'errore
+      console.error('Error after response sent in convert API:', e);
+    }
+  });
+  
+  // Cattura errori non gestiti nel callback asincrono
+  } catch (globalError) {
+    console.error('Global error in convert API handler:', globalError);
+    if (!res.headersSent) {
       return handleApiError(
-        new ProcessingError('Conversion failed: ' + (e.message || 'Unknown error'), e),
+        new ProcessingError('Unexpected error: ' + (globalError.message || 'Unknown error'), globalError),
         res,
         {
           method: req.method,
           url: req.url,
           endpoint: '/api/convert/[target]',
           target,
-          inputExt: safeInputExt,
         }
       );
     }
-  });
+  }
 }

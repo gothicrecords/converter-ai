@@ -2,6 +2,7 @@
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { extractTextFromDocument, storeDocument } from '../../../lib/documentAI.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -21,8 +22,12 @@ export default async function handler(req, res) {
     const MAX_FILE_MB = isVercel ? Number(process.env.VERCEL_MAX_MB || 25) : 200;
     const MAX_FILES = isVercel ? Number(process.env.VERCEL_MAX_FILES || 5) : 10;
 
-    const uploadDir = path.join(process.cwd(), 'uploads', 'chat');
-    if (!fs.existsSync(uploadDir)) {
+    // Su Vercel, usa /tmp (unico filesystem scrivibile)
+    const tmpDir = process.env.VERCEL ? '/tmp' : os.tmpdir();
+    const uploadDir = process.env.VERCEL ? '/tmp' : path.join(process.cwd(), 'uploads', 'chat');
+    
+    // Su Vercel, /tmp esiste sempre, non serve crearlo
+    if (!process.env.VERCEL && !fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
