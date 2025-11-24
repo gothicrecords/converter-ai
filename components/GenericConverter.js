@@ -246,18 +246,22 @@ function GenericConverter({ tool }) {
       if (!response.ok) {
         let errorMessage = `Errore HTTP ${response.status}`;
         try {
-          const errorData = await response.json();
-          // Gestisci diversi formati di errore
-          if (errorData.error) {
-            errorMessage = errorData.error;
-            // Se c'è un hint, aggiungilo al messaggio
-            if (errorData.hint) {
-              errorMessage += `. ${errorData.hint}`;
+          // Verifica che ci sia contenuto prima di parsare JSON
+          const text = await response.text();
+          if (text && text.trim().length > 0) {
+            const errorData = JSON.parse(text);
+            // Gestisci diversi formati di errore
+            if (errorData.error) {
+              errorMessage = errorData.error;
+              // Se c'è un hint, aggiungilo al messaggio
+              if (errorData.hint) {
+                errorMessage += `. ${errorData.hint}`;
+              }
+            } else if (errorData.details) {
+              errorMessage = errorData.details;
+            } else if (errorData.message) {
+              errorMessage = errorData.message;
             }
-          } else if (errorData.details) {
-            errorMessage = errorData.details;
-          } else if (errorData.message) {
-            errorMessage = errorData.message;
           }
         } catch (e) {
           // Se la risposta non è JSON, usa il messaggio di default
