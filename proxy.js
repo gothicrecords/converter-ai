@@ -42,7 +42,7 @@ export function proxy(request) {
   }
   
   // If no primary host configured, skip redirect
-  if (!primaryHost) {
+  if (!primaryHost || !host) {
     return NextResponse.next();
   }
 
@@ -52,51 +52,52 @@ export function proxy(request) {
     currentHostNormalized = currentHostNormalized.substring(4);
   }
 
-  // Safety check: prevent redirect loops by checking if we're already on the target
+  // CRITICAL: If we're already on the correct domain (normalized), NEVER redirect
   if (currentHostNormalized === primaryHost) {
-    // If current host has www. but target doesn't, redirect to remove www
+    // Only redirect if current host has www. prefix
     if (hostLower.startsWith('www.')) {
       url.host = primaryHost;
       url.protocol = 'https:';
-      // Double check to prevent loop - ensure we're not redirecting to the same host
+      // Triple check: ensure target is different and valid
       const targetHost = url.host.toLowerCase();
-      if (targetHost !== hostLower && targetHost === primaryHost) {
+      if (targetHost && targetHost !== hostLower && targetHost === primaryHost) {
         return NextResponse.redirect(url, 308);
       }
     }
-    // Already on correct domain, no redirect needed
+    // Already on correct domain, NO REDIRECT
     return NextResponse.next();
   }
 
-  // Redirect www to apex (non-www) - only if different
-  if (hostLower === `www.${primaryHost}`) {
+  // Only redirect www to non-www if they're different
+  if (hostLower === `www.${primaryHost}` && currentHostNormalized !== primaryHost) {
     url.host = primaryHost;
     url.protocol = 'https:';
-    // Final safety check - ensure target is different from current
     const targetHost = url.host.toLowerCase();
-    if (targetHost !== hostLower && targetHost === primaryHost) {
+    // Final safety check: target must be different from current
+    if (targetHost && targetHost !== hostLower && targetHost === primaryHost) {
       return NextResponse.redirect(url, 308);
     }
   }
 
-  // Redirect vercel.app preview URLs to primary domain (only if different)
+  // Only redirect vercel.app preview URLs if different from primary
   const isVercelHost = hostLower.endsWith('.vercel.app');
-  if (isVercelHost && currentHostNormalized !== primaryHost) {
+  if (isVercelHost && currentHostNormalized !== primaryHost && primaryHost) {
     url.host = primaryHost;
     url.protocol = 'https:';
-    // Final safety check - ensure target is different from current
     const targetHost = url.host.toLowerCase();
-    if (targetHost !== hostLower && targetHost === primaryHost) {
+    // Final safety check: target must be different from current
+    if (targetHost && targetHost !== hostLower && targetHost === primaryHost) {
       return NextResponse.redirect(url, 308);
     }
   }
 
+  // Default: no redirect
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    // Run on all routes except Next internals and static assets
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
+    // Run on all routes except Next internals, static assets, and API routes
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|api/).*)',
   ],
 };
