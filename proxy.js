@@ -8,6 +8,11 @@ export function proxy(request) {
     return NextResponse.next();
   }
 
+  // CRITICAL: Skip all API routes to prevent interfering with API calls
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
   // Only run in production
   if (process.env.VERCEL_ENV !== 'production') {
     return NextResponse.next();
@@ -132,6 +137,7 @@ export const config = {
   matcher: [
     // Run on all routes except Next internals, static assets, and API routes
     // IMPORTANT: Exclude /api/ to prevent interfering with API calls
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|api/).*)',
+    // Pattern: match everything except _next, api routes, and static files
+    '/((?!api/|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
   ],
 };

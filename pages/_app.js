@@ -118,6 +118,24 @@ const queryClient = new QueryClient({
 });
 
 function MyApp({ Component, pageProps }) {
+  // Suppress Stripe tracking prevention warnings (browser privacy feature, not errors)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const originalError = console.error;
+      console.error = (...args) => {
+        // Filter out Stripe tracking prevention warnings
+        const message = args.join(' ');
+        if (message.includes('Tracking Prevention blocked') && message.includes('stripe')) {
+          return; // Suppress these warnings
+        }
+        originalError.apply(console, args);
+      };
+      
+      return () => {
+        console.error = originalError;
+      };
+    }
+  }, []);
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
