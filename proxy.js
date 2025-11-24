@@ -1,13 +1,44 @@
 import { NextResponse } from 'next/server';
 
-// TEMPORARILY DISABLED: Middleware disabled to fix redirect loop issue
 // Enforce canonical host and HTTPS in production
+// SIMPLIFIED VERSION: Only redirects www to non-www with strict safety checks
 export function proxy(request) {
-  // DISABLED: Return immediately to prevent redirect loops
-  // TODO: Re-enable with proper domain configuration check
+  // Allow disabling middleware via environment variable
+  if (process.env.DISABLE_REDIRECT_MIDDLEWARE === 'true') {
+    return NextResponse.next();
+  }
+
+  // Only run in Vercel production environment
+  const vercelEnv = process.env.VERCEL_ENV;
+  if (vercelEnv !== 'production') {
+    return NextResponse.next();
+  }
+
+  const url = request.nextUrl.clone();
+  const host = request.headers.get('host') || '';
+  const hostLower = host.toLowerCase();
+  
+  // Only redirect www to non-www (very simple and safe)
+  // If host starts with www., redirect to non-www version
+  if (hostLower.startsWith('www.')) {
+    const nonWwwHost = hostLower.substring(4); // Remove 'www.'
+    
+    // Safety check: ensure we have a valid host after removing www
+    if (nonWwwHost && nonWwwHost.length > 0) {
+      url.host = nonWwwHost;
+      url.protocol = 'https:';
+      
+      // Final safety check: target must be different from current
+      if (url.host.toLowerCase() !== hostLower) {
+        return NextResponse.redirect(url, 308);
+      }
+    }
+  }
+
+  // Default: no redirect
   return NextResponse.next();
   
-  /* ORIGINAL CODE - DISABLED
+  /* OLD CODE - REMOVED TO PREVENT LOOPS
   // Allow disabling middleware via environment variable
   if (process.env.DISABLE_REDIRECT_MIDDLEWARE === 'true') {
     return NextResponse.next();
