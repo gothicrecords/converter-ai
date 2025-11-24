@@ -16,6 +16,11 @@ export function apiHandler(handler) {
     try {
       await handler(req, res);
     } catch (error) {
+      // Don't handle error if response was already sent
+      if (res.headersSent || res.writableEnded) {
+        console.error('Error after response was sent:', error);
+        return;
+      }
       handleApiError(error, res, {
         method: req.method,
         url: req.url,
@@ -36,13 +41,30 @@ export function requireMethod(allowedMethods) {
   
   return (handler) => {
     return async (req, res) => {
-      if (!methods.includes(req.method)) {
+      // Handle OPTIONS preflight requests
+      if (req.method === 'OPTIONS') {
         res.setHeader('Allow', methods.join(', '));
-        return res.status(HTTP_STATUS.METHOD_NOT_ALLOWED).json({
+        res.setHeader('Access-Control-Allow-Methods', methods.join(', '));
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        res.status(HTTP_STATUS.NO_CONTENT).end();
+        return;
+      }
+      
+      // Check if method is allowed
+      const normalizedMethod = req.method?.toUpperCase();
+      const normalizedMethods = methods.map(m => m.toUpperCase());
+      
+      if (!normalizedMethods.includes(normalizedMethod)) {
+        res.setHeader('Allow', methods.join(', '));
+        const response = {
+          success: false,
           error: `Method ${req.method} not allowed. Allowed methods: ${methods.join(', ')}`,
           code: 'METHOD_NOT_ALLOWED',
-        });
+        };
+        res.status(HTTP_STATUS.METHOD_NOT_ALLOWED).json(response);
+        return;
       }
+      
       return handler(req, res);
     };
   };

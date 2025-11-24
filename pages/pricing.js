@@ -57,17 +57,48 @@ function PricingPage() {
                 }),
             });
 
-            const { url } = await response.json();
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ 
+                    success: false,
+                    error: 'Errore sconosciuto',
+                    code: 'UNKNOWN_ERROR'
+                }));
+                
+                // Messaggi di errore più specifici
+                let errorMessage = errorData.error || `Errore ${response.status}: ${response.statusText}`;
+                
+                if (errorData.code === 'INVALID_PRICE_ID' || errorData.code === 'STRIPE_RESOURCE_MISSING') {
+                    errorMessage = 'Il price ID configurato non è valido. Contatta il supporto.';
+                } else if (errorData.code === 'STRIPE_NOT_CONFIGURED') {
+                    errorMessage = 'Stripe non è configurato correttamente. Contatta il supporto.';
+                } else if (errorData.code === 'MISSING_PRICE_ID') {
+                    errorMessage = 'Price ID mancante. Contatta il supporto.';
+                }
+                
+                throw new Error(errorMessage);
+            }
+
+            const data = await response.json();
+            
+            if (!data.success || !data.url) {
+                throw new Error(data.error || 'URL di checkout non ricevuto');
+            }
             
             // Track checkout redirect
             analytics.trackButtonClick('Checkout Redirect', 'Pricing Page');
             
             // Redirect a Stripe Checkout
-            window.location.href = url;
+            window.location.href = data.url;
         } catch (error) {
             analytics.trackError(error.message, 'Pricing Page', 'checkout_error');
             console.error('Subscription error:', error);
-            alert('Errore durante il pagamento. Riprova.');
+            
+            // Mostra un messaggio di errore più user-friendly
+            const userMessage = error.message.includes('Price ID') 
+                ? 'Errore di configurazione del pagamento. Il price ID non è valido. Contatta il supporto tecnico.'
+                : `Errore durante il pagamento: ${error.message}. Riprova più tardi o contatta il supporto.`;
+            
+            alert(userMessage);
         } finally {
             setLoading(false);
         }
@@ -118,7 +149,7 @@ function PricingPage() {
                 t('pricing.exportFormats')
             ],
             cta: t('pricing.startTrial'),
-            stripePrice: 'price_1SUaLSAYkkHFHNFuv8Ndicok',
+            stripePrice: 'price_1SWmnKA5FzBkqU1E7Xn0egBr',
             popular: true
         },
         {

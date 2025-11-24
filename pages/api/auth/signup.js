@@ -4,6 +4,15 @@ import { registerUser } from '../../../services/auth';
 import { HTTP_METHODS, HTTP_STATUS } from '../../../constants';
 
 async function signupHandler(req, res) {
+  // Check method explicitly
+  if (req.method !== 'POST' && req.method !== HTTP_METHODS.POST) {
+    return res.status(405).json({
+      success: false,
+      error: `Method ${req.method} not allowed. Allowed methods: POST`,
+      code: 'METHOD_NOT_ALLOWED',
+    });
+  }
+
   const { name, email, password } = req.body;
 
   // Register user (validation happens inside service)
@@ -17,6 +26,4 @@ async function signupHandler(req, res) {
 }
 
 // Export with middleware
-export default apiHandler(
-  requireMethod(HTTP_METHODS.POST)(signupHandler)
-);
+export default apiHandler(signupHandler);

@@ -13,7 +13,12 @@ import { throttle } from '../lib/performance';
 const Navbar = () => {
     const { t } = useTranslation();
     const router = useRouter();
-    const [isMobile, setIsMobile] = useState(false);
+    const [isMobile, setIsMobile] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return window.innerWidth <= 768;
+        }
+        return false;
+    });
     const [dropdownOpen, setDropdownOpen] = useState(null);
     const [scrolled, setScrolled] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
@@ -31,7 +36,14 @@ const Navbar = () => {
         
         const checkMobile = () => {
             const width = window.innerWidth;
-            setIsMobile(width <= 768);
+            const isMobileWidth = width <= 768;
+            setIsMobile(isMobileWidth);
+            
+            // Se non è mobile, chiudi i menu
+            if (!isMobileWidth) {
+                setMobileMenuOpen(false);
+                setMobileSecondaryMenuOpen(false);
+            }
         };
         
         // Check immediately
@@ -389,13 +401,14 @@ const Navbar = () => {
             overflowX: 'hidden',
             padding: '24px 20px',
             zIndex: 100004,
-            transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s',
             boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.6)',
             WebkitOverflowScrolling: 'touch',
             overscrollBehavior: 'contain',
-            display: mobileMenuOpen ? 'block' : 'none',
+            display: 'block',
             visibility: mobileMenuOpen ? 'visible' : 'hidden',
-            opacity: mobileMenuOpen ? 1 : 0
+            opacity: mobileMenuOpen ? 1 : 0,
+            pointerEvents: mobileMenuOpen ? 'auto' : 'none'
         },
         mobileSecondaryMenu: {
             position: 'fixed',
@@ -413,13 +426,14 @@ const Navbar = () => {
             overflowX: 'hidden',
             padding: '24px 20px',
             zIndex: 100004,
-            transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s',
             boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.6)',
             WebkitOverflowScrolling: 'touch',
             overscrollBehavior: 'contain',
-            display: mobileSecondaryMenuOpen ? 'block' : 'none',
+            display: 'block',
             visibility: mobileSecondaryMenuOpen ? 'visible' : 'hidden',
-            opacity: mobileSecondaryMenuOpen ? 1 : 0
+            opacity: mobileSecondaryMenuOpen ? 1 : 0,
+            pointerEvents: mobileSecondaryMenuOpen ? 'auto' : 'none'
         },
         mobileOverlay: {
             position: 'fixed',
@@ -844,13 +858,25 @@ const Navbar = () => {
             )}
 
             {/* Mobile menu principale (categorie e strumenti) */}
-            {isMobile && mobileMenuOpen && (
-                <div style={styles.mobileMenu}>
+            {isMobile && (
+                <div 
+                    style={styles.mobileMenu}
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                >
                     <div style={styles.mobileMenuHeader}>
                         <h3 style={styles.mobileMenuTitle}>Menu</h3>
                         <button 
                             style={styles.closeBtn}
-                            onClick={() => setMobileMenuOpen(false)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setMobileMenuOpen(false);
+                            }}
+                            onTouchEnd={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setMobileMenuOpen(false);
+                            }}
                             aria-label="Chiudi menu"
                             title="Chiudi menu"
                         >
@@ -916,7 +942,7 @@ const Navbar = () => {
             )}
 
             {/* Mobile menu secondario (login, pricing, faq, lingua) */}
-            {isMobile && mobileSecondaryMenuOpen && (
+            {isMobile && (
                 <div 
                     style={styles.mobileSecondaryMenu}
                     onClick={(e) => e.stopPropagation()}

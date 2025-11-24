@@ -4,6 +4,15 @@ import { authenticateUser } from '../../../services/auth';
 import { HTTP_METHODS } from '../../../constants';
 
 async function loginHandler(req, res) {
+  // Check method explicitly
+  if (req.method !== 'POST' && req.method !== HTTP_METHODS.POST) {
+    return res.status(405).json({
+      success: false,
+      error: `Method ${req.method} not allowed. Allowed methods: POST`,
+      code: 'METHOD_NOT_ALLOWED',
+    });
+  }
+
   const { email, password } = req.body;
 
   // Authenticate user (validation happens inside service)
@@ -17,6 +26,4 @@ async function loginHandler(req, res) {
 }
 
 // Export with middleware
-export default apiHandler(
-  requireMethod(HTTP_METHODS.POST)(loginHandler)
-);
+export default apiHandler(loginHandler);
