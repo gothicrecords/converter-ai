@@ -299,7 +299,11 @@ export default function CleanNoise() {
                         ...(isDragActive ? styles.dropzoneActive : {})
                     }}
                 >
-                    <input {...getInputProps()} />
+                    <input 
+                        {...getInputProps()} 
+                        aria-label="Seleziona immagine per rimozione rumore"
+                        title="Seleziona immagine"
+                    />
                     <BsCloudUpload style={styles.uploadIcon} />
                     <p style={styles.dropzoneTitle}>
                         {isDragActive ? 'Rilascia qui il file audio...' : 'Trascina qui un file audio o clicca per selezionare'}

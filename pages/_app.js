@@ -351,7 +351,7 @@ function MyApp({ Component, pageProps }) {
       <QueryClientProvider client={queryClient}>
         <LanguageProvider initialTranslations={pageProps.translations || {}}>
         <Head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
           <meta name="mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -457,8 +457,8 @@ function MyApp({ Component, pageProps }) {
               button, a, [role="button"] {
                 -webkit-tap-highlight-color: rgba(102, 126, 234, 0.3);
                 touch-action: manipulation;
-                user-select: none;
                 -webkit-user-select: none;
+                user-select: none;
               }
               /* Prevent text selection on buttons */
               input, textarea {

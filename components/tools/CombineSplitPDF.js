@@ -369,7 +369,11 @@ export default function CombineSplitPDF() {
                             ...(isDragActive ? styles.dropzoneActive : {})
                         }}
                     >
-                        <input {...getInputProps()} />
+                        <input 
+                            {...getInputProps()} 
+                            aria-label="Seleziona file PDF da elaborare"
+                            title="Seleziona file PDF"
+                        />
                         <BsFilePdf style={styles.dropzoneIcon} />
                         <p style={styles.dropzoneText}>
                             <strong>Trascina qui i file PDF</strong> oppure clicca per selezionarli
@@ -428,7 +432,11 @@ export default function CombineSplitPDF() {
                             ...(isDragActive ? styles.dropzoneActive : {})
                         }}
                     >
-                        <input {...getInputProps()} />
+                        <input 
+                            {...getInputProps()} 
+                            aria-label="Seleziona file PDF da elaborare"
+                            title="Seleziona file PDF"
+                        />
                         <BsFilePdf style={styles.dropzoneIcon} />
                         <p style={styles.dropzoneText}>
                             <strong>Trascina qui il file PDF</strong> oppure clicca per selezionarlo

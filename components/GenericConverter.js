@@ -465,7 +465,12 @@ function GenericConverter({ tool }) {
               ...(isDragActive ? styles.dropzoneActive : {})
             }}
           >
-            <input {...getInputProps()} onChange={handleFileSelect} />
+            <input 
+              {...getInputProps()} 
+              onChange={handleFileSelect}
+              aria-label="Seleziona file da caricare"
+              title="Clicca per selezionare un file o trascina qui"
+            />
             <HiUpload style={styles.uploadIcon} />
             <h3 style={styles.dropzoneTitle}>
               {isDragActive ? 'Rilascia qui il file' : 'Trascina il file qui o clicca per selezionare'}

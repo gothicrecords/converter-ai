@@ -315,7 +315,11 @@ export default function VideoCompressor() {
                         ...(isDragActive ? styles.dropzoneActive : {})
                     }}
                 >
-                    <input {...getInputProps()} />
+                    <input 
+                        {...getInputProps()} 
+                        aria-label="Seleziona video da comprimere"
+                        title="Seleziona video"
+                    />
                     <BsCameraVideo style={styles.uploadIcon} />
                     <p style={styles.dropzoneText}>
                         {isDragActive ? 'Rilascia qui...' : 'Carica un video'}

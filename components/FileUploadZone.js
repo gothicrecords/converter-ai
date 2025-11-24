@@ -199,7 +199,11 @@ export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
           ...(uploading ? styles.dropzoneUploading : {})
         }}
       >
-        <input {...getInputProps()} />
+        <input 
+          {...getInputProps()} 
+          aria-label="Carica documenti da analizzare"
+          title="Carica documenti"
+        />
         <div style={{ ...styles.uploadIcon, pointerEvents: 'none' }}>
           <HiOutlineUpload style={{ fontSize: '48px', color: isDragActive ? '#667eea' : '#94a3b8' }} />
         </div>

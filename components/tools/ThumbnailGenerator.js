@@ -111,7 +111,11 @@ export default function ThumbnailGenerator() {
                         ...(isDragActive ? styles.dropzoneActive : {})
                     }}
                 >
-                    <input {...getInputProps()} />
+                    <input 
+                        {...getInputProps()} 
+                        aria-label="Seleziona immagine per generare thumbnail"
+                        title="Seleziona immagine"
+                    />
                     <HiUpload style={styles.uploadIcon} />
                     <p style={styles.dropzoneTitle}>
                         {isDragActive ? 'Rilascia qui...' : 'Carica un\'immagine'}

@@ -73,7 +73,11 @@ export default function AudioTranscription() {
                             : 'border-gray-600 hover:border-gray-500'
                     }`}
                 >
-                    <input {...getInputProps()} />
+                    <input 
+                        {...getInputProps()} 
+                        aria-label="Seleziona file audio da trascrivere"
+                        title="Seleziona file audio"
+                    />
                     <HiUpload className="w-16 h-16 mx-auto mb-4 text-gray-400" />
                     <p className="text-lg font-medium mb-2">
                         {isDragActive ? 'Rilascia qui...' : 'Carica un file audio'}

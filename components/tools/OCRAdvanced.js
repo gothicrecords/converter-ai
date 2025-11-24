@@ -256,7 +256,11 @@ export default function OCRAdvanced() {
                         ...(isDragActive ? styles.dropzoneActive : {})
                     }}
                 >
-                    <input {...getInputProps()} />
+                    <input 
+                        {...getInputProps()} 
+                        aria-label="Seleziona immagine da analizzare con OCR"
+                        title="Seleziona immagine"
+                    />
                     <BsCloudUpload style={styles.uploadIcon} />
                     <p style={styles.dropzoneTitle}>
                         {isDragActive ? 'Rilascia qui il file...' : 'Trascina qui un file o clicca per selezionare'}
