@@ -1,42 +1,10 @@
 import { NextResponse } from 'next/server';
 
 // Enforce canonical host and HTTPS in production
-// SIMPLIFIED SAFE VERSION: Only redirects www to non-www
+// DISABLED: Relying on Vercel native domain redirects to avoid loops
 export function proxy(request) {
-  // Skip if explicitly disabled
-  if (process.env.DISABLE_REDIRECT_MIDDLEWARE === 'true') {
-    return NextResponse.next();
-  }
-
-  // CRITICAL: Skip all API routes to prevent interfering with API calls
-  if (request.nextUrl.pathname.startsWith('/api/')) {
-    return NextResponse.next();
-  }
-
-  // Only run in production
-  if (process.env.VERCEL_ENV !== 'production') {
-    return NextResponse.next();
-  }
-
-  const host = request.headers.get('host') || '';
-  const hostLower = host.toLowerCase();
-  
-  // ONLY redirect www to non-www (simple and safe)
-  if (hostLower.startsWith('www.')) {
-    const nonWwwHost = hostLower.substring(4);
-    if (nonWwwHost && nonWwwHost.length > 0) {
-      const url = request.nextUrl.clone();
-      url.host = nonWwwHost;
-      url.protocol = 'https:';
-      // Safety: only redirect if target is different
-      if (url.host.toLowerCase() !== hostLower) {
-        return NextResponse.redirect(url, 308);
-      }
-    }
-  }
-
-  // All other cases: no redirect
   return NextResponse.next();
+}
   
   /* OLD COMPLEX CODE - REMOVED
   // Allow disabling middleware via environment variable
