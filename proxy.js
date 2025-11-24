@@ -99,7 +99,6 @@ export function proxy(request) {
   // Default: no redirect
   return NextResponse.next();
   */
-}
 
 export const config = {
   matcher: [
