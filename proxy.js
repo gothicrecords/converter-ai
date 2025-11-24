@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
 
+// TEMPORARILY DISABLED: Middleware disabled to fix redirect loop issue
 // Enforce canonical host and HTTPS in production
 export function proxy(request) {
+  // DISABLED: Return immediately to prevent redirect loops
+  // TODO: Re-enable with proper domain configuration check
+  return NextResponse.next();
+  
+  /* ORIGINAL CODE - DISABLED
   // Allow disabling middleware via environment variable
   if (process.env.DISABLE_REDIRECT_MIDDLEWARE === 'true') {
     return NextResponse.next();
@@ -93,6 +99,7 @@ export function proxy(request) {
 
   // Default: no redirect
   return NextResponse.next();
+  */
 }
 
 export const config = {
