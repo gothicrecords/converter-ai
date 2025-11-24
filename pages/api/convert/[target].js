@@ -304,8 +304,12 @@ export default async function handler(req, res) {
     uploadDir: tmpDir, // Usa /tmp su Vercel
   });
   
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
+  // Wrappare form.parse in try-catch per gestire errori non gestiti
+  try {
+    form.parse(req, async (err, fields, files) => {
+      // Wrappare tutto il codice del callback in try-catch per gestire errori async
+      try {
+        if (err) {
       // Gestisci errori specifici di formidable
       let errorMessage = err.message || 'File upload failed';
       if (err.message && err.message.includes('file size should be greater than 0')) {
@@ -2169,20 +2173,36 @@ export default async function handler(req, res) {
       // Se la risposta è già stata inviata, logga solo l'errore
       console.error('Error after response sent in convert API:', e);
     }
-  });
-  
-  // Cattura errori non gestiti nel callback asincrono
-  } catch (globalError) {
-    console.error('Global error in convert API handler:', globalError);
+    } catch (callbackError) {
+        // Errore non gestito nel callback async di form.parse
+        console.error('Unhandled error in form.parse callback:', callbackError);
+        if (!res.headersSent) {
+          const safeInputExt = inputExt || (file?.originalFilename ? path.extname(file.originalFilename).replace('.', '').toLowerCase() : '') || '';
+          return handleApiError(
+            new ProcessingError('Error processing file: ' + (callbackError.message || 'Unknown error'), callbackError),
+            res,
+            {
+              method: req.method,
+              url: req.url,
+              endpoint: '/api/convert/[target]',
+              target,
+              inputExt: safeInputExt,
+            }
+          );
+        }
+      }
+    });
+  } catch (parseError) {
+    // Errore nella configurazione o inizializzazione di form.parse
+    console.error('Error in form.parse setup:', parseError);
     if (!res.headersSent) {
       return handleApiError(
-        new ProcessingError('Unexpected error: ' + (globalError.message || 'Unknown error'), globalError),
+        new ProcessingError('File upload setup failed: ' + (parseError.message || 'Unknown error'), parseError),
         res,
         {
           method: req.method,
           url: req.url,
           endpoint: '/api/convert/[target]',
-          target,
         }
       );
     }
