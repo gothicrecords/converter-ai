@@ -5,22 +5,48 @@
  * This ensures FFmpeg is executable on Vercel/serverless environments
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const require = createRequire(import.meta.url);
 
 try {
   // Try to import ffmpeg-static
   let ffmpegPath;
   try {
-    const ffmpegStatic = require('ffmpeg-static');
+    // Use dynamic import for ES modules
+    const ffmpegStaticModule = await import('ffmpeg-static');
+    const ffmpegStatic = ffmpegStaticModule.default || ffmpegStaticModule;
     ffmpegPath = typeof ffmpegStatic === 'string' ? ffmpegStatic : ffmpegStatic.default || ffmpegStatic;
   } catch (e) {
-    // Try dynamic import as fallback
+    // Try require.resolve as fallback
     try {
-      const ffmpegStatic = require.resolve('ffmpeg-static');
-      const pkg = require('ffmpeg-static/package.json');
+      const ffmpegStaticPath = require.resolve('ffmpeg-static');
+      const pkg = JSON.parse(fs.readFileSync(path.join(path.dirname(ffmpegStaticPath), '..', 'package.json'), 'utf8'));
       // The binary is usually in the package root
-      ffmpegPath = path.join(path.dirname(ffmpegStatic), '..', pkg.bin?.ffmpeg || 'ffmpeg');
+      const pkgDir = path.dirname(require.resolve('ffmpeg-static/package.json'));
+      const binName = pkg.bin?.ffmpeg || 'ffmpeg';
+      ffmpegPath = path.join(pkgDir, binName);
+      
+      // If not found, try common locations
+      if (!fs.existsSync(ffmpegPath)) {
+        const possiblePaths = [
+          path.join(pkgDir, 'ffmpeg'),
+          path.join(pkgDir, 'ffmpeg.exe'),
+          path.join(pkgDir, '..', 'ffmpeg'),
+          path.join(pkgDir, '..', 'ffmpeg.exe')
+        ];
+        for (const possiblePath of possiblePaths) {
+          if (fs.existsSync(possiblePath)) {
+            ffmpegPath = possiblePath;
+            break;
+          }
+        }
+      }
     } catch (e2) {
       console.warn('FFmpeg-static not found, skipping permission setup');
       process.exit(0);
