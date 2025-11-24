@@ -92,7 +92,8 @@ export const config = {
       appId: process.env.FACEBOOK_APP_ID,
       appSecret: process.env.FACEBOOK_APP_SECRET,
     },
-    redirectBaseUrl: process.env.APP_URL || 'http://localhost:3000',
+    // Prefer explicit APP_URL, else infer from Vercel's provided URL in production
+    redirectBaseUrl: process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'),
   },
 };
 

@@ -19,7 +19,9 @@ export default function SEOHead({
 }) {
     const router = useRouter();
     const siteName = 'MegaPixelAI';
-    const siteUrl = 'https://best-upscaler-ia.vercel.app';
+    const siteUrl =
+        process.env.NEXT_PUBLIC_URL ||
+        (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
     const currentLocale = locale || router?.locale || 'en';
     
     // Fallback per evitare che appaiano le chiavi di traduzione
