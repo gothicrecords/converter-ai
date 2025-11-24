@@ -307,6 +307,10 @@ export default async function handler(req, res) {
         errorMessage = 'Il file è vuoto. Carica un file valido.';
       } else if (err.message && err.message.includes('options.allowEmptyFiles')) {
         errorMessage = 'Il file caricato è vuoto. Carica un file con contenuto.';
+      } else if (err.message && err.message.includes('maxTotalFileSize')) {
+        errorMessage = 'File troppo grande. Dimensione massima: 500MB per file video/audio, 50MB per altri formati';
+      } else if (err.message && err.message.includes('maxFileSize')) {
+        errorMessage = 'File troppo grande. Dimensione massima: 500MB per file video/audio, 50MB per altri formati';
       }
       return handleApiError(
         new ValidationError(errorMessage, err),
@@ -351,6 +355,16 @@ export default async function handler(req, res) {
     let inputExt = ''; // Inizializza prima del try block
     
     try {
+      // Verifica che inputPath sia valido prima di usarlo
+      if (!inputPath || typeof inputPath !== 'string') {
+        throw new Error('File path non valido - il file potrebbe non essere stato caricato correttamente');
+      }
+      
+      // Verifica che il file esista
+      if (!fs.existsSync(inputPath)) {
+        throw new Error('Il file caricato non esiste più o è stato rimosso');
+      }
+      
       const originalName = file.originalFilename || file.name || 'file';
       const inputBuffer = fs.readFileSync(inputPath);
       inputExt = (path.extname(originalName) || '').replace('.', '').toLowerCase();
@@ -2074,6 +2088,8 @@ export default async function handler(req, res) {
       const dataUrl = toDataUrl(finalBuffer, mime);
       return res.status(200).json({ name, dataUrl });
     } catch (e) {
+      // Assicurati che inputExt sia sempre definito
+      const safeInputExt = inputExt || (file?.originalFilename ? path.extname(file.originalFilename).replace('.', '').toLowerCase() : '') || '';
       return handleApiError(
         new ProcessingError('Conversion failed: ' + (e.message || 'Unknown error'), e),
         res,
@@ -2082,7 +2098,7 @@ export default async function handler(req, res) {
           url: req.url,
           endpoint: '/api/convert/[target]',
           target,
-          inputExt,
+          inputExt: safeInputExt,
         }
       );
     }
