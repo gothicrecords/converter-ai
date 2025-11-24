@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // Enforce canonical host and HTTPS in production
-export function middleware(request) {
+export function proxy(request) {
   const url = request.nextUrl.clone();
   const host = request.headers.get('host');
   
