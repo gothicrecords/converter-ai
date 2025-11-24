@@ -129,8 +129,19 @@ export function validateConfig() {
   }
 }
 
-// Validate on import in production
+// Validate on import in production, but do not crash the app.
+// Use STRICT_CONFIG=true to enforce hard failures.
 if (config.app.env === 'production') {
-  validateConfig();
+  const strict = process.env.STRICT_CONFIG === 'true';
+  try {
+    validateConfig();
+  } catch (e) {
+    if (strict) {
+      throw e;
+    } else {
+      // Log a clear warning and continue running to avoid site-wide downtime
+      console.error('[Config Warning] Missing required configuration:', e.message);
+    }
+  }
 }
 
