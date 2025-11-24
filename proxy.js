@@ -1,44 +1,39 @@
 import { NextResponse } from 'next/server';
 
 // Enforce canonical host and HTTPS in production
-// SIMPLIFIED VERSION: Only redirects www to non-www with strict safety checks
+// SIMPLIFIED SAFE VERSION: Only redirects www to non-www
 export function proxy(request) {
-  // Allow disabling middleware via environment variable
+  // Skip if explicitly disabled
   if (process.env.DISABLE_REDIRECT_MIDDLEWARE === 'true') {
     return NextResponse.next();
   }
 
-  // Only run in Vercel production environment
-  const vercelEnv = process.env.VERCEL_ENV;
-  if (vercelEnv !== 'production') {
+  // Only run in production
+  if (process.env.VERCEL_ENV !== 'production') {
     return NextResponse.next();
   }
 
-  const url = request.nextUrl.clone();
   const host = request.headers.get('host') || '';
   const hostLower = host.toLowerCase();
   
-  // Only redirect www to non-www (very simple and safe)
-  // If host starts with www., redirect to non-www version
+  // ONLY redirect www to non-www (simple and safe)
   if (hostLower.startsWith('www.')) {
-    const nonWwwHost = hostLower.substring(4); // Remove 'www.'
-    
-    // Safety check: ensure we have a valid host after removing www
+    const nonWwwHost = hostLower.substring(4);
     if (nonWwwHost && nonWwwHost.length > 0) {
+      const url = request.nextUrl.clone();
       url.host = nonWwwHost;
       url.protocol = 'https:';
-      
-      // Final safety check: target must be different from current
+      // Safety: only redirect if target is different
       if (url.host.toLowerCase() !== hostLower) {
         return NextResponse.redirect(url, 308);
       }
     }
   }
 
-  // Default: no redirect
+  // All other cases: no redirect
   return NextResponse.next();
   
-  /* OLD CODE - REMOVED TO PREVENT LOOPS
+  /* OLD COMPLEX CODE - REMOVED
   // Allow disabling middleware via environment variable
   if (process.env.DISABLE_REDIRECT_MIDDLEWARE === 'true') {
     return NextResponse.next();
@@ -136,6 +131,7 @@ export function proxy(request) {
 export const config = {
   matcher: [
     // Run on all routes except Next internals, static assets, and API routes
+    // IMPORTANT: Exclude /api/ to prevent interfering with API calls
     '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|api/).*)',
   ],
 };
