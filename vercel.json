@@ -8,36 +8,40 @@
   "regions": ["iad1"],
   "functions": {
     "pages/api/**/*.js": {
-      "includeFiles": "node_modules/ffmpeg-static/**"
-    }
-  },
-  "functions": {
+      "includeFiles": "node_modules/ffmpeg-static/**",
+      "maxDuration": 60
+    },
     "pages/api/upscale.js": {
+      "includeFiles": "node_modules/ffmpeg-static/**",
       "maxDuration": 300
     },
     "pages/api/tools/generate-image.js": {
+      "includeFiles": "node_modules/ffmpeg-static/**",
       "maxDuration": 300
     },
     "pages/api/tools/compress-video.js": {
+      "includeFiles": "node_modules/ffmpeg-static/**",
       "maxDuration": 300
     },
     "pages/api/tools/transcribe-audio.js": {
+      "includeFiles": "node_modules/ffmpeg-static/**",
       "maxDuration": 300
     },
     "pages/api/convert/**/*.js": {
+      "includeFiles": "node_modules/ffmpeg-static/**",
       "maxDuration": 180
     },
     "pages/api/pdf/**/*.js": {
+      "includeFiles": "node_modules/ffmpeg-static/**",
       "maxDuration": 180
     },
     "pages/api/tools/**/*.js": {
+      "includeFiles": "node_modules/ffmpeg-static/**",
       "maxDuration": 180
     },
     "pages/api/files/**/*.js": {
+      "includeFiles": "node_modules/ffmpeg-static/**",
       "maxDuration": 120
-    },
-    "pages/api/**/*.js": {
-      "maxDuration": 60
     }
   },
   "headers": [
