@@ -80,8 +80,11 @@ export default function CombineSplitPDF() {
                 
                 if (contentType && contentType.includes('application/json')) {
                     try {
-                        const errorData = await response.json();
-                        errorMessage = errorData.error || errorMessage;
+                        const text = await response.text();
+                        if (text && text.trim()) {
+                            const errorData = JSON.parse(text);
+                            errorMessage = errorData.error || errorMessage;
+                        }
                     } catch (e) {
                         // Se il parsing JSON fallisce, usa il messaggio di default
                         errorMessage = response.status === 413 

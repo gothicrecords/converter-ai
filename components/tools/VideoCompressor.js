@@ -56,8 +56,15 @@ export default function VideoCompressor() {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Errore durante la compressione');
+                let errorMessage = 'Errore nella compressione';
+                try {
+                    const text = await response.text();
+                    if (text && text.trim()) {
+                        const errorData = JSON.parse(text);
+                        errorMessage = errorData.error || errorMessage;
+                    }
+                } catch {}
+                throw new Error(errorMessage);
             }
 
             const blob = await response.blob();

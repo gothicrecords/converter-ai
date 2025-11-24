@@ -52,8 +52,15 @@ export default function ThumbnailGenerator() {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Errore durante la generazione');
+                let errorMessage = 'Errore nella generazione thumbnail';
+                try {
+                    const text = await response.text();
+                    if (text && text.trim()) {
+                        const errorData = JSON.parse(text);
+                        errorMessage = errorData.error || errorMessage;
+                    }
+                } catch {}
+                throw new Error(errorMessage);
             }
 
             const blob = await response.blob();

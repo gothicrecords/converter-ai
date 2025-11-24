@@ -67,8 +67,15 @@ export default function ImageGenerator() {
             if (!response.ok) {
                 const contentType = response.headers.get('content-type');
                 if (contentType && contentType.includes('application/json')) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Errore durante la generazione');
+                    const text = await response.text();
+                    let errorMessage = 'Errore durante la generazione';
+                    try {
+                        if (text && text.trim()) {
+                            const errorData = JSON.parse(text);
+                            errorMessage = errorData.error || errorMessage;
+                        }
+                    } catch {}
+                    throw new Error(errorMessage);
                 } else {
                     throw new Error(`Errore HTTP ${response.status}`);
                 }

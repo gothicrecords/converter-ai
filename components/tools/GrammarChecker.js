@@ -25,12 +25,18 @@ export default function GrammarChecker() {
                 body: JSON.stringify({ text }),
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Errore durante la correzione');
+            const text = await response.text();
+            let data;
+            try {
+                data = text && text.trim() ? JSON.parse(text) : {};
+            } catch {
+                throw new Error('Risposta non valida dal server');
             }
 
-            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Errore durante la correzione');
+            }
+
             setResult(data.corrected);
             setCorrections(data.corrections || []);
         } catch (err) {

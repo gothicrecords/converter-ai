@@ -72,8 +72,11 @@ export default function DocumentTranslator() {
                 let errorData = null;
                 
                 try {
-                    errorData = await response.json();
-                    errorMessage = errorData.error || errorMessage;
+                    const text = await response.text();
+                    if (text && text.trim()) {
+                        errorData = JSON.parse(text);
+                        errorMessage = errorData.error || errorMessage;
+                    }
                 } catch (jsonError) {
                     // Se non è JSON, prova a leggere come testo
                     try {

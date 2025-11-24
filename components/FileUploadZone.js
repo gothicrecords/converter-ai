@@ -34,7 +34,8 @@ export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
       // L'API restituisce sempre JSON, quindi proviamo sempre a parsare come JSON
       let result;
       try {
-        result = await response.json();
+        const text = await response.text();
+        result = text && text.trim() ? JSON.parse(text) : {};
       } catch (jsonError) {
         // Se il parsing JSON fallisce, è un errore grave
         console.error('Error parsing JSON response:', jsonError);

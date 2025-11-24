@@ -42,12 +42,18 @@ export default function OCRAdvanced() {
                 body: formData,
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Errore durante l\'estrazione');
+            const text = await response.text();
+            let data;
+            try {
+                data = text && text.trim() ? JSON.parse(text) : {};
+            } catch {
+                throw new Error('Risposta non valida dal server');
             }
 
-            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Errore durante l\'estrazione');
+            }
+
             setResult(data.text);
         } catch (err) {
             setError(err.message);

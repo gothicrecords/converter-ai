@@ -104,7 +104,8 @@ export default function ChatSupport() {
         throw new Error('Errore nella risposta del supporto');
       }
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = text && text.trim() ? JSON.parse(text) : {};
       
       const assistantMessage = {
         id: `msg-${Date.now()}-ai`,

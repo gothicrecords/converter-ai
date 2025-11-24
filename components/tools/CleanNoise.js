@@ -46,8 +46,15 @@ export default function CleanNoise() {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Errore durante l\'elaborazione');
+                let errorMessage = 'Errore durante l\'elaborazione';
+                try {
+                    const text = await response.text();
+                    if (text && text.trim()) {
+                        const errorData = JSON.parse(text);
+                        errorMessage = errorData.error || errorMessage;
+                    }
+                } catch {}
+                throw new Error(errorMessage);
             }
 
             const blob = await response.blob();
