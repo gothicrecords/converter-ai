@@ -74,8 +74,25 @@ function Upscaler() {
     fd.append('image', originalFile);
     try {
       const res = await fetch('/api/upscale', { method: 'POST', body: fd });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.details || j.error || 'Upscale failed');
+      
+      // Check if response is JSON before parsing
+      const contentType = res.headers.get('content-type');
+      let j;
+      if (contentType && contentType.includes('application/json')) {
+        j = await res.json();
+      } else {
+        // If not JSON, read as text to get error message
+        const text = await res.text();
+        throw new Error(text || `Server error: ${res.status} ${res.statusText}`);
+      }
+      
+      if (!res.ok) {
+        throw new Error(j.details || j.error || j.message || 'Upscale failed');
+      }
+      
+      if (!j.url) {
+        throw new Error('No URL returned from server');
+      }
       
       const duration = Date.now() - startTime;
       try {
@@ -91,7 +108,7 @@ function Upscaler() {
         analytics.trackToolComplete('Image Upscaler', duration, false);
         analytics.trackError(err.message, 'Upscaler', 'upscale_error');
       } catch {}
-      setStatus(`Errore: ${err.message}`);
+      setStatus(`Errore: ${err.message || 'Errore sconosciuto durante l\'upscaling'}`);
     } finally {
       setLoading(false);
     }
