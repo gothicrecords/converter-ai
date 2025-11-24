@@ -291,12 +291,17 @@ export default async function handler(req, res) {
     });
   }
 
+  // Su Vercel, usa /tmp per i file temporanei (unico filesystem scrivibile)
+  const os = require('os');
+  const tmpDir = process.env.VERCEL ? '/tmp' : os.tmpdir();
+  
   const form = formidable({ 
     multiples: false, 
     keepExtensions: true,
     allowEmptyFiles: false, // Non permettere file vuoti
     maxFileSize: 500 * 1024 * 1024, // 500MB per singolo file
     maxTotalFileSize: 500 * 1024 * 1024, // 500MB totale
+    uploadDir: tmpDir, // Usa /tmp su Vercel
   });
   
   form.parse(req, async (err, fields, files) => {
@@ -443,10 +448,10 @@ export default async function handler(req, res) {
           }
           
           // Determina numero ottimale di thread (usa tutti i core disponibili)
-          const os = require('os');
           const threads = os.cpus().length;
           
-          const outputDir = path.dirname(inputPath);
+          // Su Vercel, usa /tmp per i file di output
+          const outputDir = process.env.VERCEL ? '/tmp' : path.dirname(inputPath);
           const outputFilename = `output_${Date.now()}.${lowerTarget}`;
           const outputPath = path.join(outputDir, outputFilename);
           
@@ -673,7 +678,12 @@ export default async function handler(req, res) {
           }
         } catch (ffmpegError) {
           console.error('FFmpeg conversion error:', ffmpegError);
-          // Continua con altre logiche di conversione se FFmpeg fallisce
+          // Se FFmpeg non è disponibile o fallisce, restituisci un errore chiaro
+          if (ffmpegError.message && ffmpegError.message.includes('non è disponibile')) {
+            throw new ProcessingError(ffmpegError.message);
+          }
+          // Per altri errori, prova a dare un messaggio più utile
+          throw new ProcessingError(`Conversione audio/video fallita: ${ffmpegError.message || 'FFmpeg non disponibile o errore durante la conversione'}`);
         }
       }
 
@@ -806,8 +816,9 @@ export default async function handler(req, res) {
       // Document formats to PDF via LibreOffice
       const libreOfficeDocFormats = ['pub', 'xps', 'abw', 'zabw', 'doc', 'docm', 'dot', 'dotx', 'hwp', 'lwp', 'wpd', 'wps', 'pages', 'odt', 'ods', 'odp', 'odg', 'rtf', 'rst'];
       if (!outputBuffer && lowerTarget === 'pdf' && libreOfficeDocFormats.includes(inputExt)) {
-        const tmpDir = path.dirname(inputPath);
-        const result = await convertViaLibreOffice(inputPath, tmpDir, 'pdf');
+        // Su Vercel, usa /tmp per i file temporanei
+        const workDir = process.env.VERCEL ? '/tmp' : path.dirname(inputPath);
+        const result = await convertViaLibreOffice(inputPath, workDir, 'pdf');
         if (result) {
           outputBuffer = result;
           mime = 'application/pdf';
