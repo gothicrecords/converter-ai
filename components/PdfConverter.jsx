@@ -71,7 +71,16 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
 
     try{
       const res = await fetch(route,{ method:'POST', body: fd });
-      const j = await res.json();
+      
+      // Handle empty responses safely
+      const text = await res.text();
+      let j;
+      try {
+        j = text && text.trim() ? JSON.parse(text) : {};
+      } catch (parseErr) {
+        throw new Error('Risposta non valida dal server');
+      }
+      
       if (!res.ok) throw new Error(j.hint || j.details || j.error || 'Errore');
       if (j.urls && Array.isArray(j.urls)) {
         setOutList(j.urls);
