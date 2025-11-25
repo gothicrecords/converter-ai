@@ -3,7 +3,13 @@ Users service - handles user statistics and operations
 """
 import logging
 from typing import Dict, Optional
-from supabase import create_client, Client
+# Neon/PostgreSQL is optional
+try:
+    import psycopg2
+    from psycopg2 import pool
+    PSYCOPG2_AVAILABLE = True
+except ImportError:
+    PSYCOPG2_AVAILABLE = False
 from backend.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -15,14 +21,16 @@ class UsersService:
     
     def __init__(self):
         """Initialize users service"""
-        if settings.SUPABASE_URL and settings.SUPABASE_SERVICE_ROLE_KEY:
-            self.supabase: Client = create_client(
-                settings.SUPABASE_URL,
-                settings.SUPABASE_SERVICE_ROLE_KEY
-            )
+        if PSYCOPG2_AVAILABLE and (settings.NEON_DATABASE_URL or settings.DATABASE_URL):
+            db_url = settings.NEON_DATABASE_URL or settings.DATABASE_URL
+            try:
+                self.db_pool = psycopg2.pool.SimpleConnectionPool(1, 5, db_url)
+            except Exception as e:
+                logger.warning(f"Could not connect to Neon database: {e}")
+                self.db_pool = None
         else:
-            self.supabase = None
-            logger.warning("Supabase not configured - user features will be limited")
+            self.db_pool = None
+            logger.warning("Neon database not configured - user features will be limited")
     
     async def get_stats(self, user_id: str) -> Dict:
         """Get user statistics"""
