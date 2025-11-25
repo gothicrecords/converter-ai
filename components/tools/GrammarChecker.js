@@ -19,7 +19,8 @@ export default function GrammarChecker() {
         setError(null);
 
         try {
-            const response = await fetch('/api/tools/grammar-checker', {
+            const { getApiUrl } = await import('../../utils/getApiUrl');
+            const response = await fetch(getApiUrl('/api/tools/grammar-checker'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text }),

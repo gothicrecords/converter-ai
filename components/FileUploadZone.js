@@ -23,7 +23,8 @@ export default function FileUploadZone({ onFilesSelected, maxFiles = 10 }) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minuti timeout
 
-      const response = await fetch('/api/chat/upload-document', {
+      const { getApiUrl } = await import('../utils/getApiUrl');
+      const response = await fetch(getApiUrl('/api/chat/upload-document'), {
         method: 'POST',
         body: formData,
         signal: controller.signal,

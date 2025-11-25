@@ -20,7 +20,8 @@ export default function TextSummarizer() {
         setError(null);
 
         try {
-            const response = await fetch('/api/tools/text-summarizer', {
+            const { getApiUrl } = await import('../../utils/getApiUrl');
+            const response = await fetch(getApiUrl('/api/tools/text-summarizer'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text }),

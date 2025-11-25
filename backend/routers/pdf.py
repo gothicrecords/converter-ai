@@ -1,7 +1,7 @@
 """
 PDF router - handles PDF conversions
 """
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
 import logging
 
@@ -50,7 +50,7 @@ async def pdf_to_xlsx(file: UploadFile = File(...)):
 
 
 @router.post("/pdf-to-jpg")
-async def pdf_to_jpg(file: UploadFile = File(...), page: int = 0):
+async def pdf_to_jpg(file: UploadFile = File(...), page: int = Form(0)):
     """Convert PDF to JPG"""
     try:
         file_content = await file.read()

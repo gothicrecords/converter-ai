@@ -46,7 +46,8 @@ export default function ThumbnailGenerator() {
             formData.append('image', image);
             formData.append('size', size);
 
-            const response = await fetch('/api/tools/thumbnail-generator', {
+            const { getApiUrl } = await import('../../utils/getApiUrl');
+            const response = await fetch(getApiUrl('/api/tools/thumbnail-generator'), {
                 method: 'POST',
                 body: formData,
             });

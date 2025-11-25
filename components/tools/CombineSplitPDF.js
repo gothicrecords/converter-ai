@@ -68,7 +68,8 @@ export default function CombineSplitPDF() {
                 formData.append('ranges', splitRanges);
             }
 
-            const response = await fetch('/api/tools/combine-split-pdf', {
+            const { getApiUrl } = await import('../../utils/getApiUrl');
+            const response = await fetch(getApiUrl('/api/tools/combine-split-pdf'), {
                 method: 'POST',
                 body: formData
             });

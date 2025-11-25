@@ -82,7 +82,8 @@ export default function ChatSupport() {
       const kbResults = searchKnowledgeBase(inputValue.trim());
       
       // Chiama API supporto AI
-      const response = await fetch('/api/support/chat', {
+      const { getApiUrl } = await import('../utils/getApiUrl');
+      const response = await fetch(getApiUrl('/api/support/chat'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

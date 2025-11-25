@@ -131,8 +131,12 @@ const BackgroundRemover = () => {
         }, 200);
 
         try {
-            console.log('Sending request to /api/tools/remove-background...');
-            const response = await fetch('/api/tools/remove-background', {
+            // Use Python backend if configured
+            const { getApiUrl } = await import('../../utils/getApiUrl');
+            const apiUrl = getApiUrl('/api/tools/remove-background');
+            
+            console.log('Sending request to:', apiUrl);
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 body: formData,
             });

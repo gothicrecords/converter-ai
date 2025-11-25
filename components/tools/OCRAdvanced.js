@@ -37,7 +37,8 @@ export default function OCRAdvanced() {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await fetch('/api/tools/ocr-advanced', {
+            const { getApiUrl } = await import('../../utils/getApiUrl');
+            const response = await fetch(getApiUrl('/api/tools/ocr-advanced'), {
                 method: 'POST',
                 body: formData,
             });

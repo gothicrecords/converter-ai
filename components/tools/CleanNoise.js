@@ -40,7 +40,8 @@ export default function CleanNoise() {
             formData.append('audio', audio);
             formData.append('noiseLevel', noiseLevel);
 
-            const response = await fetch('/api/tools/clean-noise', {
+            const { getApiUrl } = await import('../../utils/getApiUrl');
+            const response = await fetch(getApiUrl('/api/tools/clean-noise'), {
                 method: 'POST',
                 body: formData,
             });
