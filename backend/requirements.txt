@@ -14,6 +14,8 @@ pillow
 pandas
 openpyxl
 xlrd
+openpyxl
+xlrd
 pytesseract
 ffmpeg-python
 pydub
