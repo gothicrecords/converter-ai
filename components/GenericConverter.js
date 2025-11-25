@@ -195,6 +195,22 @@ function GenericConverter({ tool }) {
         throw new Error(`URL API non valido: ${apiUrl}`);
       }
       
+      // Costruisci l'URL completo usando l'origine corrente
+      const fullApiUrl = typeof window !== 'undefined' 
+        ? `${window.location.origin}${apiUrl}`
+        : apiUrl;
+      
+      // Log per debugging
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+        console.log('Chiamata API:', {
+          apiUrl,
+          fullApiUrl,
+          origin: window.location.origin,
+          file: file?.name,
+          size: file?.size
+        });
+      }
+      
       // Crea un AbortController per gestire timeout
       const controller = new AbortController();
       let timeoutId;
@@ -209,7 +225,7 @@ function GenericConverter({ tool }) {
         setProgressMessage('Conversione in corso...');
         
         // Use improved error handling
-        response = await fetch(apiUrl, { 
+        response = await fetch(fullApiUrl, { 
           method: 'POST', 
           body: form,
           headers: {}, // Don't set Content-Type for FormData, browser will set it with boundary
@@ -230,17 +246,27 @@ function GenericConverter({ tool }) {
         // Pulisci sempre il timeout in caso di errore
         clearTimeout(timeoutId);
         
+        // Log dettagliato dell'errore per debugging
+        console.error('Errore fetch API:', {
+          error: fetchError,
+          name: fetchError.name,
+          message: fetchError.message,
+          stack: fetchError.stack,
+          apiUrl: fullApiUrl,
+          origin: typeof window !== 'undefined' ? window.location.origin : 'N/A'
+        });
+        
         // Gestisci errori di rete
         if (fetchError.name === 'AbortError') {
           throw new Error('Timeout: l\'operazione ha richiesto troppo tempo. Riprova con un file più piccolo.');
         }
         
         if (fetchError instanceof TypeError && fetchError.message.includes('fetch')) {
-          throw new Error('Errore di connessione. Controlla la tua connessione internet e riprova.');
+          throw new Error(`Errore di connessione all'API (${fullApiUrl}). Controlla la tua connessione internet e riprova.`);
         }
         
-        // Rilancia altri errori
-        throw new Error(`Errore durante la richiesta: ${fetchError.message || 'Errore sconosciuto'}`);
+        // Rilancia altri errori con più informazioni
+        throw new Error(`Errore durante la richiesta a ${apiUrl}: ${fetchError.message || 'Errore sconosciuto'}`);
       }
       
       if (!response.ok) {
