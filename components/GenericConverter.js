@@ -183,7 +183,10 @@ function GenericConverter({ tool }) {
         'docx-to-pdf': '/api/pdf/docx-to-pdf',
         'powerpoint-to-pdf': '/api/pdf/ppt-to-pdf',
         'excel-to-pdf': '/api/pdf/xls-to-pdf',
-        'html-to-pdf': '/api/pdf/html-to-pdf'
+        'html-to-pdf': '/api/pdf/html-to-pdf',
+        'jpg-to-pdf': '/api/pdf/jpg-to-pdf',
+        'png-to-pdf': '/api/pdf/jpg-to-pdf', // PNG to PDF usa lo stesso endpoint
+        'image-to-pdf': '/api/pdf/jpg-to-pdf'
       };
       
       // Se è un convertitore PDF, usa l'endpoint dedicato
@@ -195,6 +198,10 @@ function GenericConverter({ tool }) {
       if (!apiUrl || !apiUrl.startsWith('/')) {
         throw new Error(`URL API non valido: ${apiUrl}`);
       }
+      
+      // Use getApiUrl to support Python backend with fallback
+      const { getApiUrl } = await import('../utils/getApiUrl');
+      const fullApiUrl = getApiUrl(apiUrl);
       
       // Prepara i campi aggiuntivi per la chiamata API
       const additionalFields = {
@@ -228,8 +235,8 @@ function GenericConverter({ tool }) {
         setProgress(30);
         setProgressMessage('Conversione in corso...');
         
-        // Use API client helper
-        data = await uploadFile(apiUrl, file, additionalFields);
+        // Use API client helper with full URL
+        data = await uploadFile(fullApiUrl, file, additionalFields);
         
         setProgress(80);
         setProgressMessage('Finalizzazione...');
