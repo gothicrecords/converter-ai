@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     HOST: str = "0.0.0.0"
-    PORT: int = 8000
+    PORT: int = 3000
     
     # CORS
     CORS_ORIGINS: List[str] = [
@@ -25,10 +25,9 @@ class Settings(BaseSettings):
         "https://*.vercel.app",
     ]
     
-    # Database - Supabase
-    SUPABASE_URL: str = ""
-    SUPABASE_ANON_KEY: str = ""
-    SUPABASE_SERVICE_ROLE_KEY: str = ""
+    # Database - Neon (PostgreSQL)
+    NEON_DATABASE_URL: str = ""
+    DATABASE_URL: str = ""  # Alias for NEON_DATABASE_URL
     
     # OpenAI (for AI tools)
     OPENAI_API_KEY: str = ""
@@ -55,7 +54,6 @@ class Settings(BaseSettings):
         env_file = ".env"
         case_sensitive = True
         extra = "ignore"  # Ignore extra environment variables not defined in model
-        extra = "ignore"  # Ignore extra environment variables
 
 
 @lru_cache()

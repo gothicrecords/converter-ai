@@ -7,13 +7,14 @@ import secrets
 from datetime import datetime, timedelta
 from backend.config import get_settings
 
-# Supabase is optional
+# Neon/PostgreSQL is optional
 try:
-    from supabase import create_client, Client
-    SUPABASE_AVAILABLE = True
+    import psycopg2
+    from psycopg2 import pool
+    PSYCOPG2_AVAILABLE = True
 except ImportError:
-    SUPABASE_AVAILABLE = False
-    logger.warning("Supabase not available - auth features will be limited")
+    PSYCOPG2_AVAILABLE = False
+    logger.warning("psycopg2 not available - database features will be limited")
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -24,11 +25,13 @@ class AuthService:
     
     def __init__(self):
         """Initialize auth service"""
-        if SUPABASE_AVAILABLE and settings.SUPABASE_URL and settings.SUPABASE_SERVICE_ROLE_KEY:
-            self.supabase: Client = create_client(
-                settings.SUPABASE_URL,
-                settings.SUPABASE_SERVICE_ROLE_KEY
-            )
+        if PSYCOPG2_AVAILABLE and (settings.NEON_DATABASE_URL or settings.DATABASE_URL):
+            db_url = settings.NEON_DATABASE_URL or settings.DATABASE_URL
+            try:
+                self.db_pool = psycopg2.pool.SimpleConnectionPool(1, 5, db_url)
+            except Exception as e:
+                logger.warning(f"Could not connect to Neon database: {e}")
+                self.db_pool = None
         else:
             self.supabase = None
             logger.warning("Supabase not configured - auth features will be limited")
