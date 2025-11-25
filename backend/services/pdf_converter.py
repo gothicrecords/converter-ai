@@ -18,13 +18,23 @@ from reportlab.lib.utils import ImageReader
 from docx import Document
 import mammoth
 
+logger = logging.getLogger(__name__)
+
 # WeasyPrint is optional (requires system libraries on Windows)
-try:
-    from weasyprint import HTML
-    WEASYPRINT_AVAILABLE = True
-except ImportError:
-    WEASYPRINT_AVAILABLE = False
-    logger.warning("WeasyPrint not available - HTML to PDF conversion will be limited")
+# Import will be done inside functions that need it
+WEASYPRINT_AVAILABLE = None
+
+def _check_weasyprint():
+    """Check if WeasyPrint is available"""
+    global WEASYPRINT_AVAILABLE
+    if WEASYPRINT_AVAILABLE is None:
+        try:
+            from weasyprint import HTML
+            WEASYPRINT_AVAILABLE = True
+        except (ImportError, OSError):
+            WEASYPRINT_AVAILABLE = False
+            logger.warning("WeasyPrint not available - HTML to PDF conversion will use fallback")
+    return WEASYPRINT_AVAILABLE
 
 logger = logging.getLogger(__name__)
 
@@ -320,7 +330,8 @@ class PDFConverterService:
             html_string = html_result.value
             
             # Convert HTML to PDF using WeasyPrint (if available) or reportlab
-            if WEASYPRINT_AVAILABLE:
+            if _check_weasyprint():
+                from weasyprint import HTML
                 pdf_bytes = HTML(string=html_string).write_pdf()
             else:
                 # Fallback: use reportlab to create PDF from text
