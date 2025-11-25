@@ -454,25 +454,63 @@ class PDFConverterService:
             raise
     
     async def jpg_to_pdf(self, image_content: bytes, filename: str) -> Dict[str, str]:
-        """Convert JPG/PNG to PDF"""
+        """Convert JPG/PNG to PDF - supports single image or list of images"""
         try:
-            # Open image
-            image = Image.open(BytesIO(image_content))
-            
-            # Create PDF
-            output_buffer = BytesIO()
-            image.save(output_buffer, format='PDF', resolution=100.0)
-            output_buffer.seek(0)
-            
-            # Convert to data URL
-            data_url = f"data:application/pdf;base64,{base64.b64encode(output_buffer.getvalue()).decode()}"
-            
-            result_name = filename.rsplit('.', 1)[0] + '.pdf'
-            
-            return {
-                "name": result_name,
-                "dataUrl": data_url,
-            }
+            # Check if image_content is a single image or list
+            if isinstance(image_content, list):
+                # Multiple images - create multi-page PDF
+                images = []
+                for img_bytes in image_content:
+                    img = Image.open(BytesIO(img_bytes))
+                    # Convert to RGB if necessary (for PDF)
+                    if img.mode != 'RGB':
+                        img = img.convert('RGB')
+                    images.append(img)
+                
+                # Create PDF with all images
+                if images:
+                    output_buffer = BytesIO()
+                    # Save first image and append others
+                    images[0].save(
+                        output_buffer,
+                        format='PDF',
+                        resolution=100.0,
+                        save_all=True,
+                        append_images=images[1:] if len(images) > 1 else []
+                    )
+                    output_buffer.seek(0)
+                    
+                    # Convert to data URL
+                    data_url = f"data:application/pdf;base64,{base64.b64encode(output_buffer.getvalue()).decode()}"
+                    
+                    result_name = filename.rsplit('.', 1)[0] + '.pdf'
+                    
+                    return {
+                        "name": result_name,
+                        "dataUrl": data_url,
+                    }
+            else:
+                # Single image
+                image = Image.open(BytesIO(image_content))
+                
+                # Convert to RGB if necessary (PDF requires RGB)
+                if image.mode != 'RGB':
+                    image = image.convert('RGB')
+                
+                # Create PDF
+                output_buffer = BytesIO()
+                image.save(output_buffer, format='PDF', resolution=100.0)
+                output_buffer.seek(0)
+                
+                # Convert to data URL
+                data_url = f"data:application/pdf;base64,{base64.b64encode(output_buffer.getvalue()).decode()}"
+                
+                result_name = filename.rsplit('.', 1)[0] + '.pdf'
+                
+                return {
+                    "name": result_name,
+                    "dataUrl": data_url,
+                }
         
         except Exception as exc:
             logger.error(f"JPG to PDF error: {exc}", exc_info=True)

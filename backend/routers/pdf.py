@@ -146,11 +146,28 @@ async def html_to_pdf(file: UploadFile = File(...)):
 
 
 @router.post("/jpg-to-pdf")
-async def jpg_to_pdf(file: UploadFile = File(...)):
-    """Convert JPG/PNG to PDF"""
+async def jpg_to_pdf(files: list[UploadFile] = File(...)):
+    """Convert JPG/PNG to PDF - supports multiple images"""
     try:
-        file_content = await file.read()
-        result = await pdf_service.jpg_to_pdf(file_content, file.filename or "file.jpg")
+        # Support both single file and multiple files
+        if len(files) == 1:
+            # Single image
+            file_content = await files[0].read()
+            filename = files[0].filename or "file.jpg"
+            result = await pdf_service.jpg_to_pdf(file_content, filename)
+        else:
+            # Multiple images - combine into one PDF
+            image_contents = []
+            filename = "images.pdf"
+            for file in files:
+                content = await file.read()
+                image_contents.append(content)
+                if not filename or filename == "images.pdf":
+                    filename = file.filename or "file.jpg"
+            
+            # Use list to trigger multi-page PDF creation
+            result = await pdf_service.jpg_to_pdf(image_contents, filename)
+        
         return JSONResponse(result)
     except Exception as exc:
         logger.error(f"JPG to PDF error: {exc}", exc_info=True)
