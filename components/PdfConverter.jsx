@@ -76,7 +76,11 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
       
       // Try Python backend first, fallback to Next.js API if connection fails
       try {
-        const res = await fetch(fullRoute, { method:'POST', body: fd });
+        const res = await fetch(fullRoute, { 
+          method:'POST', 
+          body: fd,
+          signal: AbortSignal.timeout(10000) // 10 second timeout
+        });
         
         // If connection fails, try Next.js API route
         if (!res.ok && res.status === 0) {
@@ -109,13 +113,23 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
         const isConnectionError = fetchError.message.includes('Connection refused') || 
                                   fetchError.message.includes('Failed to fetch') ||
                                   fetchError.message.includes('ERR_CONNECTION_REFUSED') ||
-                                  fetchError.name === 'TypeError';
+                                  fetchError.message.includes('timeout') ||
+                                  fetchError.name === 'TypeError' ||
+                                  fetchError.name === 'AbortError';
         
-        if (isConnectionError && fullRoute.includes('localhost:8000')) {
+        // Check if we're trying to use Python backend (not already using Next.js route)
+        const isPythonBackend = fullRoute.startsWith('http://') || fullRoute.startsWith('https://');
+        
+        if (isConnectionError && isPythonBackend) {
           console.warn('Backend Python non disponibile, uso API Next.js come fallback');
           fullRoute = route; // Use Next.js API route directly
-        } else {
+        } else if (!isPythonBackend) {
+          // Already using Next.js API, just throw the error
           throw fetchError;
+        } else {
+          // Other error, try Next.js fallback anyway
+          console.warn('Errore backend Python, provo API Next.js come fallback');
+          fullRoute = route;
         }
       }
       

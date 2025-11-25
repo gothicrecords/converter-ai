@@ -7,9 +7,15 @@ export function getApiUrl(endpoint) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   
   // Check if Python backend URL is configured
-  const pythonApiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_PYTHON_API_URL;
+  // In browser, use window location if env var not available
+  const pythonApiUrl = typeof window !== 'undefined' 
+    ? (window.__NEXT_DATA__?.env?.NEXT_PUBLIC_API_URL || 
+       window.__NEXT_DATA__?.env?.NEXT_PUBLIC_PYTHON_API_URL ||
+       process.env.NEXT_PUBLIC_API_URL || 
+       process.env.NEXT_PUBLIC_PYTHON_API_URL)
+    : (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_PYTHON_API_URL);
   
-  if (pythonApiUrl) {
+  if (pythonApiUrl && pythonApiUrl !== 'undefined' && pythonApiUrl !== '') {
     // Use Python backend
     const baseUrl = pythonApiUrl.endsWith('/') ? pythonApiUrl.slice(0, -1) : pythonApiUrl;
     return `${baseUrl}${cleanEndpoint}`;
