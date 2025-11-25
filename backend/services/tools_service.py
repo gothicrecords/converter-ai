@@ -87,7 +87,13 @@ class ToolsService:
             
             # Try advanced upscaling with scikit-image if available
             try:
-                from skimage import restoration, filters
+                # scikit-image is optional (requires C++ compiler on Windows)
+try:
+    from skimage import restoration, filters
+    SKIMAGE_AVAILABLE = True
+except ImportError:
+    SKIMAGE_AVAILABLE = False
+    logger.warning("scikit-image not available - advanced upscaling features will be limited")
                 from skimage.transform import resize
                 import numpy as np
                 
