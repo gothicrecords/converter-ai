@@ -70,9 +70,56 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
       : '/api/pdf/pdf-to-docx';
 
     try{
-      // Use getApiUrl to support Python backend
+      // Use getApiUrl to support Python backend with fallback
       const { getApiUrl } = await import('../utils/getApiUrl');
-      const fullRoute = getApiUrl(route);
+      let fullRoute = getApiUrl(route);
+      
+      // Try Python backend first, fallback to Next.js API if connection fails
+      try {
+        const res = await fetch(fullRoute, { method:'POST', body: fd });
+        
+        // If connection fails, try Next.js API route
+        if (!res.ok && res.status === 0) {
+          throw new Error('Connection refused');
+        }
+        
+        // Handle response
+        const text = await res.text();
+        let j;
+        try {
+          j = text && text.trim() ? JSON.parse(text) : {};
+        } catch (parseErr) {
+          throw new Error('Risposta non valida dal server');
+        }
+        
+        if (!res.ok) throw new Error(j.hint || j.details || j.error || 'Errore');
+        if (j.urls && Array.isArray(j.urls)) {
+          setOutList(j.urls);
+        } else if (j.url) {
+          setOutUrl(j.url);
+        } else if (j.dataUrl) {
+          setOutUrl(j.dataUrl);
+        } else {
+          throw new Error('Risposta sconosciuta');
+        }
+        setStatus('Fatto!');
+        return;
+      } catch (fetchError) {
+        // Fallback to Next.js API if Python backend not available
+        const isConnectionError = fetchError.message.includes('Connection refused') || 
+                                  fetchError.message.includes('Failed to fetch') ||
+                                  fetchError.message.includes('ERR_CONNECTION_REFUSED') ||
+                                  fetchError.name === 'TypeError';
+        
+        if (isConnectionError && fullRoute.includes('localhost:8000')) {
+          console.warn('Backend Python non disponibile, uso API Next.js come fallback');
+          fullRoute = route; // Use Next.js API route directly
+        } else {
+          throw fetchError;
+        }
+      }
+      
+      // Fallback: try Next.js API route
       const res = await fetch(fullRoute, { method:'POST', body: fd });
       
       // Handle empty responses safely

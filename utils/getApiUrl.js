@@ -24,3 +24,21 @@ export function getApiUrl(endpoint) {
   return `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}${cleanEndpoint}`;
 }
 
+/**
+ * Check if Python backend is available
+ */
+export async function checkPythonBackend(baseUrl = null) {
+  const url = baseUrl || process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_PYTHON_API_URL;
+  if (!url) return false;
+  
+  try {
+    const response = await fetch(`${url}/health`, { 
+      method: 'GET',
+      signal: AbortSignal.timeout(2000) // 2 second timeout
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
