@@ -214,6 +214,24 @@ class ConverterService:
         """Convert audio/video using FFmpeg"""
         try:
             import ffmpeg
+            import platform
+            
+            # Set FFmpeg path on Windows
+            if platform.system() == 'Windows':
+                possible_paths = [
+                    r'C:\ffmpeg\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe',
+                    r'C:\ffmpeg\bin\ffmpeg.exe',
+                    r'C:\Program Files\ffmpeg\bin\ffmpeg.exe',
+                    os.path.join(os.environ.get('USERPROFILE', ''), 'ffmpeg', 'bin', 'ffmpeg.exe'),
+                ]
+                for path in possible_paths:
+                    if os.path.exists(path):
+                        os.environ['FFMPEG_BINARY'] = path
+                        # Also set in PATH for subprocess
+                        ffmpeg_dir = os.path.dirname(path)
+                        if ffmpeg_dir not in os.environ.get('PATH', ''):
+                            os.environ['PATH'] = ffmpeg_dir + os.pathsep + os.environ.get('PATH', '')
+                        break
             
             # Create temporary files
             tmp_dir = os.getenv('TEMP_DIR', '/tmp')
