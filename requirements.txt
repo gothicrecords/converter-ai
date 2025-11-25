@@ -38,6 +38,8 @@ opencv-python==4.10.0.84
 scikit-image==0.24.0
 imageio==2.35.2
 wand==0.6.14  # ImageMagick wrapper
+numpy==1.26.4  # Required by many image processing libraries
+scipy==1.13.1  # For advanced image processing
 
 # Video/Audio Processing
 ffmpeg-python==0.2.0
@@ -58,8 +60,10 @@ pytesseract==0.3.13
 easyocr==1.7.1
 
 # Background Removal
-rembg==2.0.50
+rembg==2.0.58
 opencv-python-headless==4.10.0.84
+onnxruntime==1.19.2  # Required by rembg
+onnx==1.16.1  # Required by rembg
 
 # Audio Processing
 noisereduce==3.0.0
@@ -67,6 +71,8 @@ soundfile==0.12.1
 
 # Translation
 googletrans==4.0.0rc1
+deep-translator==1.11.4  # More reliable alternative
+translatepy==2.3  # Another translation option
 
 # Grammar Checking
 language-tool-python==2.7.1
@@ -80,7 +86,6 @@ python-docx==1.1.2
 
 # Document Conversion
 markdown==3.7
-python-pptx==0.6.23
 python-rtf==0.45
 ebooklib==0.18
 pyepub==0.3.7

@@ -75,31 +75,77 @@ class ToolsService:
         filename: str,
         scale: int = 2,
     ) -> Dict:
-        """Upscale image"""
+        """Upscale image with advanced AI techniques"""
         try:
             # Open image
             image = Image.open(BytesIO(file_content))
+            original_size = (image.width, image.height)
             
             # Calculate new size
             new_width = image.width * scale
             new_height = image.height * scale
             
-            # Upscale using LANCZOS resampling (high quality)
-            upscaled = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            # Try advanced upscaling with scikit-image if available
+            try:
+                from skimage import restoration, filters
+                from skimage.transform import resize
+                import numpy as np
+                
+                # Convert PIL to numpy array
+                img_array = np.array(image)
+                
+                # Denoise before upscaling
+                if len(img_array.shape) == 3:
+                    # Color image
+                    denoised = np.zeros_like(img_array)
+                    for i in range(img_array.shape[2]):
+                        denoised[:, :, i] = restoration.denoise_tv_chambolle(
+                            img_array[:, :, i], weight=0.1
+                        )
+                else:
+                    # Grayscale
+                    denoised = restoration.denoise_tv_chambolle(img_array, weight=0.1)
+                
+                # Upscale using LANCZOS (high quality)
+                upscaled_array = resize(
+                    denoised,
+                    (new_height, new_width),
+                    order=3,  # Bicubic interpolation (high quality)
+                    anti_aliasing=True,
+                    preserve_range=True
+                ).astype(img_array.dtype)
+                
+                # Convert back to PIL
+                upscaled = Image.fromarray(upscaled_array)
+                
+                # Apply sharpening filter
+                from PIL import ImageFilter
+                upscaled = upscaled.filter(ImageFilter.UnsharpMask(radius=1, percent=150, threshold=3))
+                
+            except ImportError:
+                # Fallback to PIL LANCZOS if scikit-image not available
+                upscaled = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
             
-            # Save to buffer
+            # Save to buffer with high quality
             output_buffer = BytesIO()
-            upscaled.save(output_buffer, format='PNG', quality=95)
+            if filename.lower().endswith(('.jpg', '.jpeg')):
+                upscaled.save(output_buffer, format='JPEG', quality=95, optimize=True)
+                mime_type = 'image/jpeg'
+            else:
+                upscaled.save(output_buffer, format='PNG', optimize=True)
+                mime_type = 'image/png'
             output_buffer.seek(0)
             
             # Convert to data URL
-            data_url = f"data:image/png;base64,{base64.b64encode(output_buffer.getvalue()).decode()}"
+            data_url = f"data:{mime_type};base64,{base64.b64encode(output_buffer.getvalue()).decode()}"
             
-            result_name = filename.rsplit('.', 1)[0] + f'_x{scale}.png'
+            result_name = filename.rsplit('.', 1)[0] + f'_x{scale}.{filename.rsplit(".", 1)[-1] if "." in filename else "png"}'
             
             return {
                 "url": data_url,
                 "name": result_name,
+                "original_size": f"{original_size[0]}x{original_size[1]}",
+                "new_size": f"{new_width}x{new_height}",
             }
         
         except Exception as exc:
@@ -232,19 +278,43 @@ class ToolsService:
         file_content: bytes,
         filename: str,
     ) -> Dict:
-        """Advanced OCR"""
+        """Advanced OCR with multiple engines"""
         try:
-            import pytesseract
             from PIL import Image
             
             # Open image
             image = Image.open(BytesIO(file_content))
             
-            # Perform OCR
-            text = pytesseract.image_to_string(image, lang='eng+ita')
+            # Try EasyOCR first (more accurate, but slower)
+            text = ""
+            data = {}
             
-            # Get bounding boxes
-            data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+            try:
+                import easyocr
+                import numpy as np
+                reader = easyocr.Reader(['en', 'it'], gpu=False)  # Support English and Italian
+                results = reader.readtext(np.array(image))
+                
+                # Extract text
+                text = "\n".join([result[1] for result in results])
+                
+                # Format data similar to pytesseract
+                data = {
+                    'text': [result[1] for result in results],
+                    'confidence': [result[2] for result in results],
+                    'bbox': [result[0] for result in results],
+                }
+                
+            except (ImportError, Exception) as e:
+                logger.warning(f"EasyOCR not available, falling back to pytesseract: {e}")
+                
+                # Fallback to pytesseract
+                try:
+                    import pytesseract
+                    text = pytesseract.image_to_string(image, lang='eng+ita')
+                    data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+                except ImportError:
+                    raise ValueError("Neither EasyOCR nor pytesseract is available. Please install one of them.")
             
             return {
                 "text": text,
@@ -259,8 +329,10 @@ class ToolsService:
         self,
         prompt: str,
         style: Optional[str] = None,
+        aspect: Optional[str] = "1:1",
+        quality: Optional[str] = "standard",
     ) -> Dict:
-        """Generate image from prompt"""
+        """Generate image from prompt using DALL-E"""
         try:
             import openai
             from backend.config import get_settings
@@ -270,20 +342,46 @@ class ToolsService:
             if not settings.OPENAI_API_KEY:
                 raise ValueError("OpenAI API key not configured")
             
+            # Map aspect ratios to DALL-E 3 sizes
+            size_map = {
+                '1:1': '1024x1024',
+                '16:9': '1792x1024',
+                '9:16': '1024x1792',
+                '4:3': '1792x1024',
+                '3:4': '1024x1792',
+            }
+            size = size_map.get(aspect, '1024x1024')
+            
             # Generate image using DALL-E
             client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-            response = client.images.generate(
-                prompt=prompt,
-                n=1,
-                size="1024x1024",
-                model="dall-e-3" if style else "dall-e-2",
-            )
+            
+            # Use DALL-E 3 if available, otherwise DALL-E 2
+            try:
+                response = client.images.generate(
+                    model="dall-e-3",
+                    prompt=prompt,
+                    n=1,
+                    size=size,
+                    quality=quality if quality in ['standard', 'hd'] else 'standard',
+                    style=style if style in ['vivid', 'natural'] else 'vivid',
+                )
+            except Exception as e:
+                # Fallback to DALL-E 2 if DALL-E 3 fails
+                logger.warning(f"DALL-E 3 failed, using DALL-E 2: {e}")
+                response = client.images.generate(
+                    model="dall-e-2",
+                    prompt=prompt,
+                    n=1,
+                    size="1024x1024",
+                )
             
             image_url = response.data[0].url
             
             return {
                 "url": image_url,
                 "prompt": prompt,
+                "model": "dall-e-3" if "dall-e-3" in str(response) else "dall-e-2",
+                "size": size,
             }
         
         except Exception as exc:
@@ -389,21 +487,46 @@ class ToolsService:
         filename: str,
         target_language: str = "en",
     ) -> Dict:
-        """Translate document"""
+        """Translate document with multiple translation engines"""
         try:
             # Extract text from document
             text = file_content.decode('utf-8', errors='ignore')
             
-            # Use Google Translate API or similar
+            if not text or not text.strip():
+                raise ValueError("Document is empty or contains no text")
+            
+            translated_text = text
+            
+            # Try multiple translation services
+            # 1. Try deep-translator (more reliable)
             try:
-                from googletrans import Translator
-                translator = Translator()
-                translated = translator.translate(text, dest=target_language)
+                from deep_translator import GoogleTranslator
+                translator = GoogleTranslator(source='auto', target=target_language)
+                translated_text = translator.translate(text)
+                logger.info(f"Translation successful using deep-translator to {target_language}")
+            except Exception as e1:
+                logger.warning(f"deep-translator failed: {e1}, trying googletrans...")
                 
-                translated_text = translated.text
-            except:
-                # Fallback: return original
-                translated_text = text
+                # 2. Fallback to googletrans
+                try:
+                    from googletrans import Translator
+                    translator = Translator()
+                    translated = translator.translate(text, dest=target_language)
+                    translated_text = translated.text
+                    logger.info(f"Translation successful using googletrans to {target_language}")
+                except Exception as e2:
+                    logger.warning(f"googletrans failed: {e2}, trying translatepy...")
+                    
+                    # 3. Fallback to translatepy
+                    try:
+                        from translatepy import Translator
+                        translator = Translator()
+                        translated_text = translator.translate(text, target_language).result
+                        logger.info(f"Translation successful using translatepy to {target_language}")
+                    except Exception as e3:
+                        logger.error(f"All translation services failed: {e1}, {e2}, {e3}")
+                        # Return original text if all fail
+                        translated_text = text
             
             # Convert to data URL
             text_bytes = translated_text.encode('utf-8')

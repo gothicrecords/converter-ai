@@ -82,10 +82,15 @@ async def ocr_advanced(file: UploadFile = File(...)):
 
 
 @router.post("/generate-image")
-async def generate_image(prompt: str = Form(...), style: Optional[str] = Form(None)):
+async def generate_image(
+    prompt: str = Form(...),
+    style: Optional[str] = Form(None),
+    aspect: Optional[str] = Form("1:1"),
+    quality: Optional[str] = Form("standard"),
+):
     """Generate image from prompt"""
     try:
-        result = await tools_service.generate_image(prompt, style)
+        result = await tools_service.generate_image(prompt, style, aspect, quality)
         return JSONResponse(result)
     except Exception as exc:
         logger.error(f"Generate image error: {exc}", exc_info=True)
@@ -180,17 +185,4 @@ async def thumbnail_generator(
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@router.post("/upscale")
-async def upscale_image(
-    file: UploadFile = File(...),
-    scale: int = Form(2),
-):
-    """Upscale image"""
-    try:
-        file_content = await file.read()
-        result = await tools_service.upscale(file_content, file.filename or "file.jpg", scale)
-        return JSONResponse(result)
-    except Exception as exc:
-        logger.error(f"Upscale error: {exc}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(exc))
 
