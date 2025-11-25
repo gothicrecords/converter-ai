@@ -15,6 +15,13 @@ try:
 except ImportError:
     CV2_AVAILABLE = False
     cv2 = None
+
+try:
+    import skimage
+    SKIMAGE_AVAILABLE = True
+except ImportError:
+    SKIMAGE_AVAILABLE = False
+
 import numpy as np
 
 logger = logging.getLogger(__name__)

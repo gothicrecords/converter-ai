@@ -15,11 +15,14 @@ tools_service = ToolsService()
 
 
 @router.post("/upscale")
-async def upscale(file: UploadFile = File(...), scale: int = Form(2)):
+async def upscale(
+    image: UploadFile = File(...), 
+    scale: int = Form(default=2)
+):
     """Upscale image - delegates to tools service"""
     try:
-        file_content = await file.read()
-        result = await tools_service.upscale(file_content, file.filename or "file.jpg", scale)
+        file_content = await image.read()
+        result = await tools_service.upscale(file_content, image.filename or "file.jpg", scale)
         return JSONResponse(result)
     except Exception as exc:
         logger.error(f"Upscale error: {exc}", exc_info=True)
