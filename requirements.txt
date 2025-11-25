@@ -118,7 +118,6 @@ requests==2.32.3
 # Utilities
 python-dateutil==2.9.0
 pytz==2024.2
-uuid==1.30
 
 # Logging & Monitoring
 structlog==24.4.0
@@ -138,8 +137,4 @@ fastapi-cors==0.1.0
 # Task Queue (optional, for heavy processing)
 celery==5.4.0
 redis==5.2.0
-
-# Compression
-gzip==3.12
-lzma==3.12
 

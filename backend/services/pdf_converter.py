@@ -72,7 +72,7 @@ class PDFConverterService:
     async def pdf_to_pptx(self, pdf_content: bytes, filename: str) -> Dict[str, str]:
         """Convert PDF to PPTX"""
         try:
-            from pptx import Presentation
+            from python_pptx import Presentation
             
             # Open PDF and convert to images
             images = convert_from_bytes(pdf_content, dpi=200)

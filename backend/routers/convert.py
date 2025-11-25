@@ -55,6 +55,7 @@ async def convert_file(
         original_filename = file.filename or "file"
         
         # Convert file
+        page_int = int(page) if page else None
         result = await converter_service.convert(
             file_content=file_content,
             original_filename=original_filename,
@@ -62,7 +63,7 @@ async def convert_file(
             quality=quality,
             width=width,
             height=height,
-            page=page,
+            page=page_int,
             vwidth=vwidth,
             vheight=vheight,
             vbitrate=vbitrate,

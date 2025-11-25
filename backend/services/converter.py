@@ -31,7 +31,7 @@ class ConverterService:
         quality: Optional[str] = None,
         width: Optional[str] = None,
         height: Optional[str] = None,
-        page: Optional[str] = None,
+        page: Optional[int] = None,
         vwidth: Optional[str] = None,
         vheight: Optional[str] = None,
         vbitrate: Optional[str] = None,
@@ -105,18 +105,39 @@ class ConverterService:
             
             # Handle PDF input
             if input_ext == 'pdf':
-                from pdf2image import convert_from_bytes
-                pages = convert_from_bytes(file_content, dpi=150, first_page=page + 1 if page else 1, last_page=page + 1 if page else 1)
-                if not pages:
-                    raise ValueError("No pages found in PDF")
-                image = pages[0]
+                try:
+                    from pdf2image import convert_from_bytes
+                    page_num = (page + 1) if page is not None and page >= 0 else 1
+                    pages = convert_from_bytes(file_content, dpi=150, first_page=page_num, last_page=page_num)
+                    if not pages:
+                        raise ValueError("No pages found in PDF")
+                    image = pages[0]
+                except ImportError:
+                    raise ValueError("pdf2image library not installed. Install it with: pip install pdf2image")
             else:
                 image = Image.open(image_input)
             
-            # Resize if needed
+            # Resize if needed (fit inside maintaining aspect ratio)
             if width or height:
-                w = int(width) if width else image.width
-                h = int(height) if height else image.height
+                original_width, original_height = image.size
+                w = int(width) if width else original_width
+                h = int(height) if height else original_height
+                
+                # Calculate aspect ratio to fit inside
+                aspect_ratio = original_width / original_height
+                if w and h:
+                    target_aspect = w / h
+                    if aspect_ratio > target_aspect:
+                        # Width is limiting factor
+                        h = int(w / aspect_ratio)
+                    else:
+                        # Height is limiting factor
+                        w = int(h * aspect_ratio)
+                elif w:
+                    h = int(w / aspect_ratio)
+                elif h:
+                    w = int(h * aspect_ratio)
+                
                 image = image.resize((w, h), Image.Resampling.LANCZOS)
             
             # Convert format
@@ -203,31 +224,56 @@ class ConverterService:
                 stream = ffmpeg.input(input_path)
                 
                 # Audio formats
-                audio_formats = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'weba', 'opus']
+                audio_formats = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'weba', 'opus', 'ac3', 'aif', 'aiff', 'wma']
                 if target_format in audio_formats:
-                    audio_bitrate = abitrate or ('160k' if target_format != 'flac' and target_format != 'wav' else None)
-                    output_opts = {
-                        'acodec': self._get_audio_codec(target_format),
-                        'ar': 44100,
-                        'ac': 2
-                    }
+                    audio_codec = self._get_audio_codec(target_format)
+                    audio_bitrate = abitrate or ('160k' if target_format not in ['flac', 'wav'] else None)
+                    
+                    # Build output options (extract audio only)
+                    output_opts = {'vn': None, 'acodec': audio_codec, 'ar': 44100, 'ac': 2}
                     if audio_bitrate:
-                        output_opts['audio_bitrate'] = audio_bitrate
+                        output_opts['b:a'] = audio_bitrate
+                    
+                    # Format-specific options
+                    if target_format == 'mp3':
+                        output_opts['q:a'] = '3'  # Quality
+                    elif target_format in ['aac', 'm4a']:
+                        output_opts['profile:a'] = 'aac_low'
+                    
                     stream = ffmpeg.output(stream, output_path, **output_opts)
                 
                 # Video formats
                 else:
                     video_codec = self._get_video_codec(target_format)
                     video_bitrate = vbitrate or '1800k'
-                    stream = ffmpeg.output(
-                        stream,
-                        output_path,
-                        vcodec=video_codec,
-                        acodec='aac' if target_format == 'mp4' else 'libvorbis',
-                        video_bitrate=video_bitrate,
-                        audio_bitrate=abitrate or '128k',
-                        **({'s': f'{width}x{height}'} if width and height else {})
-                    )
+                    audio_bitrate = abitrate or '128k'
+                    
+                    output_opts = {
+                        'vcodec': video_codec,
+                        'video_bitrate': video_bitrate,
+                        'b:a': audio_bitrate,
+                    }
+                    
+                    # Audio codec based on video format
+                    if target_format == 'mp4':
+                        output_opts['acodec'] = 'aac'
+                    elif target_format == 'webm':
+                        output_opts['acodec'] = 'libvorbis'
+                    else:
+                        output_opts['acodec'] = 'aac'
+                    
+                    # Resize if specified
+                    if width and height:
+                        output_opts['s'] = f'{int(width)}x{int(height)}'
+                    elif width:
+                        output_opts['s'] = f'{int(width)}x?'
+                    elif height:
+                        output_opts['s'] = f'?x{int(height)}'
+                    
+                    # Thread optimization
+                    output_opts['threads'] = '0'  # Use all available cores
+                    
+                    stream = ffmpeg.output(stream, output_path, **output_opts)
                 
                 # Run FFmpeg
                 ffmpeg.run(stream, overwrite_output=True, quiet=True)

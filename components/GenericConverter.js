@@ -4,6 +4,7 @@ import { useDropzone } from 'react-dropzone';
 import { HiUpload, HiX, HiDownload } from 'react-icons/hi';
 import * as analytics from '../lib/analytics';
 import { fetchWithErrorHandling, handleError } from '../utils/errorHandler';
+import { uploadFile, apiCall } from '../utils/apiClient';
 import ConverterCards from './ConverterCards';
 
 // Generic converter UI: upload a file, select output (currently limited), perform placeholder conversion.
@@ -195,29 +196,29 @@ function GenericConverter({ tool }) {
         throw new Error(`URL API non valido: ${apiUrl}`);
       }
       
-      // Costruisci l'URL completo usando l'origine corrente o backend Python
-      const pythonBackendUrl = process.env.NEXT_PUBLIC_PYTHON_API_URL || process.env.NEXT_PUBLIC_API_URL;
-      const fullApiUrl = pythonBackendUrl 
-        ? `${pythonBackendUrl}${apiUrl}`
-        : typeof window !== 'undefined' 
-          ? `${window.location.origin}${apiUrl}`
-          : apiUrl;
+      // Prepara i campi aggiuntivi per la chiamata API
+      const additionalFields = {
+        quality: quality || undefined,
+        width: width || undefined,
+        height: height || undefined,
+        page: page || undefined,
+        vwidth: vWidth || undefined,
+        vheight: vHeight || undefined,
+        vbitrate: vBitrate || undefined,
+        abitrate: aBitrate || undefined,
+      };
       
-      // Log per debugging
-      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-        console.log('Chiamata API:', {
-          apiUrl,
-          fullApiUrl,
-          origin: window.location.origin,
-          file: file?.name,
-          size: file?.size
-        });
-      }
+      // Rimuovi campi undefined
+      Object.keys(additionalFields).forEach(key => {
+        if (additionalFields[key] === undefined) {
+          delete additionalFields[key];
+        }
+      });
       
       // Crea un AbortController per gestire timeout
       const controller = new AbortController();
       let timeoutId;
-      let response;
+      let data;
       
       try {
         timeoutId = setTimeout(() => {
@@ -227,13 +228,8 @@ function GenericConverter({ tool }) {
         setProgress(30);
         setProgressMessage('Conversione in corso...');
         
-        // Use improved error handling
-        response = await fetch(fullApiUrl, { 
-          method: 'POST', 
-          body: form,
-          headers: {}, // Don't set Content-Type for FormData, browser will set it with boundary
-          signal: controller.signal
-        });
+        // Use API client helper
+        data = await uploadFile(apiUrl, file, additionalFields);
         
         setProgress(80);
         setProgressMessage('Finalizzazione...');
@@ -255,7 +251,7 @@ function GenericConverter({ tool }) {
           name: fetchError.name,
           message: fetchError.message,
           stack: fetchError.stack,
-          apiUrl: fullApiUrl,
+          apiUrl: apiUrl,
           origin: typeof window !== 'undefined' ? window.location.origin : 'N/A'
         });
         
@@ -265,72 +261,11 @@ function GenericConverter({ tool }) {
         }
         
         if (fetchError instanceof TypeError && fetchError.message.includes('fetch')) {
-          throw new Error(`Errore di connessione all'API (${fullApiUrl}). Controlla la tua connessione internet e riprova.`);
+          throw new Error(`Errore di connessione all'API. Controlla la tua connessione internet e riprova.`);
         }
         
         // Rilancia altri errori con più informazioni
-        throw new Error(`Errore durante la richiesta a ${apiUrl}: ${fetchError.message || 'Errore sconosciuto'}`);
-      }
-      
-      if (!response.ok) {
-        let errorMessage = `Errore HTTP ${response.status}`;
-        try {
-          // Verifica che ci sia contenuto prima di parsare JSON
-          const text = await response.text();
-          if (text && text.trim().length > 0) {
-            const errorData = JSON.parse(text);
-            // Gestisci diversi formati di errore
-            if (errorData.error) {
-              errorMessage = errorData.error;
-              // Se c'è un hint, aggiungilo al messaggio
-              if (errorData.hint) {
-                errorMessage += `. ${errorData.hint}`;
-              }
-            } else if (errorData.details) {
-              errorMessage = errorData.details;
-            } else if (errorData.message) {
-              errorMessage = errorData.message;
-            }
-          }
-        } catch (e) {
-          // Se la risposta non è JSON, usa il messaggio di default
-          errorMessage = `Errore durante l'upload: il file potrebbe essere vuoto o non valido`;
-        }
-        
-        // Messaggi di errore più specifici per errori comuni
-        if (response.status === 400) {
-          errorMessage = errorMessage.includes('vuoto') || errorMessage.includes('empty') 
-            ? errorMessage 
-            : 'File non valido o formato non supportato. ' + (errorMessage !== `Errore HTTP ${response.status}` ? errorMessage : '');
-        } else if (response.status === 413) {
-          errorMessage = 'File troppo grande. Dimensione massima: 500MB per file video/audio, 50MB per altri formati';
-        } else if (response.status === 500) {
-          errorMessage = errorMessage !== `Errore HTTP ${response.status}` ? errorMessage : 'Errore del server durante la conversione';
-        }
-        
-        throw new Error(errorMessage);
-      }
-      
-      // Verifica che la risposta sia JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        // Prova a leggere come testo per vedere cosa c'è
-        const text = await response.text();
-        console.error('Risposta non JSON ricevuta:', text.substring(0, 200));
-        throw new Error('Il server ha restituito una risposta non valida. Riprova più tardi.');
-      }
-      
-      // Parsing della risposta JSON con gestione errori
-      let data;
-      try {
-        const text = await response.text();
-        if (!text || text.trim().length === 0) {
-          throw new Error('Risposta vuota dal server');
-        }
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error('Errore parsing JSON:', parseError);
-        throw new Error('Errore nel parsing della risposta dal server. La conversione potrebbe essere fallita.');
+        throw new Error(`Errore durante la richiesta: ${fetchError.message || 'Errore sconosciuto'}`);
       }
       
       const duration = Date.now() - startTime;

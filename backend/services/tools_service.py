@@ -203,18 +203,18 @@ class ToolsService:
                     f.write(file_content)
                 
                 # Use OpenAI Whisper API
+                client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
                 with open(input_path, 'rb') as f:
-                    transcript = openai.Audio.transcribe(
-                        "whisper-1",
-                        f,
-                        api_key=settings.OPENAI_API_KEY,
+                    transcript = client.audio.transcriptions.create(
+                        model="whisper-1",
+                        file=f,
                     )
                 
-                text = transcript['text']
+                text = transcript.text
                 
                 return {
                     "text": text,
-                    "language": transcript.get('language', 'en'),
+                    "language": getattr(transcript, 'language', 'en'),
                 }
             
             finally:
@@ -271,14 +271,15 @@ class ToolsService:
                 raise ValueError("OpenAI API key not configured")
             
             # Generate image using DALL-E
-            response = openai.Image.create(
+            client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+            response = client.images.generate(
                 prompt=prompt,
                 n=1,
                 size="1024x1024",
-                api_key=settings.OPENAI_API_KEY,
+                model="dall-e-3" if style else "dall-e-2",
             )
             
-            image_url = response['data'][0]['url']
+            image_url = response.data[0].url
             
             return {
                 "url": image_url,
@@ -439,17 +440,17 @@ class ToolsService:
                 'long': 200,
             }.get(length, 100)
             
-            response = openai.ChatCompletion.create(
+            client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant that summarizes text."},
                     {"role": "user", "content": f"Summarize this text in {length} length: {text}"}
                 ],
                 max_tokens=max_tokens,
-                api_key=settings.OPENAI_API_KEY,
             )
             
-            summary = response['choices'][0]['message']['content']
+            summary = response.choices[0].message.content
             
             return {
                 "summary": summary,
