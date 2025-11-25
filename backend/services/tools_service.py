@@ -86,14 +86,7 @@ class ToolsService:
             new_height = image.height * scale
             
             # Try advanced upscaling with scikit-image if available
-            try:
-                # scikit-image is optional (requires C++ compiler on Windows)
-try:
-    from skimage import restoration, filters
-    SKIMAGE_AVAILABLE = True
-except ImportError:
-    SKIMAGE_AVAILABLE = False
-    logger.warning("scikit-image not available - advanced upscaling features will be limited")
+            if SKIMAGE_AVAILABLE:
                 from skimage.transform import resize
                 import numpy as np
                 
@@ -129,6 +122,7 @@ except ImportError:
                 upscaled = upscaled.filter(ImageFilter.UnsharpMask(radius=1, percent=150, threshold=3))
                 
             except ImportError:
+            else:
                 # Fallback to PIL LANCZOS if scikit-image not available
                 upscaled = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
             
