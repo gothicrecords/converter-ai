@@ -2,8 +2,9 @@
 Configuration settings for the backend
 """
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List, Union
+from typing import List
 from functools import lru_cache
+import os
 
 
 class Settings(BaseSettings):
@@ -11,14 +12,14 @@ class Settings(BaseSettings):
     
     # App
     APP_NAME: str = "MegaPixelAI"
-    ENVIRONMENT: str = "development"
-    DEBUG: bool = True
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
     HOST: str = "0.0.0.0"
-    PORT: int = 8000  # Railway sets PORT env var automatically
+    PORT: int = int(os.getenv("PORT", "8000"))  # Railway sets PORT env var automatically
     
-    # CORS - Use Union[str, List[str]] to support both "*" and list of origins
-    # In main.py we'll handle "*" specially
-    CORS_ORIGINS: Union[str, List[str]] = "*"  # Allow all origins for Railway
+    # CORS - Use List[str] for better compatibility
+    # We'll handle "*" in main.py
+    CORS_ORIGINS: str = "*"  # Allow all origins for Railway
     
     # Database - Neon (PostgreSQL)
     NEON_DATABASE_URL: str = ""
