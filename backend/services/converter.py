@@ -10,8 +10,15 @@ import tempfile
 import subprocess
 
 from PIL import Image
-import cv2
-import numpy as np
+
+try:
+    import cv2
+    import numpy as np
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+    cv2 = None
+    np = None
 
 logger = logging.getLogger(__name__)
 

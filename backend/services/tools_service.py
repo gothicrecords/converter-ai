@@ -8,7 +8,13 @@ from io import BytesIO
 import os
 
 from PIL import Image
-import cv2
+
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+    cv2 = None
 import numpy as np
 
 logger = logging.getLogger(__name__)

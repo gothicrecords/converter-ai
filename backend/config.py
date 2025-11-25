@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     HOST: str = "0.0.0.0"
-    PORT: int = 3000
+    PORT: int = 8000
     
     # CORS
     CORS_ORIGINS: List[str] = [
