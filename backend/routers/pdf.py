@@ -146,20 +146,20 @@ async def html_to_pdf(file: UploadFile = File(...)):
 
 
 @router.post("/jpg-to-pdf")
-async def jpg_to_pdf(files: list[UploadFile] = File(...)):
+async def jpg_to_pdf(images: list[UploadFile] = File(...)):
     """Convert JPG/PNG to PDF - supports multiple images"""
     try:
         # Support both single file and multiple files
-        if len(files) == 1:
+        if len(images) == 1:
             # Single image
-            file_content = await files[0].read()
-            filename = files[0].filename or "file.jpg"
+            file_content = await images[0].read()
+            filename = images[0].filename or "file.jpg"
             result = await pdf_service.jpg_to_pdf(file_content, filename)
         else:
             # Multiple images - combine into one PDF
             image_contents = []
             filename = "images.pdf"
-            for file in files:
+            for file in images:
                 content = await file.read()
                 image_contents.append(content)
                 if not filename or filename == "images.pdf":
