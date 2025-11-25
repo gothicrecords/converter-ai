@@ -293,8 +293,25 @@ class ToolsService:
         try:
             from PIL import Image
             
-            # Open image
-            image = Image.open(BytesIO(file_content))
+            # Check if it's a PDF
+            if filename.lower().endswith('.pdf'):
+                # Convert PDF to images
+                try:
+                    import fitz  # PyMuPDF
+                    pdf_doc = fitz.open(stream=file_content, filetype="pdf")
+                    
+                    # Get first page as image
+                    page = pdf_doc[0]
+                    pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # 2x resolution
+                    img_data = pix.tobytes("png")
+                    image = Image.open(BytesIO(img_data))
+                    pdf_doc.close()
+                except Exception as e:
+                    logger.error(f"PDF conversion error: {e}")
+                    raise ValueError(f"Cannot convert PDF to image: {e}")
+            else:
+                # Open image directly
+                image = Image.open(BytesIO(file_content))
             
             # Try EasyOCR first (more accurate, but slower)
             text = ""
@@ -322,10 +339,33 @@ class ToolsService:
                 # Fallback to pytesseract
                 try:
                     import pytesseract
+                    
+                    # Try to find Tesseract executable on Windows
+                    import os
+                    import platform
+                    if platform.system() == 'Windows':
+                        possible_paths = [
+                            r'C:\Program Files\Tesseract-OCR\tesseract.exe',
+                            r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe',
+                        ]
+                        for path in possible_paths:
+                            if os.path.exists(path):
+                                pytesseract.pytesseract.tesseract_cmd = path
+                                break
+                    
                     text = pytesseract.image_to_string(image, lang='eng+ita')
                     data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
                 except ImportError:
                     raise ValueError("Neither EasyOCR nor pytesseract is available. Please install one of them.")
+                except Exception as e:
+                    # Tesseract not found
+                    if "tesseract is not installed" in str(e).lower() or "not in your path" in str(e).lower():
+                        raise ValueError(
+                            "Tesseract OCR is not installed. "
+                            "Please download from https://github.com/UB-Mannheim/tesseract/wiki and install it, "
+                            "or use EasyOCR by installing: pip install easyocr"
+                        )
+                    raise
             
             return {
                 "text": text,
