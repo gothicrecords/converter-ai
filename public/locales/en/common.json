@@ -328,6 +328,26 @@
     "hours": "Business Hours",
     "hoursText": "Monday - Friday: 9:00 - 18:00 CET"
   },
+  "converters": {
+    "imageConverters": "Image Converters",
+    "imageConvertersDesc": "Convert between PNG, JPG, WEBP, AVIF and RAW formats (CR2, NEF, ARW, DNG, RAF, etc.). Professional image conversion with quality preservation.",
+    "vectorConverters": "Vector Converters",
+    "vectorConvertersDesc": "Convert AI, SVG, EPS, CDR, VSD and other vector formats to PDF or PNG. Preserve quality and resolution for professional graphics.",
+    "videoConverters": "Video Converters",
+    "videoConvertersDesc": "Convert videos between MP4, AVI, MOV, MKV, FLV, WEBM and other formats. Compress and optimize for web or mobile.",
+    "archiveConverters": "Archive Converters",
+    "archiveConvertersDesc": "Extract and convert ZIP, RAR, 7Z, TAR.GZ and other archive formats. Compress files efficiently and securely.",
+    "audioConverters": "Audio Converters",
+    "audioConvertersDesc": "Convert MP3, WAV, FLAC, AAC, OGG and other audio formats. Adjust quality and bitrate for optimal results.",
+    "documentConverters": "Document Converters",
+    "documentConvertersDesc": "Convert PDF, DOCX, ODT, RTF, HTML and other document formats. Preserve formatting and layout accurately.",
+    "ebookConverters": "Ebook Converters",
+    "ebookConvertersDesc": "Convert EPUB, MOBI, AZW, CBR and other ebook formats. Optimize for different e-readers and devices.",
+    "presentationConverters": "Presentation Converters",
+    "presentationConvertersDesc": "Convert PPTX, KEY, ODP and other presentation formats. Maintain slides, animations and formatting.",
+    "spreadsheetConverters": "Spreadsheet Converters",
+    "spreadsheetConvertersDesc": "Convert XLSX, CSV, ODS and other spreadsheet formats. Preserve formulas, charts and data integrity."
+  },
   "seo": {
     "homeTitle": "Professional AI Tools for Images, PDF and Audio",
     "homeDesc": "All-in-one platform with over 300 AI tools: background removal, 4K upscaling, image generation, OCR, PDF conversion and much more. Free and professional.",

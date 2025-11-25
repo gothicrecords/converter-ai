@@ -340,6 +340,26 @@
     "hours": "Orari di Apertura",
     "hoursText": "Lunedì - Venerdì: 9:00 - 18:00 CET"
   },
+  "converters": {
+    "imageConverters": "Convertitori Immagini",
+    "imageConvertersDesc": "Converti tra PNG, JPG, WEBP, AVIF e formati RAW (CR2, NEF, ARW, DNG, RAF, ecc.). Conversione professionale con preservazione della qualità.",
+    "vectorConverters": "Convertitori Vettoriali",
+    "vectorConvertersDesc": "Converti AI, SVG, EPS, CDR, VSD e altri formati vettoriali in PDF o PNG. Mantieni qualità e risoluzione per grafica professionale.",
+    "videoConverters": "Convertitori Video",
+    "videoConvertersDesc": "Converti video tra MP4, AVI, MOV, MKV, FLV, WEBM e altri formati. Comprimi e ottimizza per web o dispositivi mobili.",
+    "archiveConverters": "Convertitori Archivi",
+    "archiveConvertersDesc": "Estrai e converti ZIP, RAR, 7Z, TAR.GZ e altri formati di archivio. Comprimi file in modo efficiente e sicuro.",
+    "audioConverters": "Convertitori Audio",
+    "audioConvertersDesc": "Converti MP3, WAV, FLAC, AAC, OGG e altri formati audio. Regola qualità e bitrate per risultati ottimali.",
+    "documentConverters": "Convertitori Documenti",
+    "documentConvertersDesc": "Converti PDF, DOCX, ODT, RTF, HTML e altri formati documento. Preserva formattazione e layout con precisione.",
+    "ebookConverters": "Convertitori Ebook",
+    "ebookConvertersDesc": "Converti EPUB, MOBI, AZW, CBR e altri formati ebook. Ottimizza per diversi e-reader e dispositivi.",
+    "presentationConverters": "Convertitori Presentazioni",
+    "presentationConvertersDesc": "Converti PPTX, KEY, ODP e altri formati presentazione. Mantieni diapositive, animazioni e formattazione.",
+    "spreadsheetConverters": "Convertitori Fogli di Calcolo",
+    "spreadsheetConvertersDesc": "Converti XLSX, CSV, ODS e altri formati foglio di calcolo. Preserva formule, grafici e integrità dei dati."
+  },
   "seo": {
     "homeTitle": "Strumenti AI Professionali per Immagini, PDF e Audio",
     "homeDesc": "Piattaforma all-in-one con oltre 300 strumenti AI: rimozione sfondo, upscaling 4K, generazione immagini, OCR, conversione PDF e molto altro. Gratis e professionale.",

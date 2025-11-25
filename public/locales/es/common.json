@@ -197,6 +197,26 @@
     "ctaTitle": "¿Listo para Comenzar?",
     "ctaText": "Únete a miles de profesionales que usan MegaPixelAI cada día",
     "ctaButton": "Empieza Gratis Ahora"
+  },
+  "converters": {
+    "imageConverters": "Conversores de Imágenes",
+    "imageConvertersDesc": "Convierte entre PNG, JPG, WEBP, AVIF y formatos RAW (CR2, NEF, ARW, DNG, RAF, etc.). Conversión profesional con preservación de calidad.",
+    "vectorConverters": "Conversores Vectoriales",
+    "vectorConvertersDesc": "Convierte AI, SVG, EPS, CDR, VSD y otros formatos vectoriales a PDF o PNG. Preserva calidad y resolución para gráficos profesionales.",
+    "videoConverters": "Conversores de Video",
+    "videoConvertersDesc": "Convierte videos entre MP4, AVI, MOV, MKV, FLV, WEBM y otros formatos. Comprime y optimiza para web o móvil.",
+    "archiveConverters": "Conversores de Archivos",
+    "archiveConvertersDesc": "Extrae y convierte ZIP, RAR, 7Z, TAR.GZ y otros formatos de archivo comprimido. Comprime archivos de manera eficiente y segura.",
+    "audioConverters": "Conversores de Audio",
+    "audioConvertersDesc": "Convierte MP3, WAV, FLAC, AAC, OGG y otros formatos de audio. Ajusta calidad y bitrate para resultados óptimos.",
+    "documentConverters": "Conversores de Documentos",
+    "documentConvertersDesc": "Convierte PDF, DOCX, ODT, RTF, HTML y otros formatos de documento. Preserva formato y diseño con precisión.",
+    "ebookConverters": "Conversores de Ebooks",
+    "ebookConvertersDesc": "Convierte EPUB, MOBI, AZW, CBR y otros formatos de ebook. Optimiza para diferentes lectores electrónicos y dispositivos.",
+    "presentationConverters": "Conversores de Presentaciones",
+    "presentationConvertersDesc": "Convierte PPTX, KEY, ODP y otros formatos de presentación. Mantiene diapositivas, animaciones y formato.",
+    "spreadsheetConverters": "Conversores de Hojas de Cálculo",
+    "spreadsheetConvertersDesc": "Convierte XLSX, CSV, ODS y otros formatos de hoja de cálculo. Preserva fórmulas, gráficos e integridad de datos."
   }
 }
 

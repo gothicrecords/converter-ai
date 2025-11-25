@@ -197,5 +197,25 @@
     "ctaTitle": "Bereit Anzufangen?",
     "ctaText": "Schließen Sie sich tausenden Profis an, die MegaPixelAI täglich nutzen",
     "ctaButton": "Jetzt Kostenlos Starten"
+  },
+  "converters": {
+    "imageConverters": "Bildkonverter",
+    "imageConvertersDesc": "Konvertieren Sie zwischen PNG, JPG, WEBP, AVIF und RAW-Formaten (CR2, NEF, ARW, DNG, RAF, usw.). Professionelle Bildkonvertierung mit Qualitätserhaltung.",
+    "vectorConverters": "Vektorkonverter",
+    "vectorConvertersDesc": "Konvertieren Sie AI, SVG, EPS, CDR, VSD und andere Vektorformate in PDF oder PNG. Bewahren Sie Qualität und Auflösung für professionelle Grafiken.",
+    "videoConverters": "Videokonverter",
+    "videoConvertersDesc": "Konvertieren Sie Videos zwischen MP4, AVI, MOV, MKV, FLV, WEBM und anderen Formaten. Komprimieren und optimieren Sie für Web oder Mobilgeräte.",
+    "archiveConverters": "Archivkonverter",
+    "archiveConvertersDesc": "Extrahieren und konvertieren Sie ZIP, RAR, 7Z, TAR.GZ und andere Archivformate. Komprimieren Sie Dateien effizient und sicher.",
+    "audioConverters": "Audiokonverter",
+    "audioConvertersDesc": "Konvertieren Sie MP3, WAV, FLAC, AAC, OGG und andere Audioformate. Passen Sie Qualität und Bitrate für optimale Ergebnisse an.",
+    "documentConverters": "Dokumentkonverter",
+    "documentConvertersDesc": "Konvertieren Sie PDF, DOCX, ODT, RTF, HTML und andere Dokumentformate. Bewahren Sie Formatierung und Layout präzise.",
+    "ebookConverters": "E-Book-Konverter",
+    "ebookConvertersDesc": "Konvertieren Sie EPUB, MOBI, AZW, CBR und andere E-Book-Formate. Optimieren Sie für verschiedene E-Reader und Geräte.",
+    "presentationConverters": "Präsentationskonverter",
+    "presentationConvertersDesc": "Konvertieren Sie PPTX, KEY, ODP und andere Präsentationsformate. Behalten Sie Folien, Animationen und Formatierung bei.",
+    "spreadsheetConverters": "Tabellenkonverter",
+    "spreadsheetConvertersDesc": "Konvertieren Sie XLSX, CSV, ODS und andere Tabellenformate. Bewahren Sie Formeln, Diagramme und Datenintegrität."
   }
 }

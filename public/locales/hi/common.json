@@ -175,5 +175,25 @@
     "ctaTitle": "शुरू करने के लिए तैयार हैं?",
     "ctaText": "हर दिन MegaPixelAI का उपयोग करने वाले हजारों पेशेवरों में शामिल हों",
     "ctaButton": "अभी मुफ्त में शुरू करें"
+  },
+  "converters": {
+    "imageConverters": "छवि कनवर्टर",
+    "imageConvertersDesc": "PNG, JPG, WEBP, AVIF और RAW फ़ॉर्मेट (CR2, NEF, ARW, DNG, RAF, आदि) के बीच कनवर्ट करें। गुणवत्ता संरक्षण के साथ पेशेवर छवि कनवर्जन।",
+    "vectorConverters": "वेक्टर कनवर्टर",
+    "vectorConvertersDesc": "AI, SVG, EPS, CDR, VSD और अन्य वेक्टर फ़ॉर्मेट को PDF या PNG में कनवर्ट करें। पेशेवर ग्राफिक्स के लिए गुणवत्ता और रिज़ॉल्यूशन बनाए रखें।",
+    "videoConverters": "वीडियो कनवर्टर",
+    "videoConvertersDesc": "MP4, AVI, MOV, MKV, FLV, WEBM और अन्य फ़ॉर्मेट के बीच वीडियो कनवर्ट करें। वेब या मोबाइल के लिए संपीड़ित और अनुकूलित करें।",
+    "archiveConverters": "आर्काइव कनवर्टर",
+    "archiveConvertersDesc": "ZIP, RAR, 7Z, TAR.GZ और अन्य आर्काइव फ़ॉर्मेट निकालें और कनवर्ट करें। फ़ाइलों को कुशलतापूर्वक और सुरक्षित रूप से संपीड़ित करें।",
+    "audioConverters": "ऑडियो कनवर्टर",
+    "audioConvertersDesc": "MP3, WAV, FLAC, AAC, OGG और अन्य ऑडियो फ़ॉर्मेट कनवर्ट करें। इष्टतम परिणामों के लिए गुणवत्ता और बिटरेट समायोजित करें।",
+    "documentConverters": "दस्तावेज़ कनवर्टर",
+    "documentConvertersDesc": "PDF, DOCX, ODT, RTF, HTML और अन्य दस्तावेज़ फ़ॉर्मेट कनवर्ट करें। फ़ॉर्मेटिंग और लेआउट को सटीक रूप से संरक्षित करें।",
+    "ebookConverters": "ईबुक कनवर्टर",
+    "ebookConvertersDesc": "EPUB, MOBI, AZW, CBR और अन्य ईबुक फ़ॉर्मेट कनवर्ट करें। विभिन्न ई-रीडर और डिवाइस के लिए अनुकूलित करें।",
+    "presentationConverters": "प्रस्तुति कनवर्टर",
+    "presentationConvertersDesc": "PPTX, KEY, ODP और अन्य प्रस्तुति फ़ॉर्मेट कनवर्ट करें। स्लाइड, एनिमेशन और फ़ॉर्मेटिंग बनाए रखें।",
+    "spreadsheetConverters": "स्प्रेडशीट कनवर्टर",
+    "spreadsheetConvertersDesc": "XLSX, CSV, ODS और अन्य स्प्रेडशीट फ़ॉर्मेट कनवर्ट करें। सूत्र, चार्ट और डेटा अखंडता संरक्षित करें।"
   }
 }

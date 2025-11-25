@@ -175,5 +175,25 @@
     "ctaTitle": "准备开始了吗？",
     "ctaText": "加入每天使用 MegaPixelAI 的数千名专业人士",
     "ctaButton": "立即免费开始"
+  },
+  "converters": {
+    "imageConverters": "图像转换器",
+    "imageConvertersDesc": "在 PNG、JPG、WEBP、AVIF 和 RAW 格式（CR2、NEF、ARW、DNG、RAF 等）之间转换。专业转换，保持质量。",
+    "vectorConverters": "矢量转换器",
+    "vectorConvertersDesc": "将 AI、SVG、EPS、CDR、VSD 和其他矢量格式转换为 PDF 或 PNG。保持专业图形的质量和分辨率。",
+    "videoConverters": "视频转换器",
+    "videoConvertersDesc": "在 MP4、AVI、MOV、MKV、FLV、WEBM 和其他格式之间转换视频。为网络或移动设备压缩和优化。",
+    "archiveConverters": "存档转换器",
+    "archiveConvertersDesc": "提取和转换 ZIP、RAR、7Z、TAR.GZ 和其他存档格式。高效安全地压缩文件。",
+    "audioConverters": "音频转换器",
+    "audioConvertersDesc": "转换 MP3、WAV、FLAC、AAC、OGG 和其他音频格式。调整质量和比特率以获得最佳效果。",
+    "documentConverters": "文档转换器",
+    "documentConvertersDesc": "转换 PDF、DOCX、ODT、RTF、HTML 和其他文档格式。精确保持格式和布局。",
+    "ebookConverters": "电子书转换器",
+    "ebookConvertersDesc": "转换 EPUB、MOBI、AZW、CBR 和其他电子书格式。为不同的电子阅读器和设备优化。",
+    "presentationConverters": "演示文稿转换器",
+    "presentationConvertersDesc": "转换 PPTX、KEY、ODP 和其他演示文稿格式。保持幻灯片、动画和格式。",
+    "spreadsheetConverters": "电子表格转换器",
+    "spreadsheetConvertersDesc": "转换 XLSX、CSV、ODS 和其他电子表格格式。保持公式、图表和数据完整性。"
   }
 }

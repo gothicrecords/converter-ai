@@ -175,5 +175,25 @@
     "ctaTitle": "هل أنت مستعد للبدء؟",
     "ctaText": "انضم إلى آلاف المحترفين الذين يستخدمون MegaPixelAI كل يوم",
     "ctaButton": "ابدأ مجانًا الآن"
+  },
+  "converters": {
+    "imageConverters": "محولات الصور",
+    "imageConvertersDesc": "تحويل بين PNG و JPG و WEBP و AVIF وصيغ RAW (CR2، NEF، ARW، DNG، RAF، إلخ). تحويل احترافي للصور مع الحفاظ على الجودة.",
+    "vectorConverters": "محولات الفيكتور",
+    "vectorConvertersDesc": "تحويل AI و SVG و EPS و CDR و VSD وصيغ فيكتور أخرى إلى PDF أو PNG. الحفاظ على الجودة والدقة للرسومات الاحترافية.",
+    "videoConverters": "محولات الفيديو",
+    "videoConvertersDesc": "تحويل مقاطع الفيديو بين MP4 و AVI و MOV و MKV و FLV و WEBM وصيغ أخرى. ضغط وتحسين للويب أو الأجهزة المحمولة.",
+    "archiveConverters": "محولات الأرشيف",
+    "archiveConvertersDesc": "استخراج وتحويل ZIP و RAR و 7Z و TAR.GZ وصيغ أرشيف أخرى. ضغط الملفات بكفاءة وأمان.",
+    "audioConverters": "محولات الصوت",
+    "audioConvertersDesc": "تحويل MP3 و WAV و FLAC و AAC و OGG وصيغ صوتية أخرى. ضبط الجودة ومعدل البت للحصول على أفضل النتائج.",
+    "documentConverters": "محولات المستندات",
+    "documentConvertersDesc": "تحويل PDF و DOCX و ODT و RTF و HTML وصيغ مستندات أخرى. الحفاظ على التنسيق والتخطيط بدقة.",
+    "ebookConverters": "محولات الكتب الإلكترونية",
+    "ebookConvertersDesc": "تحويل EPUB و MOBI و AZW و CBR وصيغ كتب إلكترونية أخرى. التحسين لقراء إلكترونية وأجهزة مختلفة.",
+    "presentationConverters": "محولات العروض التقديمية",
+    "presentationConvertersDesc": "تحويل PPTX و KEY و ODP وصيغ عروض تقديمية أخرى. الحفاظ على الشرائح والرسوم المتحركة والتنسيق.",
+    "spreadsheetConverters": "محولات جداول البيانات",
+    "spreadsheetConvertersDesc": "تحويل XLSX و CSV و ODS وصيغ جداول بيانات أخرى. الحفاظ على الصيغ والرسوم البيانية وسلامة البيانات."
   }
 }

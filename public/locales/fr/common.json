@@ -197,5 +197,25 @@
     "ctaTitle": "Prêt à Commencer?",
     "ctaText": "Rejoignez des milliers de professionnels utilisant MegaPixelAI chaque jour",
     "ctaButton": "Commencer Gratuitement"
+  },
+  "converters": {
+    "imageConverters": "Convertisseurs d'Images",
+    "imageConvertersDesc": "Convertissez entre PNG, JPG, WEBP, AVIF et formats RAW (CR2, NEF, ARW, DNG, RAF, etc.). Conversion professionnelle avec préservation de la qualité.",
+    "vectorConverters": "Convertisseurs Vectoriels",
+    "vectorConvertersDesc": "Convertissez AI, SVG, EPS, CDR, VSD et autres formats vectoriels en PDF ou PNG. Préservez la qualité et la résolution pour des graphiques professionnels.",
+    "videoConverters": "Convertisseurs Vidéo",
+    "videoConvertersDesc": "Convertissez des vidéos entre MP4, AVI, MOV, MKV, FLV, WEBM et autres formats. Compressez et optimisez pour le web ou mobile.",
+    "archiveConverters": "Convertisseurs d'Archives",
+    "archiveConvertersDesc": "Extrayez et convertissez ZIP, RAR, 7Z, TAR.GZ et autres formats d'archive. Compressez les fichiers de manière efficace et sécurisée.",
+    "audioConverters": "Convertisseurs Audio",
+    "audioConvertersDesc": "Convertissez MP3, WAV, FLAC, AAC, OGG et autres formats audio. Ajustez la qualité et le débit pour des résultats optimaux.",
+    "documentConverters": "Convertisseurs de Documents",
+    "documentConvertersDesc": "Convertissez PDF, DOCX, ODT, RTF, HTML et autres formats de document. Préservez la mise en forme et la disposition avec précision.",
+    "ebookConverters": "Convertisseurs d'Ebooks",
+    "ebookConvertersDesc": "Convertissez EPUB, MOBI, AZW, CBR et autres formats d'ebook. Optimisez pour différents lecteurs électroniques et appareils.",
+    "presentationConverters": "Convertisseurs de Présentations",
+    "presentationConvertersDesc": "Convertissez PPTX, KEY, ODP et autres formats de présentation. Conservez les diapositives, animations et mise en forme.",
+    "spreadsheetConverters": "Convertisseurs de Feuilles de Calcul",
+    "spreadsheetConvertersDesc": "Convertissez XLSX, CSV, ODS et autres formats de feuille de calcul. Préservez les formules, graphiques et intégrité des données."
   }
 }

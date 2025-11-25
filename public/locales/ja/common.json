@@ -175,5 +175,25 @@
     "ctaTitle": "始める準備はできましたか？",
     "ctaText": "毎日MegaPixelAIを使用している何千ものプロフェッショナルに参加してください",
     "ctaButton": "今すぐ無料で始める"
+  },
+  "converters": {
+    "imageConverters": "画像コンバーター",
+    "imageConvertersDesc": "PNG、JPG、WEBP、AVIF、RAWフォーマット(CR2、NEF、ARW、DNG、RAFなど)間で変換。品質を保ちながらプロフェッショナルな変換。",
+    "vectorConverters": "ベクターコンバーター",
+    "vectorConvertersDesc": "AI、SVG、EPS、CDR、VSDなどのベクターフォーマットをPDFまたはPNGに変換。プロフェッショナルグラフィックの品質と解像度を保持。",
+    "videoConverters": "動画コンバーター",
+    "videoConvertersDesc": "MP4、AVI、MOV、MKV、FLV、WEBMなどのフォーマット間で動画を変換。Webまたはモバイル用に圧縮と最適化。",
+    "archiveConverters": "アーカイブコンバーター",
+    "archiveConvertersDesc": "ZIP、RAR、7Z、TAR.GZなどのアーカイブフォーマットを抽出・変換。ファイルを効率的かつ安全に圧縮。",
+    "audioConverters": "オーディオコンバーター",
+    "audioConvertersDesc": "MP3、WAV、FLAC、AAC、OGGなどのオーディオフォーマットを変換。最適な結果を得るために品質とビットレートを調整。",
+    "documentConverters": "ドキュメントコンバーター",
+    "documentConvertersDesc": "PDF、DOCX、ODT、RTF、HTMLなどのドキュメントフォーマットを変換。フォーマットとレイアウトを正確に保持。",
+    "ebookConverters": "電子書籍コンバーター",
+    "ebookConvertersDesc": "EPUB、MOBI、AZW、CBRなどの電子書籍フォーマットを変換。さまざまな電子リーダーやデバイス用に最適化。",
+    "presentationConverters": "プレゼンテーションコンバーター",
+    "presentationConvertersDesc": "PPTX、KEY、ODPなどのプレゼンテーションフォーマットを変換。スライド、アニメーション、フォーマットを維持。",
+    "spreadsheetConverters": "スプレッドシートコンバーター",
+    "spreadsheetConvertersDesc": "XLSX、CSV、ODSなどのスプレッドシートフォーマットを変換。数式、グラフ、データの整合性を保持。"
   }
 }

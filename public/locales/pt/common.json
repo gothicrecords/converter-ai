@@ -197,5 +197,25 @@
     "ctaTitle": "Pronto Para Começar?",
     "ctaText": "Junte-se a milhares de profissionais usando MegaPixelAI todos os dias",
     "ctaButton": "Comece Grátis Agora"
+  },
+  "converters": {
+    "imageConverters": "Conversores de Imagens",
+    "imageConvertersDesc": "Converta entre PNG, JPG, WEBP, AVIF e formatos RAW (CR2, NEF, ARW, DNG, RAF, etc.). Conversão profissional com preservação de qualidade.",
+    "vectorConverters": "Conversores Vetoriais",
+    "vectorConvertersDesc": "Converta AI, SVG, EPS, CDR, VSD e outros formatos vetoriais para PDF ou PNG. Preserve qualidade e resolução para gráficos profissionais.",
+    "videoConverters": "Conversores de Vídeo",
+    "videoConvertersDesc": "Converta vídeos entre MP4, AVI, MOV, MKV, FLV, WEBM e outros formatos. Comprima e otimize para web ou dispositivos móveis.",
+    "archiveConverters": "Conversores de Arquivos",
+    "archiveConvertersDesc": "Extraia e converta ZIP, RAR, 7Z, TAR.GZ e outros formatos de arquivo. Comprima arquivos de forma eficiente e segura.",
+    "audioConverters": "Conversores de Áudio",
+    "audioConvertersDesc": "Converta MP3, WAV, FLAC, AAC, OGG e outros formatos de áudio. Ajuste qualidade e taxa de bits para resultados ideais.",
+    "documentConverters": "Conversores de Documentos",
+    "documentConvertersDesc": "Converta PDF, DOCX, ODT, RTF, HTML e outros formatos de documento. Preserve formatação e layout com precisão.",
+    "ebookConverters": "Conversores de Ebooks",
+    "ebookConvertersDesc": "Converta EPUB, MOBI, AZW, CBR e outros formatos de ebook. Otimize para diferentes leitores eletrônicos e dispositivos.",
+    "presentationConverters": "Conversores de Apresentações",
+    "presentationConvertersDesc": "Converta PPTX, KEY, ODP e outros formatos de apresentação. Mantenha slides, animações e formatação.",
+    "spreadsheetConverters": "Conversores de Planilhas",
+    "spreadsheetConvertersDesc": "Converta XLSX, CSV, ODS e outros formatos de planilha. Preserve fórmulas, gráficos e integridade dos dados."
   }
 }

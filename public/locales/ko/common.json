@@ -175,5 +175,25 @@
     "ctaTitle": "시작할 준비가 되셨나요?",
     "ctaText": "매일 MegaPixelAI를 사용하는 수천 명의 전문가들과 함께하세요",
     "ctaButton": "지금 무료로 시작하기"
+  },
+  "converters": {
+    "imageConverters": "이미지 변환기",
+    "imageConvertersDesc": "PNG, JPG, WEBP, AVIF 및 RAW 형식(CR2, NEF, ARW, DNG, RAF 등) 간 변환. 품질을 보존하는 전문 이미지 변환.",
+    "vectorConverters": "벡터 변환기",
+    "vectorConvertersDesc": "AI, SVG, EPS, CDR, VSD 및 기타 벡터 형식을 PDF 또는 PNG로 변환. 전문 그래픽을 위한 품질과 해상도 보존.",
+    "videoConverters": "비디오 변환기",
+    "videoConvertersDesc": "MP4, AVI, MOV, MKV, FLV, WEBM 및 기타 형식 간 비디오 변환. 웹 또는 모바일 장치용으로 압축 및 최적화.",
+    "archiveConverters": "아카이브 변환기",
+    "archiveConvertersDesc": "ZIP, RAR, 7Z, TAR.GZ 및 기타 아카이브 형식 추출 및 변환. 효율적이고 안전하게 파일 압축.",
+    "audioConverters": "오디오 변환기",
+    "audioConvertersDesc": "MP3, WAV, FLAC, AAC, OGG 및 기타 오디오 형식 변환. 최적의 결과를 위해 품질과 비트 전송률 조정.",
+    "documentConverters": "문서 변환기",
+    "documentConvertersDesc": "PDF, DOCX, ODT, RTF, HTML 및 기타 문서 형식 변환. 서식과 레이아웃을 정확하게 보존.",
+    "ebookConverters": "전자책 변환기",
+    "ebookConvertersDesc": "EPUB, MOBI, AZW, CBR 및 기타 전자책 형식 변환. 다양한 전자책 리더 및 장치용으로 최적화.",
+    "presentationConverters": "프레젠테이션 변환기",
+    "presentationConvertersDesc": "PPTX, KEY, ODP 및 기타 프레젠테이션 형식 변환. 슬라이드, 애니메이션 및 서식 유지.",
+    "spreadsheetConverters": "스프레드시트 변환기",
+    "spreadsheetConvertersDesc": "XLSX, CSV, ODS 및 기타 스프레드시트 형식 변환. 수식, 차트 및 데이터 무결성 보존."
   }
 }

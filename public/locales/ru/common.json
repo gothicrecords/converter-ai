@@ -175,5 +175,25 @@
     "ctaTitle": "Готовы Начать?",
     "ctaText": "Присоединяйтесь к тысячам профессионалов, использующих MegaPixelAI каждый день",
     "ctaButton": "Начать Бесплатно"
+  },
+  "converters": {
+    "imageConverters": "Конвертеры Изображений",
+    "imageConvertersDesc": "Конвертируйте между PNG, JPG, WEBP, AVIF и форматами RAW (CR2, NEF, ARW, DNG, RAF и т.д.). Профессиональная конверсия с сохранением качества.",
+    "vectorConverters": "Векторные Конвертеры",
+    "vectorConvertersDesc": "Конвертируйте AI, SVG, EPS, CDR, VSD и другие векторные форматы в PDF или PNG. Сохраняйте качество и разрешение для профессиональной графики.",
+    "videoConverters": "Видео Конвертеры",
+    "videoConvertersDesc": "Конвертируйте видео между MP4, AVI, MOV, MKV, FLV, WEBM и другими форматами. Сжимайте и оптимизируйте для веба или мобильных устройств.",
+    "archiveConverters": "Конвертеры Архивов",
+    "archiveConvertersDesc": "Извлекайте и конвертируйте ZIP, RAR, 7Z, TAR.GZ и другие форматы архивов. Сжимайте файлы эффективно и безопасно.",
+    "audioConverters": "Аудио Конвертеры",
+    "audioConvertersDesc": "Конвертируйте MP3, WAV, FLAC, AAC, OGG и другие аудиоформаты. Настраивайте качество и битрейт для оптимальных результатов.",
+    "documentConverters": "Конвертеры Документов",
+    "documentConvertersDesc": "Конвертируйте PDF, DOCX, ODT, RTF, HTML и другие форматы документов. Сохраняйте форматирование и макет с точностью.",
+    "ebookConverters": "Конвертеры Электронных Книг",
+    "ebookConvertersDesc": "Конвертируйте EPUB, MOBI, AZW, CBR и другие форматы электронных книг. Оптимизируйте для различных электронных читалок и устройств.",
+    "presentationConverters": "Конвертеры Презентаций",
+    "presentationConvertersDesc": "Конвертируйте PPTX, KEY, ODP и другие форматы презентаций. Сохраняйте слайды, анимации и форматирование.",
+    "spreadsheetConverters": "Конвертеры Таблиц",
+    "spreadsheetConvertersDesc": "Конвертируйте XLSX, CSV, ODS и другие форматы таблиц. Сохраняйте формулы, диаграммы и целостность данных."
   }
 }
