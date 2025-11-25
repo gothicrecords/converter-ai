@@ -1,0 +1,3 @@
+{
+  "/api/stripe/create-portal-session": "pages/api/stripe/create-portal-session.js"
+}

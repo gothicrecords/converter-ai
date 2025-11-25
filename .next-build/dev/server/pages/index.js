@@ -1,0 +1,11 @@
+var R=require("../chunks/ssr/[turbopack]_runtime.js")("server/pages/index.js")
+R.c("server/chunks/ssr/lib_i18n-server_e9138df7.js")
+R.c("server/chunks/ssr/[root-of-the-server]__efd2f938._.js")
+R.c("server/chunks/ssr/node_modules_next_6445ac37._.js")
+R.c("server/chunks/ssr/node_modules_react-icons_bs_index_mjs_ad797dda._.js")
+R.c("server/chunks/ssr/node_modules_186c80ea._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__3c8416e4._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__325bc020._.js")
+R.c("server/chunks/ssr/node_modules_6a743dce._.js")
+R.m("[project]/node_modules/next/dist/esm/build/templates/pages.js { INNER_PAGE => \"[project]/pages/index.js [ssr] (ecmascript)\", INNER_DOCUMENT => \"[project]/pages/_document.js [ssr] (ecmascript)\", INNER_APP => \"[project]/pages/_app.js [ssr] (ecmascript)\" } [ssr] (ecmascript)")
+module.exports=R.m("[project]/node_modules/next/dist/esm/build/templates/pages.js { INNER_PAGE => \"[project]/pages/index.js [ssr] (ecmascript)\", INNER_DOCUMENT => \"[project]/pages/_document.js [ssr] (ecmascript)\", INNER_APP => \"[project]/pages/_app.js [ssr] (ecmascript)\" } [ssr] (ecmascript)").exports

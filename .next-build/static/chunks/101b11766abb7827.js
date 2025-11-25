@@ -1,0 +1,10 @@
+__turbopack_load_page_chunks__("/chat", [
+  "static/chunks/fa9dfb0a719296cc.js",
+  "static/chunks/0322205609ab6981.js",
+  "static/chunks/27ae9006aacde68c.js",
+  "static/chunks/069c6b9a66e781d1.js",
+  "static/chunks/71aa4e362e1e9af8.js",
+  "static/chunks/dcd1f0aa3f32d01c.js",
+  "static/chunks/ee01278c701d5dbb.js",
+  "static/chunks/turbopack-67fa1205e7a2cf23.js"
+])

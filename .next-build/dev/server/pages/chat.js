@@ -1,0 +1,12 @@
+var R=require("../chunks/ssr/[turbopack]_runtime.js")("server/pages/chat.js")
+R.c("server/chunks/ssr/[root-of-the-server]__ccee4787._.js")
+R.c("server/chunks/ssr/node_modules_next_5ecb13ed._.js")
+R.c("server/chunks/ssr/node_modules_micromark-core-commonmark_dev_lib_7847a70c._.js")
+R.c("server/chunks/ssr/node_modules_react-icons_bs_index_mjs_ad797dda._.js")
+R.c("server/chunks/ssr/node_modules_d399a09c._.js")
+R.c("server/chunks/ssr/node_modules_186c80ea._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__3c8416e4._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__325bc020._.js")
+R.c("server/chunks/ssr/node_modules_6a743dce._.js")
+R.m("[project]/node_modules/next/dist/esm/build/templates/pages.js { INNER_PAGE => \"[project]/pages/chat.js [ssr] (ecmascript)\", INNER_DOCUMENT => \"[project]/pages/_document.js [ssr] (ecmascript)\", INNER_APP => \"[project]/pages/_app.js [ssr] (ecmascript)\" } [ssr] (ecmascript)")
+module.exports=R.m("[project]/node_modules/next/dist/esm/build/templates/pages.js { INNER_PAGE => \"[project]/pages/chat.js [ssr] (ecmascript)\", INNER_DOCUMENT => \"[project]/pages/_document.js [ssr] (ecmascript)\", INNER_APP => \"[project]/pages/_app.js [ssr] (ecmascript)\" } [ssr] (ecmascript)").exports

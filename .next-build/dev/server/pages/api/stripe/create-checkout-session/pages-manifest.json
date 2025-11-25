@@ -1,0 +1,3 @@
+{
+  "/api/stripe/create-checkout-session": "pages/api/stripe/create-checkout-session.js"
+}

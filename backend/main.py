@@ -10,7 +10,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 import logging
 from contextlib import asynccontextmanager
 
-from backend.config import settings
+from backend.config import get_settings
+
+settings = get_settings()
 from backend.routers import (
     convert,
     pdf,
@@ -103,7 +105,7 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "main:app",
+        "backend.main:app",
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,
