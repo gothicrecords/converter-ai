@@ -40,8 +40,16 @@ const nextConfig = {
       'lodash', 
       '@tanstack/react-query',
       'date-fns',
-      'react-markdown'
+      'react-markdown',
+      'pdf-lib',
+      'pdfjs-dist',
+      'sharp',
+      'tesseract.js'
     ],
+    // Enable modern bundling optimizations
+    optimizeCss: true,
+    // Improve build performance
+    webVitalsAttribution: ['CLS', 'LCP', 'FCP', 'FID', 'TTFB', 'INP'],
   },
 
   webpack: (config, { dev, isServer }) => {
@@ -119,11 +127,22 @@ const nextConfig = {
         },
       };
       
-      // Performance hints
+      // Performance hints - more aggressive optimization
       config.performance = {
         hints: 'warning',
-        maxEntrypointSize: 512000,
-        maxAssetSize: 512000,
+        maxEntrypointSize: 300000, // Reduced from 512KB to 300KB
+        maxAssetSize: 300000,
+      };
+      
+      // Additional optimizations
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        sideEffects: false,
+        // Tree shaking
+        providedExports: true,
+        // Minimize bundle size
+        minimize: true,
       };
     }
     
@@ -155,6 +174,13 @@ const nextConfig = {
       exclude: ['error', 'warn'] 
     } : false,
     reactRemoveProperties: process.env.NODE_ENV === 'production',
+    // Additional optimizations
+    styledComponents: false,
+  },
+  
+  // Output configuration for better caching
+  generateBuildId: async () => {
+    return process.env.BUILD_ID || `build-${Date.now()}`;
   },
 
   // Internationalization

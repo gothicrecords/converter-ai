@@ -176,12 +176,15 @@ function MyApp({ Component, pageProps }) {
           setupLazyImages();
         }
         // Import and use additional performance utilities
-        import('../lib/performance').then(({ optimizeAnimations, measureWebVitals }) => {
+        import('../lib/performance').then(({ optimizeAnimations, measureWebVitals, optimizeMobilePerformance }) => {
           if (typeof optimizeAnimations === 'function') {
             optimizeAnimations();
           }
           if (typeof measureWebVitals === 'function') {
             measureWebVitals();
+          }
+          if (typeof optimizeMobilePerformance === 'function') {
+            optimizeMobilePerformance();
           }
         }).catch(() => {
           // Silently fail if performance utils can't be loaded

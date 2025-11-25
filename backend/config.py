@@ -25,34 +25,18 @@ class Settings(BaseSettings):
         "https://*.vercel.app",
     ]
     
-    # Database
-    DATABASE_URL: str = ""
+    # Database - Supabase
     SUPABASE_URL: str = ""
     SUPABASE_ANON_KEY: str = ""
     SUPABASE_SERVICE_ROLE_KEY: str = ""
     
-    # Cloudinary
-    CLOUDINARY_CLOUD_NAME: str = ""
-    CLOUDINARY_API_KEY: str = ""
-    CLOUDINARY_API_SECRET: str = ""
+    # OpenAI (for AI tools)
+    OPENAI_API_KEY: str = ""
     
     # Stripe
     STRIPE_SECRET_KEY: str = ""
-    STRIPE_PUBLISHABLE_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
-    STRIPE_PRODUCT_ID: str = ""
-    
-    # OpenAI
-    OPENAI_API_KEY: str = ""
-    
-    # Hugging Face
-    HF_API_TOKEN: str = ""
-    
-    # OAuth
-    GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
-    FACEBOOK_APP_ID: str = ""
-    FACEBOOK_APP_SECRET: str = ""
+    STRIPE_PUBLISHABLE_KEY: str = ""
     
     # App URL
     APP_URL: str = "http://localhost:3000"

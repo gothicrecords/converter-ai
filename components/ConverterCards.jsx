@@ -1,8 +1,8 @@
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
+import { useMemo, memo, useCallback } from 'react';
 import { getToolsByCategory } from '../lib/conversionRegistry';
 
-export default function ConverterCards({ currentTool, currentSlug }) {
+const ConverterCards = memo(function ConverterCards({ currentTool, currentSlug }) {
   const router = useRouter();
   const categories = useMemo(() => getToolsByCategory(), []);
   
@@ -45,9 +45,9 @@ export default function ConverterCards({ currentTool, currentSlug }) {
     '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#3b82f6'
   ];
 
-  const handleCardClick = (href) => {
+  const handleCardClick = useCallback((href) => {
     router.push(href);
-  };
+  }, [router]);
 
   return (
     <>
@@ -103,7 +103,9 @@ export default function ConverterCards({ currentTool, currentSlug }) {
       `}</style>
     </>
   );
-}
+});
+
+export default ConverterCards;
 
 const styles = {
   cardsContainer: {

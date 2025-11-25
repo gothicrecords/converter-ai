@@ -41,23 +41,56 @@ html,body{
   text-rendering:optimizeLegibility;
 }
 
-/* GPU acceleration for transforms */
-[style*="transform"], [style*="opacity"] {
+/* GPU acceleration for transforms - optimized */
+[style*="transform"], [style*="opacity"], 
+.animate, .transition, [class*="animate-"], [class*="transition-"] {
   will-change:transform, opacity;
   backface-visibility:hidden;
+  transform:translateZ(0); /* Force GPU acceleration */
+  -webkit-transform:translateZ(0);
 }
 
-/* Optimize image rendering */
+/* Optimize image rendering - enhanced */
 img, video {
   content-visibility:auto;
   image-rendering:-webkit-optimize-contrast;
   image-rendering:crisp-edges;
+  loading:lazy; /* Native lazy loading */
 }
 
-/* Reduce layout shifts */
+/* Reduce layout shifts - improved */
 img {
   height:auto;
   max-width:100%;
+  aspect-ratio:attr(width) / attr(height); /* Prevent layout shift */
+}
+
+/* Critical CSS optimizations for mobile */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color:rgba(102, 126, 234, 0.2);
+    touch-action:manipulation; /* Improve touch responsiveness */
+  }
+  
+  /* Reduce animations on mobile for better performance */
+  @media (prefers-reduced-motion: no-preference) {
+    * {
+      animation-duration:0.2s !important;
+      transition-duration:0.2s !important;
+    }
+  }
+  
+  /* Optimize scrolling on mobile */
+  body {
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+  }
+  
+  /* Reduce repaints on mobile */
+  img, video, canvas {
+    image-rendering:-webkit-optimize-contrast;
+    image-rendering:optimize-contrast;
+  }
 }
 
 body{

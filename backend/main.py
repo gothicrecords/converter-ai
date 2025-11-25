@@ -2,7 +2,7 @@
 FastAPI Backend Server
 Main entry point for the Python backend API
 """
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError

@@ -1,5 +1,6 @@
 """
 Upscale router - handles image upscaling
+Simple router that delegates to tools service
 """
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
@@ -15,7 +16,7 @@ tools_service = ToolsService()
 
 @router.post("/upscale")
 async def upscale(file: UploadFile = File(...), scale: int = Form(2)):
-    """Upscale image"""
+    """Upscale image - delegates to tools service"""
     try:
         file_content = await file.read()
         result = await tools_service.upscale(file_content, file.filename or "file.jpg", scale)

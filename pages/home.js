@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import { 
     HiSparkles, HiLightningBolt, HiShieldCheck, HiTrendingUp, 
     HiUsers, HiCheckCircle, HiArrowRight, HiStar 
@@ -9,41 +9,48 @@ import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
 import Footer from '../components/Footer';
 import { tools as allTools } from '../lib/tools';
+import { throttle } from '../lib/performance';
 
-export default function LandingPage() {
+const LandingPage = memo(function LandingPage() {
     const [email, setEmail] = useState('');
     const { t } = useTranslation();
     const [isMobile, setIsMobile] = useState(false);
 
-    // Safe client-side mobile detection
+    // Optimized mobile detection with throttling
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
         const checkMobile = () => setIsMobile(window.innerWidth <= 768);
         checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
+        
+        // Throttle resize events for better performance
+        const throttledCheck = throttle(checkMobile, 150);
+        window.addEventListener('resize', throttledCheck, { passive: true });
+        return () => window.removeEventListener('resize', throttledCheck);
     }, []);
 
-    const features = [
+    // Memoize features, testimonials, and stats to prevent recalculation
+    const features = useMemo(() => [
         { icon: HiLightningBolt, title: t('features.fastProcessing'), description: t('home.feature1Desc') },
         { icon: HiShieldCheck, title: t('features.secure'), description: t('home.feature2Desc') },
         { icon: HiTrendingUp, title: t('home.premiumQuality'), description: t('home.feature3Desc') },
         { icon: HiUsers, title: t('home.users'), description: t('home.feature4Desc') }
-    ];
+    ], [t]);
 
-    const testimonials = [
+    const testimonials = useMemo(() => [
         { name: t('home.testimonial1Name'), role: t('home.testimonial1Role'), avatar: '👨‍🎨', text: t('home.testimonial1Text'), rating: 5 },
         { name: t('home.testimonial2Name'), role: t('home.testimonial2Role'), avatar: '👩‍💼', text: t('home.testimonial2Text'), rating: 5 },
         { name: t('home.testimonial3Name'), role: t('home.testimonial3Role'), avatar: '🎬', text: t('home.testimonial3Text'), rating: 5 }
-    ];
+    ], [t]);
 
-    const stats = [
+    const stats = useMemo(() => [
         { value: '50K+', label: t('home.activeUsers') },
         { value: '2M+', label: t('home.imagesProcessed') },
         { value: '99.9%', label: t('home.uptime') },
         { value: '4.9/5', label: t('home.avgRating') }
-    ];
+    ], [t]);
 
-    const styles = getStyles(isMobile);
+    const styles = useMemo(() => getStyles(isMobile), [isMobile]);
     
     return (
         <div style={styles.pageWrap} suppressHydrationWarning>
@@ -143,7 +150,9 @@ export default function LandingPage() {
             <Footer />
         </div>
     );
-}
+});
+
+export default LandingPage;
 
 const getStyles = (isMobile) => ({
     pageWrap: { minHeight: '100vh', background: '#0a0e1a', color: '#e6eef8' },

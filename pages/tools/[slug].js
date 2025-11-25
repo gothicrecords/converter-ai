@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import { useState, useEffect, Suspense, lazy, useMemo, memo } from 'react';
 import { tools } from '../../lib/tools';
 import { getConversionTool, listConversionSlugs } from '../../lib/conversionRegistry';
 import GenericConverter from '../../components/GenericConverter';
@@ -7,20 +8,23 @@ import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import SEOHead from '../../components/SEOHead';
-import BackgroundRemover from '../../components/tools/BackgroundRemover';
-import ImageGenerator from '../../components/tools/ImageGenerator';
-import CleanNoise from '../../components/tools/CleanNoise';
-import AudioTranscription from '../../components/tools/AudioTranscription';
-import OCRAdvanced from '../../components/tools/OCRAdvanced';
-import TextSummarizer from '../../components/tools/TextSummarizer';
-import GrammarChecker from '../../components/tools/GrammarChecker';
-import ThumbnailGenerator from '../../components/tools/ThumbnailGenerator';
-import CombineSplitPDF from '../../components/tools/CombineSplitPDF';
-import VideoCompressor from '../../components/tools/VideoCompressor';
-import DocumentTranslator from '../../components/tools/DocumentTranslator';
-import Upscaler from '../../components/tools/Upscaler';
 import ProBadge from '../../components/ProBadge';
 import { toolSEOContent } from '../../lib/tool-seo-content';
+import Loading from '../../components/Loading';
+
+// Lazy load all heavy tool components for better performance
+const BackgroundRemover = lazy(() => import('../../components/tools/BackgroundRemover'));
+const ImageGenerator = lazy(() => import('../../components/tools/ImageGenerator'));
+const CleanNoise = lazy(() => import('../../components/tools/CleanNoise'));
+const AudioTranscription = lazy(() => import('../../components/tools/AudioTranscription'));
+const OCRAdvanced = lazy(() => import('../../components/tools/OCRAdvanced'));
+const TextSummarizer = lazy(() => import('../../components/tools/TextSummarizer'));
+const GrammarChecker = lazy(() => import('../../components/tools/GrammarChecker'));
+const ThumbnailGenerator = lazy(() => import('../../components/tools/ThumbnailGenerator'));
+const CombineSplitPDF = lazy(() => import('../../components/tools/CombineSplitPDF'));
+const VideoCompressor = lazy(() => import('../../components/tools/VideoCompressor'));
+const DocumentTranslator = lazy(() => import('../../components/tools/DocumentTranslator'));
+const Upscaler = lazy(() => import('../../components/tools/Upscaler'));
 
 const ToolPage = ({ initialSlug, meta }) => {
     const router = useRouter();
@@ -48,49 +52,64 @@ const ToolPage = ({ initialSlug, meta }) => {
         );
     }
 
-    const renderToolComponent = () => {
+    // Memoize tool component rendering for performance
+    const renderToolComponent = useMemo(() => {
         if (conversionTool) {
             // Assicurati che il tool abbia lo slug per le card
             const toolWithSlug = { ...conversionTool, slug: slug };
             return <GenericConverter tool={toolWithSlug} />;
         }
-        switch (slug) {
-            case 'rimozione-sfondo-ai':
-                return <BackgroundRemover />;
-            case 'clean-noise-ai':
-                return <CleanNoise />;
-            case 'generazione-immagini-ai':
-                return <ImageGenerator />;
-            case 'trascrizione-audio':
-                return <AudioTranscription />;
-            case 'ocr-avanzato-ai':
-                return <OCRAdvanced />;
-            case 'riassunto-testo':
-            case 'elabora-e-riassumi':
-                return <TextSummarizer />;
-            case 'correttore-grammaticale':
-                return <GrammarChecker />;
-            case 'thumbnail-generator':
-                return <ThumbnailGenerator />;
-            case 'combina-splitta-pdf':
-                return <CombineSplitPDF />;
-            case 'compressione-video':
-                return <VideoCompressor />;
-            case 'traduzione-documenti-ai':
-                return <DocumentTranslator />;
-            case 'upscaler-ai':
-                return <Upscaler />;
-            default:
-                return (
-                    <div style={styles.comingSoon}>
-                        <h2 style={styles.comingSoonTitle}>Componente in arrivo</h2>
-                        <p style={styles.comingSoonText}>
-                            L'interfaccia per lo strumento "{tool.title}" è in fase di sviluppo.
-                        </p>
-                    </div>
-                );
+        
+        // Lazy load component based on slug with Suspense fallback
+        const ToolComponent = (() => {
+            switch (slug) {
+                case 'rimozione-sfondo-ai':
+                    return BackgroundRemover;
+                case 'clean-noise-ai':
+                    return CleanNoise;
+                case 'generazione-immagini-ai':
+                    return ImageGenerator;
+                case 'trascrizione-audio':
+                    return AudioTranscription;
+                case 'ocr-avanzato-ai':
+                    return OCRAdvanced;
+                case 'riassunto-testo':
+                case 'elabora-e-riassumi':
+                    return TextSummarizer;
+                case 'correttore-grammaticale':
+                    return GrammarChecker;
+                case 'thumbnail-generator':
+                    return ThumbnailGenerator;
+                case 'combina-splitta-pdf':
+                    return CombineSplitPDF;
+                case 'compressione-video':
+                    return VideoCompressor;
+                case 'traduzione-documenti-ai':
+                    return DocumentTranslator;
+                case 'upscaler-ai':
+                    return Upscaler;
+                default:
+                    return null;
+            }
+        })();
+        
+        if (!ToolComponent) {
+            return (
+                <div style={styles.comingSoon}>
+                    <h2 style={styles.comingSoonTitle}>Componente in arrivo</h2>
+                    <p style={styles.comingSoonText}>
+                        L'interfaccia per lo strumento "{tool.title}" è in fase di sviluppo.
+                    </p>
+                </div>
+            );
         }
-    };
+        
+        return (
+            <Suspense fallback={<Loading />}>
+                <ToolComponent />
+            </Suspense>
+        );
+    }, [slug, conversionTool, tool.title]);
 
     // Get SEO content for this tool
     const seoContent = toolSEOContent[slug] || null;
@@ -141,7 +160,7 @@ const ToolPage = ({ initialSlug, meta }) => {
                 </header>
 
                 <div style={styles.toolContent}>
-                    {renderToolComponent()}
+                    {renderToolComponent}
                 </div>
 
                 {/* Rich Content Section for SEO */}
@@ -238,7 +257,8 @@ const ToolPage = ({ initialSlug, meta }) => {
     );
 };
 
-export default ToolPage;
+// Memoize component to prevent unnecessary re-renders
+export default memo(ToolPage);
 
 export async function getStaticPaths() {
     // Generate all pages on-demand to avoid Vercel build timeout
