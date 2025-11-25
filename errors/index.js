@@ -223,6 +223,12 @@ export async function handleApiError(error, res, context = {}) {
     return;
   }
 
+  // Set CORS headers for error responses
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Max-Age', '86400');
+
   // Handle known error types
   if (error instanceof AppError) {
     return res.status(error.statusCode).json(

@@ -278,12 +278,20 @@ function toDataUrl(buffer, mime) {
   return `data:${mime};base64,${base64}`;
 }
 
+// Helper function to set CORS headers
+function setCorsHeaders(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+}
+
 export default async function handler(req, res) {
+  // Set CORS headers for all responses
+  setCorsHeaders(res);
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.status(200).end();
     return;
   }
