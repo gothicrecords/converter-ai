@@ -34,7 +34,7 @@ async def remove_background(
 
 
 @router.post("/upscale")
-async def upscale(file: UploadFile = File(...), scale: int = 2):
+async def upscale(file: UploadFile = File(...), scale: int = Form(2)):
     """Upscale image"""
     try:
         file_content = await file.read()
