@@ -10,7 +10,7 @@ import Footer from '../../components/Footer';
 import SEOHead from '../../components/SEOHead';
 import ProBadge from '../../components/ProBadge';
 import { toolSEOContent } from '../../lib/tool-seo-content';
-import Loading from '../../components/Loading';
+import { LoadingOverlay, LoadingSpinner } from '../../components/Loading';
 
 // Lazy load all heavy tool components for better performance
 const BackgroundRemover = lazy(() => import('../../components/tools/BackgroundRemover'));
@@ -105,7 +105,7 @@ const ToolPage = ({ initialSlug, meta }) => {
         }
         
         return (
-            <Suspense fallback={<Loading />}>
+            <Suspense fallback={<LoadingOverlay message="Caricamento strumento..." />}>
                 <ToolComponent />
             </Suspense>
         );

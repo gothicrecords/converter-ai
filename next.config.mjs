@@ -43,11 +43,12 @@ const nextConfig = {
       'react-markdown',
       'pdf-lib',
       'pdfjs-dist',
-      'sharp',
       'tesseract.js'
     ],
     // Enable modern bundling optimizations
     optimizeCss: true,
+    // Note: Turbopack is enabled by default in Next.js 16
+    // If build fails with sharp, we'll handle it via webpack config
     // Improve build performance
     webVitalsAttribution: ['CLS', 'LCP', 'FCP', 'FID', 'TTFB', 'INP'],
   },
@@ -157,6 +158,25 @@ const nextConfig = {
           }
           return true;
         });
+      }
+      
+      // Exclude sharp from bundling in API routes to avoid Turbopack issues
+      // Sharp should be used server-side only and not bundled
+      config.resolve = config.resolve || {};
+      config.resolve.alias = config.resolve.alias || {};
+      // Don't bundle sharp - it's a native module
+      if (!config.externals.includes('sharp')) {
+        if (Array.isArray(config.externals)) {
+          config.externals.push('sharp');
+        } else if (typeof config.externals === 'function') {
+          const originalExternals = config.externals;
+          config.externals = (context, request, callback) => {
+            if (request === 'sharp') {
+              return callback(null, 'commonjs ' + request);
+            }
+            return originalExternals(context, request, callback);
+          };
+        }
       }
     }
     
