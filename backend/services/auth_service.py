@@ -5,8 +5,15 @@ import logging
 from typing import Dict, Optional
 import secrets
 from datetime import datetime, timedelta
-from supabase import create_client, Client
 from backend.config import get_settings
+
+# Supabase is optional
+try:
+    from supabase import create_client, Client
+    SUPABASE_AVAILABLE = True
+except ImportError:
+    SUPABASE_AVAILABLE = False
+    logger.warning("Supabase not available - auth features will be limited")
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -17,7 +24,7 @@ class AuthService:
     
     def __init__(self):
         """Initialize auth service"""
-        if settings.SUPABASE_URL and settings.SUPABASE_SERVICE_ROLE_KEY:
+        if SUPABASE_AVAILABLE and settings.SUPABASE_URL and settings.SUPABASE_SERVICE_ROLE_KEY:
             self.supabase: Client = create_client(
                 settings.SUPABASE_URL,
                 settings.SUPABASE_SERVICE_ROLE_KEY
