@@ -1,0 +1,201 @@
+import formidable from 'formidable';
+import fs from 'fs/promises';
+import upscaleImage from '../../utils/upscale.js';
+import { enhanceImageQualityWithAI } from '../../lib/openai.js';
+import { 
+  handleApiError, 
+  ValidationError, 
+  FileTooLargeError, 
+  InvalidFileTypeError,
+  TimeoutError,
+  ProcessingError,
+  FileSystemError
+} from '../../errors';
+import { canUseTool, getUpgradeMessage } from '../../lib/usage-limits.js';
+import { getUsageStats, incrementUsage, getUserPlan, getUserId } from '../../lib/usage-tracker.js';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+export default async function handler(req, res) {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed', code: 'METHOD_NOT_ALLOWED' });
+  }
+
+  // Set timeout for long-running operations
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+  const TIMEOUT_MS = 120000; // 2 minutes
+
+  // Su Vercel, usa /tmp (unico filesystem scrivibile)
+  const tmpDir = process.env.VERCEL ? '/tmp' : os.tmpdir();
+
+  const form = formidable({ 
+    multiples: false,
+    maxFileSize: MAX_FILE_SIZE,
+    keepExtensions: true,
+    uploadDir: tmpDir, // Usa /tmp su Vercel
+  });
+
+  let filePath = null;
+
+  try {
+    // Support both callback and promise styles robustly
+    const parsed = await Promise.race([
+      new Promise((resolve, reject) => {
+        form.parse(req, (err, fields, files) => {
+          if (err) {
+            // Handle formidable-specific errors
+            if (err.code === 'LIMIT_FILE_SIZE') {
+              return reject(new FileTooLargeError(MAX_FILE_SIZE));
+            }
+            return reject(new ValidationError('File upload failed: ' + err.message, err));
+          }
+          resolve({ fields, files });
+        });
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new TimeoutError('Request timeout', TIMEOUT_MS)), TIMEOUT_MS)
+      )
+    ]);
+
+    const { files } = parsed;
+
+    // Accept 'image' or 'file' field names; normalize array/single
+    let file = files?.image ?? files?.file ?? null;
+    if (Array.isArray(file)) file = file[0];
+
+    if (!file) {
+      throw new ValidationError('No file uploaded');
+    }
+
+    // Validate file type
+    if (!file.mimetype?.startsWith('image/')) {
+      throw new InvalidFileTypeError(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      throw new FileTooLargeError(MAX_FILE_SIZE, file.size);
+    }
+
+    // Verifica limiti d'uso (tool PRO)
+    const userId = getUserId(req);
+    const userPlan = getUserPlan(req);
+    const toolSlug = 'upscaler-ai';
+    const usageStats = getUsageStats(userId, toolSlug);
+    const fileInfo = {
+      size: file.size,
+    };
+
+    const limitCheck = canUseTool(toolSlug, userPlan, usageStats, fileInfo);
+    
+    if (!limitCheck.allowed) {
+      // Cleanup file prima di ritornare errore
+      if (filePath) {
+        try { 
+          await fs.unlink(filePath);
+        } catch (cleanupError) {
+          console.warn('Failed to cleanup temp file:', cleanupError);
+        }
+      }
+      
+      return res.status(403).json({
+        error: limitCheck.reason,
+        limitType: limitCheck.limitType,
+        current: limitCheck.current,
+        max: limitCheck.max,
+        upgradeMessage: getUpgradeMessage(toolSlug, userPlan),
+        requiresPro: true,
+      });
+    }
+
+    filePath = file.filepath || file.path; // v3 vs older
+    if (!filePath) {
+      throw new ValidationError('Uploaded file path missing');
+    }
+
+    let buffer;
+    try {
+      buffer = await fs.readFile(filePath);
+    } catch (readError) {
+      throw new FileSystemError('Failed to read uploaded file', readError);
+    }
+    
+    // Validate buffer is not empty
+    if (!buffer || buffer.length === 0) {
+      throw new ValidationError('File is empty or corrupted');
+    }
+
+    let upscaledUrl;
+    try {
+      // Use advanced local upscaler as primary method (improves existing image quality)
+      console.log('Using advanced local upscaler to enhance image quality');
+      upscaledUrl = await upscaleImage(buffer);
+      
+      // Optional: If OpenAI API key is available, use it for additional quality enhancement
+      // This analyzes the image and applies AI-based improvements
+      if (process.env.OPENAI_API_KEY) {
+        try {
+          console.log('Applying AI-based quality enhancement with OpenAI Vision...');
+          const enhancedBuffer = await enhanceImageQualityWithAI(buffer, file.mimetype);
+          
+          // Convert enhanced buffer to data URL
+          const base64 = enhancedBuffer.toString('base64');
+          upscaledUrl = `data:${file.mimetype || 'image/jpeg'};base64,${base64}`;
+          
+          console.log('AI enhancement applied successfully');
+        } catch (aiError) {
+          console.warn('AI enhancement failed, using upscaled result:', aiError.message);
+          // Continue with upscaled result if AI enhancement fails
+        }
+      }
+      
+      // Incrementa contatore uso (solo se la richiesta è andata a buon fine)
+      incrementUsage(userId, toolSlug);
+      
+      // Cleanup temp file
+      if (filePath) {
+        try { 
+          await fs.unlink(filePath);
+          filePath = null;
+        } catch (cleanupError) {
+          console.warn('Failed to cleanup temp file:', cleanupError);
+        }
+      }
+      
+      return res.status(200).json({ url: upscaledUrl });
+    } catch (upscaleError) {
+      throw new ProcessingError('Failed to upscale image', upscaleError);
+    }
+
+  } catch (error) {
+    // Cleanup on error
+    if (filePath) {
+      try { 
+        await fs.unlink(filePath);
+      } catch (cleanupError) {
+        console.warn('Failed to cleanup temp file on error:', cleanupError);
+      }
+    }
+
+    // Use centralized error handler
+    handleApiError(error, res, {
+      method: req.method,
+      url: req.url,
+      endpoint: '/api/upscale',
+    });
+  }
+}
