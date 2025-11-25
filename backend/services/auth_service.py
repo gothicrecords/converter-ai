@@ -1,20 +1,11 @@
 """
-Auth service - handles authentication using Supabase
+Auth service - handles authentication using Neon (PostgreSQL)
 """
 import logging
 from typing import Dict, Optional
 import secrets
 from datetime import datetime, timedelta
 from backend.config import get_settings
-
-# Neon/PostgreSQL is optional
-try:
-    import psycopg2
-    from psycopg2 import pool
-    PSYCOPG2_AVAILABLE = True
-except ImportError:
-    PSYCOPG2_AVAILABLE = False
-    logger.warning("psycopg2 not available - database features will be limited")
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -30,7 +21,7 @@ except ImportError:
 
 
 class AuthService:
-    """Service for authentication"""
+    """Service for authentication using Neon PostgreSQL"""
     
     def __init__(self):
         """Initialize auth service"""
@@ -42,134 +33,202 @@ class AuthService:
                 logger.warning(f"Could not connect to Neon database: {e}")
                 self.db_pool = None
         else:
-            self.supabase = None
-            logger.warning("Supabase not configured - auth features will be limited")
+            self.db_pool = None
+            logger.warning("Neon database not configured - auth features will be limited")
+    
+    def _get_connection(self):
+        """Get database connection from pool"""
+        if not self.db_pool:
+            raise ValueError("Database not configured")
+        return self.db_pool.getconn()
+    
+    def _return_connection(self, conn):
+        """Return connection to pool"""
+        if self.db_pool:
+            self.db_pool.putconn(conn)
     
     async def register_user(self, name: str, email: str, password: str) -> Dict:
         """Register a new user"""
-        if not self.supabase:
-            raise ValueError("Supabase not configured")
+        if not self.db_pool:
+            raise ValueError("Database not configured")
         
-        # Check if user exists
-        existing = self.supabase.table('users').select('id').eq('email', email).execute()
-        if existing.data:
-            raise ValueError("Email already registered")
-        
-        # Hash password (Supabase handles this, but we can use bcrypt for consistency)
-        from passlib.context import CryptContext
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        password_hash = pwd_context.hash(password)
-        
-        # Create user
-        user_data = {
-            'email': email,
-            'name': name,
-            'password_hash': password_hash,
-            'created_at': datetime.utcnow().isoformat(),
-        }
-        
-        result = self.supabase.table('users').insert(user_data).execute()
-        user = result.data[0] if result.data else None
-        
-        if not user:
-            raise ValueError("Failed to create user")
-        
-        # Create session
-        session_token = secrets.token_urlsafe(32)
-        expires_at = (datetime.utcnow() + timedelta(days=7)).isoformat()
-        
-        session_data = {
-            'user_id': user['id'],
-            'session_token': session_token,
-            'expires_at': expires_at,
-        }
-        
-        self.supabase.table('user_sessions').insert(session_data).execute()
-        
-        # Remove password hash from response
-        user.pop('password_hash', None)
-        
-        return {
-            'user': user,
-            'sessionToken': session_token,
-            'expiresAt': expires_at,
-        }
+        conn = None
+        try:
+            conn = self._get_connection()
+            cur = conn.cursor()
+            
+            # Check if user exists
+            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+            if cur.fetchone():
+                raise ValueError("Email already registered")
+            
+            # Hash password
+            from passlib.context import CryptContext
+            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+            password_hash = pwd_context.hash(password)
+            
+            # Create user
+            cur.execute(
+                """INSERT INTO users (email, name, password_hash, created_at)
+                   VALUES (%s, %s, %s, %s) RETURNING id, email, name, created_at""",
+                (email, name, password_hash, datetime.utcnow())
+            )
+            user = cur.fetchone()
+            conn.commit()
+            
+            if not user:
+                raise ValueError("Failed to create user")
+            
+            user_dict = {
+                'id': user[0],
+                'email': user[1],
+                'name': user[2],
+                'created_at': user[3].isoformat() if user[3] else None,
+            }
+            
+            # Create session
+            session_token = secrets.token_urlsafe(32)
+            expires_at = datetime.utcnow() + timedelta(days=7)
+            
+            cur.execute(
+                """INSERT INTO user_sessions (user_id, session_token, expires_at)
+                   VALUES (%s, %s, %s)""",
+                (user_dict['id'], session_token, expires_at)
+            )
+            conn.commit()
+            
+            return {
+                'user': user_dict,
+                'sessionToken': session_token,
+                'expiresAt': expires_at.isoformat(),
+            }
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            raise
+        finally:
+            if conn:
+                self._return_connection(conn)
     
     async def authenticate_user(self, email: str, password: str) -> Dict:
         """Authenticate user"""
-        if not self.supabase:
-            raise ValueError("Supabase not configured")
+        if not self.db_pool:
+            raise ValueError("Database not configured")
         
-        # Get user
-        result = self.supabase.table('users').select('*').eq('email', email).execute()
-        if not result.data:
-            raise ValueError("Invalid email or password")
-        
-        user = result.data[0]
-        
-        # Verify password
-        from passlib.context import CryptContext
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        
-        if not pwd_context.verify(password, user.get('password_hash', '')):
-            raise ValueError("Invalid email or password")
-        
-        # Create session
-        session_token = secrets.token_urlsafe(32)
-        expires_at = (datetime.utcnow() + timedelta(days=7)).isoformat()
-        
-        session_data = {
-            'user_id': user['id'],
-            'session_token': session_token,
-            'expires_at': expires_at,
-        }
-        
-        self.supabase.table('user_sessions').insert(session_data).execute()
-        
-        # Remove password hash from response
-        user.pop('password_hash', None)
-        
-        return {
-            'user': user,
-            'sessionToken': session_token,
-            'expiresAt': expires_at,
-        }
+        conn = None
+        try:
+            conn = self._get_connection()
+            cur = conn.cursor()
+            
+            # Get user
+            cur.execute("SELECT id, email, name, password_hash, created_at FROM users WHERE email = %s", (email,))
+            user = cur.fetchone()
+            
+            if not user:
+                raise ValueError("Invalid email or password")
+            
+            # Verify password
+            from passlib.context import CryptContext
+            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+            
+            if not pwd_context.verify(password, user[3]):
+                raise ValueError("Invalid email or password")
+            
+            user_dict = {
+                'id': user[0],
+                'email': user[1],
+                'name': user[2],
+                'created_at': user[4].isoformat() if user[4] else None,
+            }
+            
+            # Create session
+            session_token = secrets.token_urlsafe(32)
+            expires_at = datetime.utcnow() + timedelta(days=7)
+            
+            cur.execute(
+                """INSERT INTO user_sessions (user_id, session_token, expires_at)
+                   VALUES (%s, %s, %s)""",
+                (user_dict['id'], session_token, expires_at)
+            )
+            conn.commit()
+            
+            return {
+                'user': user_dict,
+                'sessionToken': session_token,
+                'expiresAt': expires_at.isoformat(),
+            }
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            raise
+        finally:
+            if conn:
+                self._return_connection(conn)
     
     async def get_user_from_session(self, session_token: str) -> Optional[Dict]:
         """Get user from session token"""
-        if not self.supabase or not session_token:
+        if not self.db_pool or not session_token:
             return None
         
-        # Get session
-        result = self.supabase.table('user_sessions').select('*').eq('session_token', session_token).execute()
-        if not result.data:
+        conn = None
+        try:
+            conn = self._get_connection()
+            cur = conn.cursor()
+            
+            # Get session
+            cur.execute(
+                """SELECT user_id, expires_at FROM user_sessions 
+                   WHERE session_token = %s""",
+                (session_token,)
+            )
+            session = cur.fetchone()
+            
+            if not session:
+                return None
+            
+            # Check if expired
+            expires_at = session[1]
+            if expires_at < datetime.utcnow():
+                return None
+            
+            # Get user
+            cur.execute(
+                "SELECT id, email, name, created_at FROM users WHERE id = %s",
+                (session[0],)
+            )
+            user = cur.fetchone()
+            
+            if not user:
+                return None
+            
+            return {
+                'id': user[0],
+                'email': user[1],
+                'name': user[2],
+                'created_at': user[3].isoformat() if user[3] else None,
+            }
+        except Exception:
             return None
-        
-        session = result.data[0]
-        
-        # Check if expired
-        expires_at = datetime.fromisoformat(session['expires_at'].replace('Z', '+00:00'))
-        if expires_at < datetime.utcnow():
-            return None
-        
-        # Get user
-        user_result = self.supabase.table('users').select('*').eq('id', session['user_id']).execute()
-        if not user_result.data:
-            return None
-        
-        user = user_result.data[0]
-        user.pop('password_hash', None)
-        
-        return user
+        finally:
+            if conn:
+                self._return_connection(conn)
     
     async def logout(self, session_token: str) -> bool:
         """Logout user by deleting session"""
-        if not self.supabase or not session_token:
+        if not self.db_pool or not session_token:
             return False
         
+        conn = None
         try:
-            self.supabase.table('user_sessions').delete().eq('session_token', session_token).execute()
-            return True
+            conn = self._get_connection()
+            cur = conn.cursor()
+            cur.execute("DELETE FROM user_sessions WHERE session_token = %s", (session_token,))
+            conn.commit()
+            return cur.rowcount > 0
         except Exception:
+            if conn:
+                conn.rollback()
             return False
-
+        finally:
+            if conn:
+                self._return_connection(conn)
