@@ -17,6 +17,7 @@ from backend.routers import (
     convert,
     pdf,
     tools,
+    upscale,
     auth,
     files,
     chat,
@@ -77,6 +78,7 @@ app.add_exception_handler(Exception, error_handler)
 app.include_router(convert.router, prefix="/api/convert", tags=["convert"])
 app.include_router(pdf.router, prefix="/api/pdf", tags=["pdf"])
 app.include_router(tools.router, prefix="/api/tools", tags=["tools"])
+app.include_router(upscale.router, prefix="/api", tags=["upscale"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])

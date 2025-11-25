@@ -195,10 +195,13 @@ function GenericConverter({ tool }) {
         throw new Error(`URL API non valido: ${apiUrl}`);
       }
       
-      // Costruisci l'URL completo usando l'origine corrente
-      const fullApiUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}${apiUrl}`
-        : apiUrl;
+      // Costruisci l'URL completo usando l'origine corrente o backend Python
+      const pythonBackendUrl = process.env.NEXT_PUBLIC_PYTHON_API_URL || process.env.NEXT_PUBLIC_API_URL;
+      const fullApiUrl = pythonBackendUrl 
+        ? `${pythonBackendUrl}${apiUrl}`
+        : typeof window !== 'undefined' 
+          ? `${window.location.origin}${apiUrl}`
+          : apiUrl;
       
       // Log per debugging
       if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {

@@ -22,6 +22,10 @@ async def convert_file(
     width: Optional[str] = Form(None),
     height: Optional[str] = Form(None),
     page: Optional[str] = Form(None),
+    vwidth: Optional[str] = Form(None),
+    vheight: Optional[str] = Form(None),
+    vbitrate: Optional[str] = Form(None),
+    abitrate: Optional[str] = Form(None),
 ):
     """
     Convert a file to target format
@@ -59,6 +63,10 @@ async def convert_file(
             width=width,
             height=height,
             page=page,
+            vwidth=vwidth,
+            vheight=vheight,
+            vbitrate=vbitrate,
+            abitrate=abitrate,
         )
         
         return JSONResponse({
