@@ -4,6 +4,7 @@ uvicorn[standard]==0.32.0
 python-multipart==0.0.12
 pydantic>=2.10.0
 pydantic-settings>=2.6.0
+email-validator>=2.0.0
 
 # Image Processing
 Pillow==10.4.0
@@ -34,6 +35,7 @@ onnx==1.16.1  # Required by rembg
 
 # Database - Supabase
 supabase==2.8.1
+psycopg2-binary>=2.9.0  # PostgreSQL adapter (optional, for direct DB access)
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0
