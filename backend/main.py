@@ -11,8 +11,6 @@ import logging
 from contextlib import asynccontextmanager
 
 from backend.config import get_settings
-
-settings = get_settings()
 from backend.routers import (
     convert,
     pdf,
@@ -28,6 +26,9 @@ from backend.routers import (
 )
 from backend.middleware.error_handler import error_handler
 from backend.middleware.logging_middleware import LoggingMiddleware
+
+# Get settings after all imports
+settings = get_settings()
 
 # Configure logging
 logging.basicConfig(
@@ -57,14 +58,29 @@ app = FastAPI(
 )
 
 # CORS Middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Temporarily allow all origins for testing
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-)
+# Handle CORS origins - if "*" is set, don't use allow_credentials (not compatible)
+cors_origins = settings.CORS_ORIGINS
+if cors_origins == "*" or (isinstance(cors_origins, list) and "*" in cors_origins):
+    # Allow all origins without credentials
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,  # Cannot use credentials with "*"
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["*"],
+    )
+else:
+    # Use specific origins with credentials
+    origins_list = cors_origins if isinstance(cors_origins, list) else [cors_origins]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins_list,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["*"],
+    )
 
 # Custom middleware
 app.add_middleware(LoggingMiddleware)
@@ -106,10 +122,13 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
+    import os
+    # Railway sets PORT automatically, use it if available
+    port = int(os.getenv("PORT", settings.PORT))
     uvicorn.run(
         "backend.main:app",
         host=settings.HOST,
-        port=settings.PORT,
+        port=port,
         reload=settings.DEBUG,
         log_level="info"
     )
