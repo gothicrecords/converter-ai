@@ -19,6 +19,15 @@ except ImportError:
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+# Neon/PostgreSQL is optional
+try:
+    import psycopg2
+    from psycopg2 import pool
+    PSYCOPG2_AVAILABLE = True
+except ImportError:
+    PSYCOPG2_AVAILABLE = False
+    logger.warning("psycopg2 not available - database features will be limited")
+
 
 class AuthService:
     """Service for authentication"""
