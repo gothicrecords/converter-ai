@@ -15,9 +15,16 @@ import pypdf
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.utils import ImageReader
-from weasyprint import HTML
 from docx import Document
 import mammoth
+
+# WeasyPrint is optional (requires system libraries on Windows)
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except ImportError:
+    WEASYPRINT_AVAILABLE = False
+    logger.warning("WeasyPrint not available - HTML to PDF conversion will be limited")
 
 logger = logging.getLogger(__name__)
 
@@ -312,8 +319,29 @@ class PDFConverterService:
             html_result = mammoth.convert_to_html(BytesIO(docx_content))
             html_string = html_result.value
             
-            # Convert HTML to PDF using WeasyPrint
-            pdf_bytes = HTML(string=html_string).write_pdf()
+            # Convert HTML to PDF using WeasyPrint (if available) or reportlab
+            if WEASYPRINT_AVAILABLE:
+                pdf_bytes = HTML(string=html_string).write_pdf()
+            else:
+                # Fallback: use reportlab to create PDF from text
+                from reportlab.lib.styles import getSampleStyleSheet
+                from reportlab.platypus import SimpleDocTemplate, Paragraph
+                
+                output_buffer = BytesIO()
+                doc = SimpleDocTemplate(output_buffer, pagesize=A4)
+                styles = getSampleStyleSheet()
+                story = []
+                
+                # Simple HTML to text conversion
+                import re
+                text = re.sub(r'<[^>]+>', '', html_string)
+                paragraphs = text.split('\n')
+                for para in paragraphs:
+                    if para.strip():
+                        story.append(Paragraph(para.strip(), styles['Normal']))
+                
+                doc.build(story)
+                pdf_bytes = output_buffer.getvalue()
             
             # Convert to data URL
             data_url = f"data:application/pdf;base64,{base64.b64encode(pdf_bytes).decode()}"
