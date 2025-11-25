@@ -120,8 +120,6 @@ class ToolsService:
                 # Apply sharpening filter
                 from PIL import ImageFilter
                 upscaled = upscaled.filter(ImageFilter.UnsharpMask(radius=1, percent=150, threshold=3))
-                
-            except ImportError:
             else:
                 # Fallback to PIL LANCZOS if scikit-image not available
                 upscaled = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
