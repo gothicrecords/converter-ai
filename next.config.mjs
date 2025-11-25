@@ -45,8 +45,8 @@ const nextConfig = {
       'pdfjs-dist',
       'tesseract.js'
     ],
-    // Enable modern bundling optimizations
-    optimizeCss: true,
+    // Disable optimizeCss to avoid critters dependency issue
+    // optimizeCss: true,  // Disabled - requires critters package
     // Note: Turbopack is enabled by default in Next.js 16
     // If build fails with sharp, we'll handle it via webpack config
     // Improve build performance
