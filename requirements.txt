@@ -5,6 +5,7 @@ python-multipart==0.0.12
 pydantic>=2.10.0
 pydantic-settings>=2.6.0
 email-validator>=2.0.0
+httpx>=0.27.0  # For async HTTP requests (OAuth)
 
 # Image Processing
 Pillow==10.4.0

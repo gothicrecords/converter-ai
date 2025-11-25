@@ -23,6 +23,7 @@ from backend.routers import (
     stripe,
     support,
     health,
+    oauth,
 )
 from backend.middleware.error_handler import error_handler
 from backend.middleware.logging_middleware import LoggingMiddleware
@@ -96,6 +97,7 @@ app.include_router(pdf.router, prefix="/api/pdf", tags=["pdf"])
 app.include_router(tools.router, prefix="/api/tools", tags=["tools"])
 app.include_router(upscale.router, prefix="/api", tags=["upscale"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(oauth.router, prefix="/api/auth/oauth", tags=["oauth"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])

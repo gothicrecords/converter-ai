@@ -232,3 +232,94 @@ class AuthService:
         finally:
             if conn:
                 self._return_connection(conn)
+    
+    async def register_or_login_oauth_user(
+        self, 
+        provider: str, 
+        provider_id: str, 
+        email: str, 
+        name: str, 
+        avatar_url: Optional[str] = None
+    ) -> Dict:
+        """Register or login OAuth user"""
+        if not self.db_pool:
+            raise ValueError("Database not configured")
+        
+        conn = None
+        try:
+            conn = self._get_connection()
+            cur = conn.cursor()
+            
+            # Check if user exists by email or provider_id
+            cur.execute(
+                """SELECT id, email, name, auth_provider, provider_id FROM users 
+                   WHERE email = %s OR (auth_provider = %s AND provider_id = %s)""",
+                (email, provider, provider_id)
+            )
+            existing_user = cur.fetchone()
+            
+            if existing_user:
+                # User exists - update if needed and create session
+                user_id = existing_user[0]
+                
+                # Update OAuth info if changed
+                cur.execute(
+                    """UPDATE users SET 
+                       auth_provider = %s, 
+                       provider_id = %s, 
+                       provider_email = %s,
+                       avatar_url = COALESCE(%s, avatar_url),
+                       name = COALESCE(%s, name)
+                       WHERE id = %s""",
+                    (provider, provider_id, email, avatar_url, name, user_id)
+                )
+                conn.commit()
+                
+                user_dict = {
+                    'id': user_id,
+                    'email': existing_user[1] or email,
+                    'name': existing_user[2] or name,
+                }
+            else:
+                # New user - create
+                cur.execute(
+                    """INSERT INTO users (email, name, auth_provider, provider_id, provider_email, avatar_url, created_at)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id, email, name, created_at""",
+                    (email, name, provider, provider_id, email, avatar_url, datetime.utcnow())
+                )
+                user = cur.fetchone()
+                conn.commit()
+                
+                if not user:
+                    raise ValueError("Failed to create user")
+                
+                user_dict = {
+                    'id': user[0],
+                    'email': user[1],
+                    'name': user[2],
+                    'created_at': user[3].isoformat() if user[3] else None,
+                }
+            
+            # Create session
+            session_token = secrets.token_urlsafe(32)
+            expires_at = datetime.utcnow() + timedelta(days=7)
+            
+            cur.execute(
+                """INSERT INTO user_sessions (user_id, session_token, expires_at)
+                   VALUES (%s, %s, %s)""",
+                (user_dict['id'], session_token, expires_at)
+            )
+            conn.commit()
+            
+            return {
+                'user': user_dict,
+                'sessionToken': session_token,
+                'expiresAt': expires_at.isoformat(),
+            }
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            raise
+        finally:
+            if conn:
+                self._return_connection(conn)
