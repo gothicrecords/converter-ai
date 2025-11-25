@@ -17,7 +17,6 @@ from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.utils import ImageReader
 from weasyprint import HTML
 from docx import Document
-from docx2python import docx2python
 import mammoth
 
 logger = logging.getLogger(__name__)
@@ -72,7 +71,7 @@ class PDFConverterService:
     async def pdf_to_pptx(self, pdf_content: bytes, filename: str) -> Dict[str, str]:
         """Convert PDF to PPTX"""
         try:
-            from python_pptx import Presentation
+            from pptx import Presentation
             
             # Open PDF and convert to images
             images = convert_from_bytes(pdf_content, dpi=200)
@@ -150,9 +149,18 @@ class PDFConverterService:
             
             pdf_document.close()
             
-            # Save to XLSX
+            # Save to XLSX using openpyxl directly
+            from openpyxl import Workbook
+            wb = Workbook()
+            ws = wb.active
+            
+            # Write DataFrame to worksheet
+            for r_idx, row in enumerate(df.itertuples(index=False), start=1):
+                for c_idx, value in enumerate(row, start=1):
+                    ws.cell(row=r_idx, column=c_idx, value=value)
+            
             output_buffer = BytesIO()
-            df.to_excel(output_buffer, index=False, engine='openpyxl')
+            wb.save(output_buffer)
             output_buffer.seek(0)
             
             # Convert to data URL

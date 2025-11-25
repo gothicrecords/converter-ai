@@ -70,7 +70,10 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
       : '/api/pdf/pdf-to-docx';
 
     try{
-      const res = await fetch(route,{ method:'POST', body: fd });
+      // Use getApiUrl to support Python backend
+      const { getApiUrl } = await import('../utils/getApiUrl');
+      const fullRoute = getApiUrl(route);
+      const res = await fetch(fullRoute, { method:'POST', body: fd });
       
       // Handle empty responses safely
       const text = await res.text();
