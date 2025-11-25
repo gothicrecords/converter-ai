@@ -16,14 +16,8 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     
-    # CORS
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "https://pixelsuite.com",
-        "https://www.pixelsuite.com",
-        "https://*.vercel.app",
-    ]
+    # CORS - Allow all origins in production for Railway deployment
+    CORS_ORIGINS: List[str] = ["*"]  # Allow all origins for Railway
     
     # Database - Neon (PostgreSQL)
     NEON_DATABASE_URL: str = ""
