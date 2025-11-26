@@ -128,7 +128,7 @@ class ToolsService:
             logger.error(f"Convert image error: {exc}", exc_info=True)
             raise
 
-    """Service for AI tools"""
+    # Service for AI tools
 
     def __init__(self):
         """Initialize tools service"""
