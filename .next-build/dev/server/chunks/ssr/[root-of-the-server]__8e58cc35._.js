@@ -2080,7 +2080,11 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$performance$2e$js__$5
 const Navbar = ()=>{
     const { t } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$i18n$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["useTranslation"])();
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$router$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
-    const [isMobile, setIsMobile] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])(false);
+    const [isMobile, setIsMobile] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])(()=>{
+        if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+        ;
+        return false;
+    });
     const [dropdownOpen, setDropdownOpen] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])(null);
     const [scrolled, setScrolled] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])(false);
     const [hoveredItem, setHoveredItem] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])(null);
@@ -2091,12 +2095,15 @@ const Navbar = ()=>{
     // refs for dropdown buttons
     const buttonRefs = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useRef"])({});
     const closeTimeoutRef = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useRef"])(null);
-    // Safe client-side mobile detection
+    // Safe client-side mobile detection with throttling
     (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useEffect"])(()=>{
-        const checkMobile = ()=>setIsMobile(window.innerWidth <= 768);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return ()=>window.removeEventListener('resize', checkMobile);
+        if ("TURBOPACK compile-time truthy", 1) return;
+        //TURBOPACK unreachable
+        ;
+        const checkMobile = undefined;
+        // Throttle resize events for better performance
+        let resizeTimeout;
+        const handleResize = undefined;
     }, []);
     (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useEffect"])(()=>{
         if (!isMobile) {
@@ -2185,17 +2192,21 @@ const Navbar = ()=>{
             position: 'sticky',
             top: 0,
             zIndex: 100000,
-            background: scrolled ? 'rgba(10, 14, 26, 0.9)' : 'rgba(10, 14, 26, 0.95)',
+            background: scrolled ? 'rgba(10, 14, 26, 0.95)' : 'rgba(10, 14, 26, 0.98)',
+            WebkitBackdropFilter: 'blur(20px)',
             backdropFilter: 'blur(20px)',
             borderBottom: scrolled ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid rgba(102, 126, 234, 0.2)',
-            padding: scrolled ? '6px 0' : '10px 0',
+            padding: scrolled ? '8px 0' : '12px 0',
             boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.4), 0 0 20px rgba(102, 126, 234, 0.1)' : '0 2px 12px rgba(0,0,0,0.3)',
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
             width: '100%',
             maxWidth: '100%',
             overflowX: 'hidden',
             overflowY: 'visible',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)',
+            willChange: 'background, box-shadow, padding'
         },
         navContent: {
             width: '100%',
@@ -2353,58 +2364,87 @@ const Navbar = ()=>{
             display: isMobile ? 'flex' : 'none',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '8px',
+            padding: '10px',
             background: 'transparent',
             border: 'none',
             color: '#cbd5e1',
             cursor: 'pointer',
-            fontSize: '24px',
-            marginRight: '8px'
+            fontSize: '26px',
+            marginRight: '8px',
+            minWidth: '44px',
+            minHeight: '44px',
+            WebkitTapHighlightColor: 'transparent',
+            touchAction: 'manipulation',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
         },
         secondaryMenuBtn: {
             display: isMobile ? 'flex' : 'none',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '8px',
+            padding: '10px',
             background: 'transparent',
             border: 'none',
             color: '#cbd5e1',
             cursor: 'pointer',
-            fontSize: '24px',
-            marginRight: '12px'
+            fontSize: '26px',
+            marginRight: '12px',
+            minWidth: '44px',
+            minHeight: '44px',
+            WebkitTapHighlightColor: 'transparent',
+            touchAction: 'manipulation',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
         },
         mobileMenu: {
             position: 'fixed',
             top: 0,
             right: mobileMenuOpen ? 0 : '-100%',
             bottom: 0,
-            width: '80%',
-            maxWidth: '320px',
-            background: 'rgba(10, 14, 26, 0.98)',
-            backdropFilter: 'blur(16px)',
-            borderLeft: '1px solid rgba(102, 126, 234, 0.2)',
+            width: '85%',
+            maxWidth: '340px',
+            minWidth: '280px',
+            background: 'rgba(10, 14, 26, 0.99)',
+            WebkitBackdropFilter: 'blur(20px)',
+            backdropFilter: 'blur(20px)',
+            borderLeft: '1px solid rgba(102, 126, 234, 0.3)',
             overflowY: 'auto',
-            padding: '20px',
-            zIndex: 1002,
-            transition: 'right 0.3s ease',
-            boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)',
-            display: isMobile ? 'block' : 'none'
+            overflowX: 'hidden',
+            padding: '24px 20px',
+            zIndex: 100004,
+            transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s',
+            boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.6)',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+            display: 'block',
+            visibility: mobileMenuOpen ? 'visible' : 'hidden',
+            opacity: mobileMenuOpen ? 1 : 0,
+            pointerEvents: mobileMenuOpen ? 'auto' : 'none'
         },
         mobileSecondaryMenu: {
             position: 'fixed',
             top: 0,
             right: mobileSecondaryMenuOpen ? 0 : '-100%',
             bottom: 0,
-            width: '280px',
-            background: 'rgba(10, 14, 26, 0.98)',
-            backdropFilter: 'blur(16px)',
-            borderLeft: '1px solid rgba(102, 126, 234, 0.2)',
+            width: '85%',
+            maxWidth: '320px',
+            minWidth: '260px',
+            background: 'rgba(10, 14, 26, 0.99)',
+            WebkitBackdropFilter: 'blur(20px)',
+            backdropFilter: 'blur(20px)',
+            borderLeft: '1px solid rgba(102, 126, 234, 0.3)',
             overflowY: 'auto',
-            padding: '20px',
-            zIndex: 1002,
-            transition: 'right 0.3s ease',
-            boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)',
-            display: isMobile ? 'block' : 'none'
+            overflowX: 'hidden',
+            padding: '24px 20px',
+            zIndex: 100004,
+            transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s',
+            boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.6)',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+            display: 'block',
+            visibility: mobileSecondaryMenuOpen ? 'visible' : 'hidden',
+            opacity: mobileSecondaryMenuOpen ? 1 : 0,
+            pointerEvents: mobileSecondaryMenuOpen ? 'auto' : 'none'
         },
         mobileOverlay: {
             position: 'fixed',
@@ -2412,9 +2452,14 @@ const Navbar = ()=>{
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.7)',
-            zIndex: 1001,
-            backdropFilter: 'blur(4px)'
+            background: 'rgba(0, 0, 0, 0.75)',
+            WebkitBackdropFilter: 'blur(4px)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 100003,
+            opacity: mobileMenuOpen || mobileSecondaryMenuOpen ? 1 : 0,
+            visibility: mobileMenuOpen || mobileSecondaryMenuOpen ? 'visible' : 'hidden',
+            transition: 'opacity 0.3s ease, visibility 0.3s ease',
+            WebkitTapHighlightColor: 'transparent'
         },
         mobileMenuHeader: {
             display: 'flex',
@@ -2434,53 +2479,80 @@ const Navbar = ()=>{
             background: 'transparent',
             border: 'none',
             color: '#cbd5e1',
-            fontSize: '24px',
+            fontSize: '28px',
             cursor: 'pointer',
-            padding: '4px'
+            padding: '8px',
+            minWidth: '44px',
+            minHeight: '44px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            WebkitTapHighlightColor: 'rgba(102, 126, 234, 0.2)',
+            touchAction: 'manipulation',
+            borderRadius: '8px',
+            transition: 'background 0.2s ease'
         },
         mobileMenuItem: {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '14px 16px',
+            padding: '16px 18px',
             color: '#cbd5e1',
             textDecoration: 'none',
-            borderRadius: '8px',
+            borderRadius: '10px',
             fontSize: '15px',
             fontWeight: '600',
-            background: 'rgba(30, 41, 59, 0.5)',
-            border: '1px solid rgba(102, 126, 234, 0.2)',
-            marginBottom: '8px',
-            cursor: 'pointer'
+            background: 'rgba(30, 41, 59, 0.6)',
+            border: '1px solid rgba(102, 126, 234, 0.25)',
+            marginBottom: '10px',
+            cursor: 'pointer',
+            minHeight: '48px',
+            WebkitTapHighlightColor: 'rgba(102, 126, 234, 0.2)',
+            touchAction: 'manipulation',
+            transition: 'all 0.2s ease',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
         },
         mobileCategoryHeader: {
-            padding: '12px 16px',
+            padding: '14px 18px',
             color: '#667eea',
-            fontSize: '12px',
+            fontSize: '13px',
             fontWeight: '700',
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
             marginTop: '16px',
-            marginBottom: '8px',
+            marginBottom: '10px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             cursor: 'pointer',
-            background: 'rgba(102, 126, 234, 0.1)',
-            borderRadius: '8px'
+            background: 'rgba(102, 126, 234, 0.15)',
+            borderRadius: '10px',
+            minHeight: '48px',
+            WebkitTapHighlightColor: 'rgba(102, 126, 234, 0.3)',
+            touchAction: 'manipulation',
+            transition: 'all 0.2s ease',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
         },
         mobileDropdownItem: {
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            padding: '10px 16px 10px 32px',
+            padding: '12px 16px 12px 36px',
             color: '#cbd5e1',
             textDecoration: 'none',
             borderRadius: '8px',
             fontSize: '14px',
             fontWeight: '500',
             background: 'rgba(15, 23, 42, 0.7)',
-            marginBottom: '4px'
+            marginBottom: '6px',
+            minHeight: '44px',
+            WebkitTapHighlightColor: 'rgba(102, 126, 234, 0.2)',
+            touchAction: 'manipulation',
+            transition: 'all 0.2s ease',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
         }
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["Fragment"], {
@@ -2533,7 +2605,7 @@ const Navbar = ()=>{
                                                                 className: "jsx-3b10be881c6611e8"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/Navbar.js",
-                                                                lineNumber: 481,
+                                                                lineNumber: 576,
                                                                 columnNumber: 33
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("stop", {
@@ -2545,13 +2617,13 @@ const Navbar = ()=>{
                                                                 className: "jsx-3b10be881c6611e8"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/Navbar.js",
-                                                                lineNumber: 482,
+                                                                lineNumber: 577,
                                                                 columnNumber: 33
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/Navbar.js",
-                                                        lineNumber: 480,
+                                                        lineNumber: 575,
                                                         columnNumber: 29
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("filter", {
@@ -2564,7 +2636,7 @@ const Navbar = ()=>{
                                                                 className: "jsx-3b10be881c6611e8"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/Navbar.js",
-                                                                lineNumber: 485,
+                                                                lineNumber: 580,
                                                                 columnNumber: 33
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("feMerge", {
@@ -2575,7 +2647,7 @@ const Navbar = ()=>{
                                                                         className: "jsx-3b10be881c6611e8"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/components/Navbar.js",
-                                                                        lineNumber: 487,
+                                                                        lineNumber: 582,
                                                                         columnNumber: 37
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("feMergeNode", {
@@ -2583,25 +2655,25 @@ const Navbar = ()=>{
                                                                         className: "jsx-3b10be881c6611e8"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/components/Navbar.js",
-                                                                        lineNumber: 488,
+                                                                        lineNumber: 583,
                                                                         columnNumber: 37
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/components/Navbar.js",
-                                                                lineNumber: 486,
+                                                                lineNumber: 581,
                                                                 columnNumber: 33
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/Navbar.js",
-                                                        lineNumber: 484,
+                                                        lineNumber: 579,
                                                         columnNumber: 29
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 479,
+                                                lineNumber: 574,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("path", {
@@ -2613,7 +2685,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 494,
+                                                lineNumber: 589,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("rect", {
@@ -2626,7 +2698,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 501,
+                                                lineNumber: 596,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("rect", {
@@ -2639,7 +2711,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 502,
+                                                lineNumber: 597,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("rect", {
@@ -2652,7 +2724,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 503,
+                                                lineNumber: 598,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("rect", {
@@ -2666,7 +2738,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 504,
+                                                lineNumber: 599,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("rect", {
@@ -2679,7 +2751,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 505,
+                                                lineNumber: 600,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("rect", {
@@ -2692,7 +2764,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 506,
+                                                lineNumber: 601,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("circle", {
@@ -2704,7 +2776,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 509,
+                                                lineNumber: 604,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("circle", {
@@ -2716,7 +2788,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 510,
+                                                lineNumber: 605,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("circle", {
@@ -2728,7 +2800,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 511,
+                                                lineNumber: 606,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("circle", {
@@ -2740,7 +2812,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 512,
+                                                lineNumber: 607,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("line", {
@@ -2754,7 +2826,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 515,
+                                                lineNumber: 610,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("line", {
@@ -2768,7 +2840,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 516,
+                                                lineNumber: 611,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("line", {
@@ -2782,7 +2854,7 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 517,
+                                                lineNumber: 612,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("line", {
@@ -2796,13 +2868,13 @@ const Navbar = ()=>{
                                                 className: "jsx-3b10be881c6611e8"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 518,
+                                                lineNumber: 613,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 477,
+                                        lineNumber: 572,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -2815,7 +2887,7 @@ const Navbar = ()=>{
                                                 children: "MegaPixelAI"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 521,
+                                                lineNumber: 616,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("span", {
@@ -2824,19 +2896,19 @@ const Navbar = ()=>{
                                                 children: "ToolSuite"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 522,
+                                                lineNumber: 617,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 520,
+                                        lineNumber: 615,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/Navbar.js",
-                                lineNumber: 476,
+                                lineNumber: 571,
                                 columnNumber: 17
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -2859,7 +2931,7 @@ const Navbar = ()=>{
                                         children: "Tutti i Tool"
                                     }, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 527,
+                                        lineNumber: 622,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     Object.keys(categories).map((catName)=>{
@@ -2895,13 +2967,13 @@ const Navbar = ()=>{
                                                             }
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/Navbar.js",
-                                                            lineNumber: 566,
+                                                            lineNumber: 661,
                                                             columnNumber: 33
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/Navbar.js",
-                                                    lineNumber: 553,
+                                                    lineNumber: 648,
                                                     columnNumber: 29
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 isOpen && buttonRefs.current[catName] && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$DropdownPortal$2e$jsx__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2960,7 +3032,7 @@ const Navbar = ()=>{
                                                                                     }
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/components/Navbar.js",
-                                                                                    lineNumber: 625,
+                                                                                    lineNumber: 720,
                                                                                     columnNumber: 67
                                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("span", {
@@ -2972,7 +3044,7 @@ const Navbar = ()=>{
                                                                                     children: tool.title
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/components/Navbar.js",
-                                                                                    lineNumber: 626,
+                                                                                    lineNumber: 721,
                                                                                     columnNumber: 53
                                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                                 tool.pro && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("span", {
@@ -2990,13 +3062,13 @@ const Navbar = ()=>{
                                                                                     children: "PRO"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/components/Navbar.js",
-                                                                                    lineNumber: 628,
+                                                                                    lineNumber: 723,
                                                                                     columnNumber: 57
                                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/components/Navbar.js",
-                                                                            lineNumber: 600,
+                                                                            lineNumber: 695,
                                                                             columnNumber: 49
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         showSeparator && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3010,13 +3082,13 @@ const Navbar = ()=>{
                                                                             className: "jsx-3b10be881c6611e8"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/components/Navbar.js",
-                                                                            lineNumber: 643,
+                                                                            lineNumber: 738,
                                                                             columnNumber: 53
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, tool.href, true, {
                                                                     fileName: "[project]/components/Navbar.js",
-                                                                    lineNumber: 599,
+                                                                    lineNumber: 694,
                                                                     columnNumber: 45
                                                                 }, ("TURBOPACK compile-time value", void 0));
                                                             }),
@@ -3041,7 +3113,7 @@ const Navbar = ()=>{
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/components/Navbar.js",
-                                                                        lineNumber: 667,
+                                                                        lineNumber: 762,
                                                                         columnNumber: 45
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$bs$2f$index$2e$mjs__$5b$ssr$5d$__$28$ecmascript$29$__["BsChevronRight"], {
@@ -3052,30 +3124,30 @@ const Navbar = ()=>{
                                                                         }
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/components/Navbar.js",
-                                                                        lineNumber: 668,
+                                                                        lineNumber: 763,
                                                                         columnNumber: 45
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/components/Navbar.js",
-                                                                lineNumber: 655,
+                                                                lineNumber: 750,
                                                                 columnNumber: 41
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/Navbar.js",
-                                                        lineNumber: 583,
+                                                        lineNumber: 678,
                                                         columnNumber: 37
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/Navbar.js",
-                                                    lineNumber: 578,
+                                                    lineNumber: 673,
                                                     columnNumber: 33
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, catName, true, {
                                             fileName: "[project]/components/Navbar.js",
-                                            lineNumber: 547,
+                                            lineNumber: 642,
                                             columnNumber: 25
                                         }, ("TURBOPACK compile-time value", void 0));
                                     }),
@@ -3091,7 +3163,7 @@ const Navbar = ()=>{
                                         children: t('nav.pricing')
                                     }, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 678,
+                                        lineNumber: 773,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -3104,7 +3176,7 @@ const Navbar = ()=>{
                                         children: "FAQ"
                                     }, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 691,
+                                        lineNumber: 786,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -3119,18 +3191,18 @@ const Navbar = ()=>{
                                         children: "Accedi"
                                     }, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 702,
+                                        lineNumber: 797,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$LanguageSwitcher$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 715,
+                                        lineNumber: 810,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/Navbar.js",
-                                lineNumber: 526,
+                                lineNumber: 621,
                                 columnNumber: 17
                             }, ("TURBOPACK compile-time value", void 0)),
                             isMobile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3151,12 +3223,12 @@ const Navbar = ()=>{
                                         className: "jsx-3b10be881c6611e8",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi$2f$index$2e$mjs__$5b$ssr$5d$__$28$ecmascript$29$__["HiMenu"], {}, void 0, false, {
                                             fileName: "[project]/components/Navbar.js",
-                                            lineNumber: 730,
+                                            lineNumber: 825,
                                             columnNumber: 29
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 721,
+                                        lineNumber: 816,
                                         columnNumber: 25
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
@@ -3170,40 +3242,48 @@ const Navbar = ()=>{
                                         className: "jsx-3b10be881c6611e8",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi$2f$index$2e$mjs__$5b$ssr$5d$__$28$ecmascript$29$__["HiDotsVertical"], {}, void 0, false, {
                                             fileName: "[project]/components/Navbar.js",
-                                            lineNumber: 742,
+                                            lineNumber: 837,
                                             columnNumber: 29
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 733,
+                                        lineNumber: 828,
                                         columnNumber: 25
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/Navbar.js",
-                                lineNumber: 720,
+                                lineNumber: 815,
                                 columnNumber: 21
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/Navbar.js",
-                        lineNumber: 474,
+                        lineNumber: 569,
                         columnNumber: 17
                     }, ("TURBOPACK compile-time value", void 0)),
                     isMobile && (mobileMenuOpen || mobileSecondaryMenuOpen) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
                         style: styles.mobileOverlay,
-                        onClick: ()=>{
+                        onClick: (e)=>{
+                            e.stopPropagation();
+                            setMobileMenuOpen(false);
+                            setMobileSecondaryMenuOpen(false);
+                        },
+                        onTouchStart: (e)=>{
+                            e.stopPropagation();
                             setMobileMenuOpen(false);
                             setMobileSecondaryMenuOpen(false);
                         },
                         className: "jsx-3b10be881c6611e8"
                     }, void 0, false, {
                         fileName: "[project]/components/Navbar.js",
-                        lineNumber: 750,
+                        lineNumber: 845,
                         columnNumber: 17
                     }, ("TURBOPACK compile-time value", void 0)),
                     isMobile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
                         style: styles.mobileMenu,
+                        onClick: (e)=>e.stopPropagation(),
+                        onTouchStart: (e)=>e.stopPropagation(),
                         className: "jsx-3b10be881c6611e8",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3216,29 +3296,37 @@ const Navbar = ()=>{
                                         children: "Menu"
                                     }, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 763,
+                                        lineNumber: 868,
                                         columnNumber: 25
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
                                         style: styles.closeBtn,
-                                        onClick: ()=>setMobileMenuOpen(false),
+                                        onClick: (e)=>{
+                                            e.stopPropagation();
+                                            setMobileMenuOpen(false);
+                                        },
+                                        onTouchEnd: (e)=>{
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setMobileMenuOpen(false);
+                                        },
                                         "aria-label": "Chiudi menu",
                                         title: "Chiudi menu",
                                         className: "jsx-3b10be881c6611e8",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi$2f$index$2e$mjs__$5b$ssr$5d$__$28$ecmascript$29$__["HiX"], {}, void 0, false, {
                                             fileName: "[project]/components/Navbar.js",
-                                            lineNumber: 770,
+                                            lineNumber: 883,
                                             columnNumber: 29
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 764,
+                                        lineNumber: 869,
                                         columnNumber: 25
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/Navbar.js",
-                                lineNumber: 762,
+                                lineNumber: 867,
                                 columnNumber: 21
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -3252,7 +3340,7 @@ const Navbar = ()=>{
                                 children: "Tutti i Tool"
                             }, void 0, false, {
                                 fileName: "[project]/components/Navbar.js",
-                                lineNumber: 774,
+                                lineNumber: 887,
                                 columnNumber: 21
                             }, ("TURBOPACK compile-time value", void 0)),
                             Object.keys(categories).map((catName)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3268,7 +3356,7 @@ const Navbar = ()=>{
                                                     children: catName
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/Navbar.js",
-                                                    lineNumber: 792,
+                                                    lineNumber: 905,
                                                     columnNumber: 33
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$bs$2f$index$2e$mjs__$5b$ssr$5d$__$28$ecmascript$29$__["BsChevronRight"], {
@@ -3280,13 +3368,13 @@ const Navbar = ()=>{
                                                     }
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/Navbar.js",
-                                                    lineNumber: 793,
+                                                    lineNumber: 906,
                                                     columnNumber: 33
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/Navbar.js",
-                                            lineNumber: 788,
+                                            lineNumber: 901,
                                             columnNumber: 29
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         expandedCategory === catName && categories[catName].slice(0, 15).map((tool)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -3301,7 +3389,7 @@ const Navbar = ()=>{
                                                         }
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/Navbar.js",
-                                                        lineNumber: 809,
+                                                        lineNumber: 922,
                                                         columnNumber: 51
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("span", {
@@ -3309,13 +3397,13 @@ const Navbar = ()=>{
                                                         children: tool.title
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/Navbar.js",
-                                                        lineNumber: 810,
+                                                        lineNumber: 923,
                                                         columnNumber: 37
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, tool.href, true, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 803,
+                                                lineNumber: 916,
                                                 columnNumber: 33
                                             }, ("TURBOPACK compile-time value", void 0))),
                                         expandedCategory === catName && categories[catName].length > 15 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -3335,28 +3423,30 @@ const Navbar = ()=>{
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/Navbar.js",
-                                                lineNumber: 823,
+                                                lineNumber: 936,
                                                 columnNumber: 37
                                             }, ("TURBOPACK compile-time value", void 0))
                                         }, void 0, false, {
                                             fileName: "[project]/components/Navbar.js",
-                                            lineNumber: 814,
+                                            lineNumber: 927,
                                             columnNumber: 33
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, catName, true, {
                                     fileName: "[project]/components/Navbar.js",
-                                    lineNumber: 787,
+                                    lineNumber: 900,
                                     columnNumber: 25
                                 }, ("TURBOPACK compile-time value", void 0)))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/Navbar.js",
-                        lineNumber: 761,
+                        lineNumber: 862,
                         columnNumber: 17
                     }, ("TURBOPACK compile-time value", void 0)),
                     isMobile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
                         style: styles.mobileSecondaryMenu,
+                        onClick: (e)=>e.stopPropagation(),
+                        onTouchStart: (e)=>e.stopPropagation(),
                         className: "jsx-3b10be881c6611e8",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3369,27 +3459,37 @@ const Navbar = ()=>{
                                         children: "Account"
                                     }, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 835,
+                                        lineNumber: 952,
                                         columnNumber: 25
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
                                         style: styles.closeBtn,
-                                        onClick: ()=>setMobileSecondaryMenuOpen(false),
+                                        onClick: (e)=>{
+                                            e.stopPropagation();
+                                            setMobileSecondaryMenuOpen(false);
+                                        },
+                                        onTouchEnd: (e)=>{
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setMobileSecondaryMenuOpen(false);
+                                        },
+                                        "aria-label": "Chiudi menu",
+                                        title: "Chiudi menu",
                                         className: "jsx-3b10be881c6611e8",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi$2f$index$2e$mjs__$5b$ssr$5d$__$28$ecmascript$29$__["HiX"], {}, void 0, false, {
                                             fileName: "[project]/components/Navbar.js",
-                                            lineNumber: 840,
+                                            lineNumber: 967,
                                             columnNumber: 29
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 836,
+                                        lineNumber: 953,
                                         columnNumber: 25
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/Navbar.js",
-                                lineNumber: 834,
+                                lineNumber: 951,
                                 columnNumber: 21
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -3403,7 +3503,7 @@ const Navbar = ()=>{
                                 children: "Accedi"
                             }, void 0, false, {
                                 fileName: "[project]/components/Navbar.js",
-                                lineNumber: 844,
+                                lineNumber: 971,
                                 columnNumber: 21
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -3413,7 +3513,7 @@ const Navbar = ()=>{
                                 children: t('nav.pricing')
                             }, void 0, false, {
                                 fileName: "[project]/components/Navbar.js",
-                                lineNumber: 856,
+                                lineNumber: 983,
                                 columnNumber: 21
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -3423,7 +3523,7 @@ const Navbar = ()=>{
                                 children: "FAQ"
                             }, void 0, false, {
                                 fileName: "[project]/components/Navbar.js",
-                                lineNumber: 864,
+                                lineNumber: 991,
                                 columnNumber: 21
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3445,30 +3545,30 @@ const Navbar = ()=>{
                                         children: "Lingua"
                                     }, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 873,
+                                        lineNumber: 1000,
                                         columnNumber: 25
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$LanguageSwitcher$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                         fileName: "[project]/components/Navbar.js",
-                                        lineNumber: 876,
+                                        lineNumber: 1003,
                                         columnNumber: 25
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/Navbar.js",
-                                lineNumber: 872,
+                                lineNumber: 999,
                                 columnNumber: 21
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/Navbar.js",
-                        lineNumber: 833,
+                        lineNumber: 946,
                         columnNumber: 17
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/Navbar.js",
-                lineNumber: 473,
+                lineNumber: 568,
                 columnNumber: 13
             }, ("TURBOPACK compile-time value", void 0))
         ]
@@ -3492,7 +3592,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$rout
 function SEOHead({ title, description, canonical, toolName, toolCategory, keywords = [], image, type = 'website', locale, alternateLocales = [], faqItems = [], howToSteps = [], articleData = null, videoData = null }) {
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$router$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
     const siteName = 'MegaPixelAI';
-    const siteUrl = 'https://best-upscaler-ia.vercel.app';
+    const siteUrl = ("TURBOPACK compile-time value", "http://localhost:3000") || (("TURBOPACK compile-time falsy", 0) ? "TURBOPACK unreachable" : 'http://localhost:3000');
     const currentLocale = locale || router?.locale || 'en';
     // Fallback per evitare che appaiano le chiavi di traduzione
     const safeTitle = title && !title.startsWith('seo.') ? title : 'Strumenti AI Professionali';
@@ -3526,7 +3626,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
             href: fullUrl
         }, `hreflang-${currentLocale}`, false, {
             fileName: "[project]/components/SEOHead.js",
-            lineNumber: 43,
+            lineNumber: 45,
             columnNumber: 13
         }, this));
         // Add x-default (usually English or main locale)
@@ -3536,7 +3636,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
             href: `${siteUrl}${basePath}`
         }, "hreflang-x-default", false, {
             fileName: "[project]/components/SEOHead.js",
-            lineNumber: 48,
+            lineNumber: 50,
             columnNumber: 13
         }, this));
         // Add alternate locales
@@ -3549,7 +3649,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                     href: `${siteUrl}${localePath}`
                 }, `hreflang-${loc}`, false, {
                     fileName: "[project]/components/SEOHead.js",
-                    lineNumber: 56,
+                    lineNumber: 58,
                     columnNumber: 21
                 }, this));
             }
@@ -3753,7 +3853,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 children: fullTitle
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 262,
+                lineNumber: 264,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3761,7 +3861,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: fullTitle
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 263,
+                lineNumber: 265,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3769,7 +3869,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: safeDescription
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 264,
+                lineNumber: 266,
                 columnNumber: 13
             }, this),
             keywords.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3777,7 +3877,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: keywords.join(', ')
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 265,
+                lineNumber: 267,
                 columnNumber: 37
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3785,7 +3885,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "IT"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 268,
+                lineNumber: 270,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3793,7 +3893,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "Italy"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 269,
+                lineNumber: 271,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3801,7 +3901,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: currentLocale
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 270,
+                lineNumber: 272,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3809,7 +3909,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: currentLocale
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 271,
+                lineNumber: 273,
                 columnNumber: 13
             }, this),
             canonical && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -3817,7 +3917,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 href: fullUrl
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 274,
+                lineNumber: 276,
                 columnNumber: 27
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -3826,7 +3926,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 href: `${siteUrl}/sitemap.xml`
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 277,
+                lineNumber: 279,
                 columnNumber: 13
             }, this),
             generateHreflangTags(),
@@ -3835,7 +3935,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: type
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 283,
+                lineNumber: 285,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3843,7 +3943,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: fullUrl
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 284,
+                lineNumber: 286,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3851,7 +3951,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: fullTitle
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 285,
+                lineNumber: 287,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3859,7 +3959,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: safeDescription
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 286,
+                lineNumber: 288,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3867,7 +3967,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: siteName
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 287,
+                lineNumber: 289,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3875,7 +3975,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: ogImage
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 288,
+                lineNumber: 290,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3883,7 +3983,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "1200"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 289,
+                lineNumber: 291,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3891,7 +3991,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "630"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 290,
+                lineNumber: 292,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3899,7 +3999,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: title
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 291,
+                lineNumber: 293,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3907,7 +4007,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: currentLocale.replace('-', '_')
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 292,
+                lineNumber: 294,
                 columnNumber: 13
             }, this),
             supportedLocales.filter((l)=>l !== currentLocale).map((loc)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3915,7 +4015,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                     content: loc.replace('-', '_')
                 }, `og-locale-${loc}`, false, {
                     fileName: "[project]/components/SEOHead.js",
-                    lineNumber: 294,
+                    lineNumber: 296,
                     columnNumber: 17
                 }, this)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3923,7 +4023,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "summary_large_image"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 298,
+                lineNumber: 300,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3931,7 +4031,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: fullUrl
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 299,
+                lineNumber: 301,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3939,7 +4039,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: fullTitle
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 300,
+                lineNumber: 302,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3947,7 +4047,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: safeDescription
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 301,
+                lineNumber: 303,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3955,7 +4055,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: ogImage
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 302,
+                lineNumber: 304,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3963,7 +4063,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: title
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 303,
+                lineNumber: 305,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3971,7 +4071,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "@MegaPixelAI"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 304,
+                lineNumber: 306,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3979,7 +4079,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "@MegaPixelAI"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 305,
+                lineNumber: 307,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3987,7 +4087,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 308,
+                lineNumber: 310,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3995,7 +4095,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: siteName
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 309,
+                lineNumber: 311,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4003,7 +4103,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: siteName
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 310,
+                lineNumber: 312,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4011,7 +4111,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "7 days"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 311,
+                lineNumber: 313,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4019,7 +4119,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "global"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 312,
+                lineNumber: 314,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4027,7 +4127,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "general"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 313,
+                lineNumber: 315,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4035,7 +4135,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: siteName
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 314,
+                lineNumber: 316,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4043,7 +4143,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "Next.js"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 315,
+                lineNumber: 317,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4051,7 +4151,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "true"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 318,
+                lineNumber: 320,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4059,7 +4159,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "telephone=no"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 319,
+                lineNumber: 321,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4067,7 +4167,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "app-id="
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 320,
+                lineNumber: 322,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4075,7 +4175,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 323,
+                lineNumber: 325,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4083,7 +4183,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 324,
+                lineNumber: 326,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4091,7 +4191,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "index, follow"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 325,
+                lineNumber: 327,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4099,7 +4199,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "index, follow"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 326,
+                lineNumber: 328,
                 columnNumber: 13
             }, this),
             process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4107,7 +4207,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 330,
+                lineNumber: 332,
                 columnNumber: 17
             }, this),
             process.env.NEXT_PUBLIC_BING_VERIFICATION && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4115,7 +4215,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: process.env.NEXT_PUBLIC_BING_VERIFICATION
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 333,
+                lineNumber: 335,
                 columnNumber: 17
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4123,7 +4223,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "text/html; charset=utf-8"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 337,
+                lineNumber: 339,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4131,7 +4231,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: type
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 340,
+                lineNumber: 342,
                 columnNumber: 13
             }, this),
             type === 'article' && articleData && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["Fragment"], {
@@ -4141,7 +4241,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                         content: articleData.datePublished
                     }, void 0, false, {
                         fileName: "[project]/components/SEOHead.js",
-                        lineNumber: 344,
+                        lineNumber: 346,
                         columnNumber: 25
                     }, this),
                     articleData.dateModified && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4149,7 +4249,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                         content: articleData.dateModified
                     }, void 0, false, {
                         fileName: "[project]/components/SEOHead.js",
-                        lineNumber: 347,
+                        lineNumber: 349,
                         columnNumber: 25
                     }, this),
                     articleData.tags && articleData.tags.map((tag, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4157,7 +4257,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                             content: tag
                         }, `article-tag-${i}`, false, {
                             fileName: "[project]/components/SEOHead.js",
-                            lineNumber: 350,
+                            lineNumber: 352,
                             columnNumber: 25
                         }, this))
                 ]
@@ -4167,7 +4267,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "yes"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 356,
+                lineNumber: 358,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4175,7 +4275,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "yes"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 357,
+                lineNumber: 359,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4183,7 +4283,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "black-translucent"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 358,
+                lineNumber: 360,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4191,7 +4291,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: siteName
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 359,
+                lineNumber: 361,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4199,7 +4299,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "#667eea"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 362,
+                lineNumber: 364,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -4207,7 +4307,7 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                 content: "#667eea"
             }, void 0, false, {
                 fileName: "[project]/components/SEOHead.js",
-                lineNumber: 363,
+                lineNumber: 365,
                 columnNumber: 13
             }, this),
             structuredData.map((schema, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("script", {
@@ -4217,13 +4317,13 @@ function SEOHead({ title, description, canonical, toolName, toolCategory, keywor
                     }
                 }, `structured-data-${index}`, false, {
                     fileName: "[project]/components/SEOHead.js",
-                    lineNumber: 367,
+                    lineNumber: 369,
                     columnNumber: 17
                 }, this))
         ]
     }, void 0, true, {
         fileName: "[project]/components/SEOHead.js",
-        lineNumber: 260,
+        lineNumber: 262,
         columnNumber: 9
     }, this);
 }

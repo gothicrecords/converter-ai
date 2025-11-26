@@ -6,6 +6,7 @@
   "rootMainFiles": [],
   "pages": {
     "/pdf": [
+      "static/chunks/utils_getApiUrl_0e69d9bd.js",
       "static/chunks/[root-of-the-server]__6007a216._.js",
       "static/chunks/node_modules_next_dist_compiled_next-devtools_index_1dd7fb59.js",
       "static/chunks/node_modules_next_dist_compiled_b8067044._.js",
@@ -23,7 +24,7 @@
       "static/chunks/node_modules_pako_52ecd5f3._.js",
       "static/chunks/node_modules_610c1710._.js",
       "static/chunks/pages_pdf_index_jsx_2da965e7._.js",
-      "static/chunks/turbopack-pages_pdf_index_jsx_b8b34619._.js"
+      "static/chunks/turbopack-pages_pdf_index_jsx_c901f184._.js"
     ]
   },
   "ampFirstPages": []

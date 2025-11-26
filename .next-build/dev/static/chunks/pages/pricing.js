@@ -1,5 +1,5 @@
 __turbopack_load_page_chunks__("/pricing", [
-  "static/chunks/[root-of-the-server]__38bbd8b9._.js",
+  "static/chunks/[root-of-the-server]__e7c5644c._.js",
   "static/chunks/node_modules_next_dist_compiled_48866e82._.js",
   "static/chunks/node_modules_next_dist_shared_lib_f9ab8d2e._.js",
   "static/chunks/node_modules_next_dist_client_dd328336._.js",
@@ -13,5 +13,5 @@ __turbopack_load_page_chunks__("/pricing", [
   "static/chunks/node_modules_react-icons_lib_7cd2a28b._.js",
   "static/chunks/node_modules_d7187f81._.js",
   "static/chunks/pages_pricing_2da965e7._.js",
-  "static/chunks/turbopack-pages_pricing_7edc2f6a._.js"
+  "static/chunks/turbopack-pages_pricing_b02b69de._.js"
 ])

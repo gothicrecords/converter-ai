@@ -6,37 +6,25 @@ const MARGIN = 8;
 /**
  * DropdownPortal
  * Renders children into a portal (document.body) and positions it relative to an anchor element.
- * Props:
- * - anchorEl: DOM element that anchors the dropdown
- * - open: boolean flag to show/hide the portal
- * - onClose: callback invoked when clicking outside
- * - children: dropdown content
  */
-export default function DropdownPortal({ anchorEl, open, onClose, children, offset = 8, preferRight = false }) {
-  const [mounted, setMounted] = useState(false);
-  const [container, setContainer] = useState(null);
-  const [style, setStyle] = useState({ 
-    visibility: 'hidden', 
-    position: 'fixed', 
-    top: '-9999px', 
-    left: '-9999px',
-    zIndex: 10050
-  });
-  const elRef = useRef(null);
 
-  // Gestisci il mounting lato client per evitare errori di hydration
+function DropdownPortal({ open, anchorEl, offset = 0, preferRight = false, onClose, children }) {
+  const [mounted, setMounted] = useState(false);
+  const [style, setStyle] = useState({});
+  const elRef = useRef(null);
+  const [container, setContainer] = useState(null);
+
   useEffect(() => {
+    // Create a portal container on mount
+    const portalContainer = document.createElement('div');
+    document.body.appendChild(portalContainer);
+    setContainer(portalContainer);
     setMounted(true);
-    if (typeof document !== 'undefined') {
-      const portalContainer = document.createElement('div');
-      setContainer(portalContainer);
-      document.body.appendChild(portalContainer);
-      return () => {
-        if (document.body.contains(portalContainer)) {
-          document.body.removeChild(portalContainer);
-        }
-      };
-    }
+    return () => {
+      if (document.body.contains(portalContainer)) {
+        document.body.removeChild(portalContainer);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -178,6 +166,7 @@ export default function DropdownPortal({ anchorEl, open, onClose, children, offs
     return null;
   }
 
+  // Always apply dropdown-portal class for overlay and visibility fixes
   return createPortal(
     <div ref={elRef} style={style} className="dropdown-portal">
       {children}

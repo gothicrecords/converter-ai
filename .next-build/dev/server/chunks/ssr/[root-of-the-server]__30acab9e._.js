@@ -3694,7 +3694,59 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
         }
         const route = active === 'jpg2pdf' ? '/api/pdf/jpg-to-pdf' : active === 'pdf2jpg' ? '/api/pdf/pdf-to-jpg' : active === 'docx2pdf' ? '/api/pdf/docx-to-pdf' : active === 'ppt2pdf' ? '/api/pdf/ppt-to-pdf' : active === 'xls2pdf' ? '/api/pdf/xls-to-pdf' : active === 'html2pdf' ? '/api/pdf/html-to-pdf' : active === 'pdf2pptx' ? '/api/pdf/pdf-to-pptx' : active === 'pdf2xlsx' ? '/api/pdf/pdf-to-xlsx' : active === 'pdf2pdfa' ? '/api/pdf/pdf-to-pdfa' : '/api/pdf/pdf-to-docx';
         try {
-            const res = await fetch(route, {
+            // Use getApiUrl to support Python backend with fallback
+            const { getApiUrl } = await __turbopack_context__.A("[project]/utils/getApiUrl.js [ssr] (ecmascript, async loader)");
+            let fullRoute = getApiUrl(route);
+            // Try Python backend first, fallback to Next.js API if connection fails
+            try {
+                const res = await fetch(fullRoute, {
+                    method: 'POST',
+                    body: fd,
+                    signal: AbortSignal.timeout(10000) // 10 second timeout
+                });
+                // If connection fails, try Next.js API route
+                if (!res.ok && res.status === 0) {
+                    throw new Error('Connection refused');
+                }
+                // Handle response
+                const text = await res.text();
+                let j;
+                try {
+                    j = text && text.trim() ? JSON.parse(text) : {};
+                } catch (parseErr) {
+                    throw new Error('Risposta non valida dal server');
+                }
+                if (!res.ok) throw new Error(j.hint || j.details || j.error || 'Errore');
+                if (j.urls && Array.isArray(j.urls)) {
+                    setOutList(j.urls);
+                } else if (j.url) {
+                    setOutUrl(j.url);
+                } else if (j.dataUrl) {
+                    setOutUrl(j.dataUrl);
+                } else {
+                    throw new Error('Risposta sconosciuta');
+                }
+                setStatus('Fatto!');
+                return;
+            } catch (fetchError) {
+                // Fallback to Next.js API if Python backend not available
+                const isConnectionError = fetchError.message.includes('Connection refused') || fetchError.message.includes('Failed to fetch') || fetchError.message.includes('ERR_CONNECTION_REFUSED') || fetchError.message.includes('timeout') || fetchError.name === 'TypeError' || fetchError.name === 'AbortError';
+                // Check if we're trying to use Python backend (not already using Next.js route)
+                const isPythonBackend = fullRoute.startsWith('http://') || fullRoute.startsWith('https://');
+                if (isConnectionError && isPythonBackend) {
+                    console.warn('Backend Python non disponibile, uso API Next.js come fallback');
+                    fullRoute = route; // Use Next.js API route directly
+                } else if (!isPythonBackend) {
+                    // Already using Next.js API, just throw the error
+                    throw fetchError;
+                } else {
+                    // Other error, try Next.js fallback anyway
+                    console.warn('Errore backend Python, provo API Next.js come fallback');
+                    fullRoute = route;
+                }
+            }
+            // Fallback: try Next.js API route
+            const res = await fetch(fullRoute, {
                 method: 'POST',
                 body: fd
             });
@@ -3774,7 +3826,7 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$Navbar$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                 fileName: "[project]/components/PdfConverter.jsx",
-                lineNumber: 148,
+                lineNumber: 212,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3787,7 +3839,7 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                 children: seoTitle || 'PDF Converter Suite'
                             }, void 0, false, {
                                 fileName: "[project]/components/PdfConverter.jsx",
-                                lineNumber: 151,
+                                lineNumber: 215,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3796,7 +3848,7 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                 className: "jsx-44024dc296d0bcdb"
                             }, void 0, false, {
                                 fileName: "[project]/components/PdfConverter.jsx",
-                                lineNumber: 152,
+                                lineNumber: 216,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3805,7 +3857,7 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                 className: "jsx-44024dc296d0bcdb"
                             }, void 0, false, {
                                 fileName: "[project]/components/PdfConverter.jsx",
-                                lineNumber: 153,
+                                lineNumber: 217,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -3814,13 +3866,13 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                 className: "jsx-44024dc296d0bcdb"
                             }, void 0, false, {
                                 fileName: "[project]/components/PdfConverter.jsx",
-                                lineNumber: 154,
+                                lineNumber: 218,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/PdfConverter.jsx",
-                        lineNumber: 150,
+                        lineNumber: 214,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3831,7 +3883,7 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                 children: seoTitle || 'PDF Converter Suite'
                             }, void 0, false, {
                                 fileName: "[project]/components/PdfConverter.jsx",
-                                lineNumber: 158,
+                                lineNumber: 222,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("p", {
@@ -3839,13 +3891,13 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                 children: seoDescription || 'Converti i tuoi file in pochi secondi'
                             }, void 0, false, {
                                 fileName: "[project]/components/PdfConverter.jsx",
-                                lineNumber: 159,
+                                lineNumber: 223,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/PdfConverter.jsx",
-                        lineNumber: 157,
+                        lineNumber: 221,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3867,17 +3919,17 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                     children: t.label
                                 }, void 0, false, {
                                     fileName: "[project]/components/PdfConverter.jsx",
-                                    lineNumber: 171,
+                                    lineNumber: 235,
                                     columnNumber: 15
                                 }, this)
                             }, t.key, false, {
                                 fileName: "[project]/components/PdfConverter.jsx",
-                                lineNumber: 164,
+                                lineNumber: 228,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/components/PdfConverter.jsx",
-                        lineNumber: 162,
+                        lineNumber: 226,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3905,7 +3957,7 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                         className: "jsx-44024dc296d0bcdb"
                                     }, void 0, false, {
                                         fileName: "[project]/components/PdfConverter.jsx",
-                                        lineNumber: 178,
+                                        lineNumber: 242,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("p", {
@@ -3913,13 +3965,13 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                         children: files.length ? `${files.length} file selezionati` : 'Trascina qui i file o clicca per selezionare'
                                     }, void 0, false, {
                                         fileName: "[project]/components/PdfConverter.jsx",
-                                        lineNumber: 193,
+                                        lineNumber: 257,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/PdfConverter.jsx",
-                                lineNumber: 177,
+                                lineNumber: 241,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3932,7 +3984,7 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                         children: loading ? 'Converto...' : 'Converti'
                                     }, void 0, false, {
                                         fileName: "[project]/components/PdfConverter.jsx",
-                                        lineNumber: 197,
+                                        lineNumber: 261,
                                         columnNumber: 13
                                     }, this),
                                     outUrl && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
@@ -3943,14 +3995,14 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                                 className: "btn-icon"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/PdfConverter.jsx",
-                                                lineNumber: 202,
+                                                lineNumber: 266,
                                                 columnNumber: 17
                                             }, this),
                                             "Download"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/PdfConverter.jsx",
-                                        lineNumber: 201,
+                                        lineNumber: 265,
                                         columnNumber: 15
                                     }, this),
                                     !!outList.length && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
@@ -3994,20 +4046,20 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                                 className: "btn-icon"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/PdfConverter.jsx",
-                                                lineNumber: 239,
+                                                lineNumber: 303,
                                                 columnNumber: 17
                                             }, this),
                                             "Download ZIP"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/PdfConverter.jsx",
-                                        lineNumber: 207,
+                                        lineNumber: 271,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/PdfConverter.jsx",
-                                lineNumber: 196,
+                                lineNumber: 260,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -4018,7 +4070,7 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                         children: status
                                     }, void 0, false, {
                                         fileName: "[project]/components/PdfConverter.jsx",
-                                        lineNumber: 246,
+                                        lineNumber: 310,
                                         columnNumber: 13
                                     }, this),
                                     outUrl && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -4034,12 +4086,12 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                             children: "Apri risultato"
                                         }, void 0, false, {
                                             fileName: "[project]/components/PdfConverter.jsx",
-                                            lineNumber: 249,
+                                            lineNumber: 313,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/PdfConverter.jsx",
-                                        lineNumber: 248,
+                                        lineNumber: 312,
                                         columnNumber: 15
                                     }, this),
                                     !!outList.length && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -4062,34 +4114,34 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                                                         children: it.name || `file-${idx + 1}`
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/PdfConverter.jsx",
-                                                        lineNumber: 257,
+                                                        lineNumber: 321,
                                                         columnNumber: 23
                                                     }, this)
                                                 }, idx, false, {
                                                     fileName: "[project]/components/PdfConverter.jsx",
-                                                    lineNumber: 256,
+                                                    lineNumber: 320,
                                                     columnNumber: 21
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/components/PdfConverter.jsx",
-                                            lineNumber: 254,
+                                            lineNumber: 318,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/PdfConverter.jsx",
-                                        lineNumber: 253,
+                                        lineNumber: 317,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/PdfConverter.jsx",
-                                lineNumber: 245,
+                                lineNumber: 309,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/PdfConverter.jsx",
-                        lineNumber: 176,
+                        lineNumber: 240,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$externals$5d2f$styled$2d$jsx$2f$style$2e$js__$5b$external$5d$__$28$styled$2d$jsx$2f$style$2e$js$2c$__cjs$29$__["default"], {
@@ -4103,13 +4155,13 @@ function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoDescription }) {
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/PdfConverter.jsx",
-                lineNumber: 149,
+                lineNumber: 213,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/PdfConverter.jsx",
-        lineNumber: 147,
+        lineNumber: 211,
         columnNumber: 5
     }, this);
 }

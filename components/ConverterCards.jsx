@@ -120,10 +120,15 @@ const styles = {
     textAlign: 'center'
   },
   cardsGrid: {
-    display: 'flex',
-    gap: '12px',
-    flexWrap: 'wrap',
-    justifyContent: 'center'
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+    gap: '16px',
+    justifyContent: 'center',
+    '@media (max-width: 768px)': {
+      gridTemplateColumns: 'repeat(2, 1fr)',
+      gap: '16px',
+      padding: '0 8px',
+    }
   },
   card: {
     display: 'flex',
@@ -133,13 +138,17 @@ const styles = {
     color: '#cfe0ff',
     border: '2px solid rgba(148,163,184,0.24)',
     borderRadius: '12px',
-    padding: '12px 18px',
+    padding: '14px 10px',
     fontWeight: 600,
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 14px rgba(0,0,0,0.25)',
-    fontSize: '14px',
+    fontSize: '15px',
     minWidth: '120px',
     justifyContent: 'center',
-    textAlign: 'center'
+    textAlign: 'center',
+    '@media (max-width: 768px)': {
+      padding: '12px 6px',
+      fontSize: '14px',
+    }
   },
   cardLabel: {
     whiteSpace: 'nowrap',

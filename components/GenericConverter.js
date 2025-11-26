@@ -16,7 +16,8 @@ function GenericConverter({ tool }) {
   // Formati disponibili per categoria
   const FORMAT_OPTIONS = {
     Audio: ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'weba'],
-    Video: ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv']
+    Video: ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'avif'],
+    Image: ['jpg', 'jpeg', 'png', 'webp', 'avif']
   };
   
   // Determina il formato di output iniziale
@@ -56,17 +57,17 @@ function GenericConverter({ tool }) {
 
   // Rimuovi duplicati dall'array degli output disponibili
   const availableOutputs = useMemo(() => {
-    // Se è un convertitore Audio o Video, usa i formati specifici
     if (tool.category === 'Audio') {
       return FORMAT_OPTIONS.Audio;
     }
     if (tool.category === 'Video') {
       return FORMAT_OPTIONS.Video;
     }
-    
+    if (tool.category === 'Image') {
+      return FORMAT_OPTIONS.Image;
+    }
     // Altrimenti usa il formato target del tool + formati comuni
-    const outputs = [tool.targetFormat, 'pdf', 'txt', 'jpg', 'png'];
-    // Rimuovi duplicati mantenendo l'ordine
+    const outputs = [tool.targetFormat, 'pdf', 'txt', 'jpg', 'png', 'avif'];
     return [...new Set(outputs)];
   }, [tool.targetFormat, tool.category]);
 
@@ -108,9 +109,9 @@ function GenericConverter({ tool }) {
     onDragLeave: () => setIsDragActive(false),
     onDropAccepted: () => setIsDragActive(false),
     onDropRejected: () => {
-      setIsDragActive(false);
-      setError('File non supportato. Controlla il formato.');
-    }
+        Audio: ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'weba'],
+        Video: ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'avif'],
+        Image: ['jpg', 'jpeg', 'png', 'webp', 'avif']
   });
 
   const handleConvert = useCallback(async () => {
@@ -159,7 +160,7 @@ function GenericConverter({ tool }) {
       if (height) form.append('height', height);
       if (quality) form.append('quality', quality);
       if (vWidth) form.append('vwidth', vWidth);
-      if (vHeight) form.append('vheight', vHeight);
+        const outputs = [tool.targetFormat, 'pdf', 'txt', 'jpg', 'png', 'avif'];
       if (vBitrate) form.append('vbitrate', vBitrate);
       if (aBitrate) form.append('abitrate', aBitrate);
       if (page) form.append('page', page);

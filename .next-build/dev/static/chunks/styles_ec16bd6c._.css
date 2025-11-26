@@ -42,20 +42,47 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-[style*="transform"], [style*="opacity"] {
+[style*="transform"], [style*="opacity"], .animate, .transition, [class*="animate-"], [class*="transition-"] {
   will-change: transform, opacity;
   backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 img, video {
   content-visibility: auto;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
+  loading: lazy;
 }
 
 img {
   max-width: 100%;
   height: auto;
+  aspect-ratio: attr(width) / attr(height);
+}
+
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: #667eea33;
+    touch-action: manipulation;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    * {
+      transition-duration: .2s !important;
+      animation-duration: .2s !important;
+    }
+  }
+
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  img, video, canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: optimize-contrast;
+  }
 }
 
 body {

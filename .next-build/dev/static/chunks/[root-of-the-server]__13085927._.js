@@ -2797,6 +2797,8 @@ __turbopack_context__.s([
     ()=>cancelIdleCallback,
     "createIntersectionObserver",
     ()=>createIntersectionObserver,
+    "createVirtualScrollConfig",
+    ()=>createVirtualScrollConfig,
     "debounce",
     ()=>debounce,
     "measurePerformance",
@@ -2807,6 +2809,8 @@ __turbopack_context__.s([
     ()=>optimizeAnimations,
     "optimizeCoreWebVitals",
     ()=>optimizeCoreWebVitals,
+    "optimizeMobilePerformance",
+    ()=>optimizeMobilePerformance,
     "prefetchRoute",
     ()=>prefetchRoute,
     "preloadResource",
@@ -3058,6 +3062,64 @@ function optimizeAnimations() {
             }
         }
     });
+}
+function optimizeMobilePerformance() {
+    if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+    ;
+    // Detect mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    if (!isMobile) return;
+    // Reduce animation complexity on mobile
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+        document.documentElement.style.setProperty('--animation-duration', '0.01ms');
+    }
+    // Optimize touch events
+    let touchStartTime = 0;
+    document.addEventListener('touchstart', (e)=>{
+        touchStartTime = performance.now();
+    }, {
+        passive: true
+    });
+    // Prevent double-tap zoom on buttons
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e)=>{
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+            e.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, {
+        passive: false
+    });
+    // Optimize scroll performance
+    let ticking = false;
+    const optimizeScroll = ()=>{
+        if (!ticking) {
+            window.requestAnimationFrame(()=>{
+                // Scroll optimizations here
+                ticking = false;
+            });
+            ticking = true;
+        }
+    };
+    window.addEventListener('scroll', optimizeScroll, {
+        passive: true
+    });
+}
+function createVirtualScrollConfig(items, itemHeight, containerHeight, scrollTop) {
+    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - 1);
+    const visibleCount = Math.ceil(containerHeight / itemHeight) + 2;
+    const endIndex = Math.min(startIndex + visibleCount, items.length);
+    const visibleItems = items.slice(startIndex, endIndex);
+    const offsetY = startIndex * itemHeight;
+    return {
+        visibleItems,
+        startIndex,
+        endIndex,
+        offsetY,
+        totalHeight: items.length * itemHeight
+    };
 }
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);

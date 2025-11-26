@@ -1,4 +1,30 @@
 .dropdown-portal{pointer-events:auto;}
+/* Ensure dropdown is always visible and overlays above all content on mobile */
+.dropdown-portal {
+	background: var(--card, #0f1720);
+	box-shadow: 0 12px 48px rgba(0,0,0,0.6), 0 0 30px rgba(102,126,234,0.2);
+	border-radius: 16px;
+	z-index: 99999 !important;
+	min-width: 180px;
+	max-width: 96vw;
+	max-height: 80vh;
+	overflow-y: auto;
+	position: fixed !important;
+}
+
+@media (max-width: 768px) {
+	.dropdown-portal {
+		left: 0 !important;
+		right: 0 !important;
+		top: 0 !important;
+		width: 100vw !important;
+		min-width: 0 !important;
+		max-width: 100vw !important;
+		border-radius: 0 0 16px 16px;
+		box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(102,126,234,0.15);
+		z-index: 99999 !important;
+	}
+}
 .dropdown-portal .dropdown-menu-scroll{box-shadow:0 12px 48px rgba(0,0,0,0.6), 0 0 30px rgba(102,126,234,0.2);border-radius:16px;}
 .language-dropdown{scrollbar-width:none;-ms-overflow-style:none;}
 .language-dropdown::-webkit-scrollbar{width:0;height:0;}

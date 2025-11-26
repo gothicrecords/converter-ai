@@ -784,6 +784,8 @@ __turbopack_context__.s([
     ()=>cancelIdleCallback,
     "createIntersectionObserver",
     ()=>createIntersectionObserver,
+    "createVirtualScrollConfig",
+    ()=>createVirtualScrollConfig,
     "debounce",
     ()=>debounce,
     "measurePerformance",
@@ -794,6 +796,8 @@ __turbopack_context__.s([
     ()=>optimizeAnimations,
     "optimizeCoreWebVitals",
     ()=>optimizeCoreWebVitals,
+    "optimizeMobilePerformance",
+    ()=>optimizeMobilePerformance,
     "prefetchRoute",
     ()=>prefetchRoute,
     "preloadResource",
@@ -985,6 +989,36 @@ function optimizeAnimations() {
     ;
     // Use CSS will-change for animated elements
     const animatedElements = undefined;
+}
+function optimizeMobilePerformance() {
+    if ("TURBOPACK compile-time truthy", 1) return;
+    //TURBOPACK unreachable
+    ;
+    // Detect mobile device
+    const isMobile = undefined;
+    // Reduce animation complexity on mobile
+    const prefersReducedMotion = undefined;
+    // Optimize touch events
+    let touchStartTime;
+    // Prevent double-tap zoom on buttons
+    let lastTouchEnd;
+    // Optimize scroll performance
+    let ticking;
+    const optimizeScroll = undefined;
+}
+function createVirtualScrollConfig(items, itemHeight, containerHeight, scrollTop) {
+    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - 1);
+    const visibleCount = Math.ceil(containerHeight / itemHeight) + 2;
+    const endIndex = Math.min(startIndex + visibleCount, items.length);
+    const visibleItems = items.slice(startIndex, endIndex);
+    const offsetY = startIndex * itemHeight;
+    return {
+        visibleItems,
+        startIndex,
+        endIndex,
+        offsetY,
+        totalHeight: items.length * itemHeight
+    };
 }
 }),
 "[project]/lib/downloadManager.js [ssr] (ecmascript)", ((__turbopack_context__) => {
@@ -3270,7 +3304,8 @@ function ChatSupport() {
             // Cerca nella base di conoscenza
             const kbResults = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supportKnowledgeBase$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["searchKnowledgeBase"])(inputValue.trim());
             // Chiama API supporto AI
-            const response = await fetch('/api/support/chat', {
+            const { getApiUrl } = await __turbopack_context__.A("[project]/utils/getApiUrl.js [ssr] (ecmascript, async loader)");
+            const response = await fetch(getApiUrl('/api/support/chat'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -3394,12 +3429,12 @@ function ChatSupport() {
                     }
                 }, void 0, false, {
                     fileName: "[project]/components/ChatSupport.js",
-                    lineNumber: 208,
+                    lineNumber: 209,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/ChatSupport.js",
-                lineNumber: 202,
+                lineNumber: 203,
                 columnNumber: 7
             }, this),
             isOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3424,12 +3459,12 @@ function ChatSupport() {
                                                 }
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ChatSupport.js",
-                                                lineNumber: 219,
+                                                lineNumber: 220,
                                                 columnNumber: 19
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/components/ChatSupport.js",
-                                            lineNumber: 218,
+                                            lineNumber: 219,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3439,7 +3474,7 @@ function ChatSupport() {
                                                     children: "Supporto AI"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ChatSupport.js",
-                                                    lineNumber: 222,
+                                                    lineNumber: 223,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("p", {
@@ -3447,19 +3482,19 @@ function ChatSupport() {
                                                     children: "Assistente virtuale intelligente"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ChatSupport.js",
-                                                    lineNumber: 223,
+                                                    lineNumber: 224,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/ChatSupport.js",
-                                            lineNumber: 221,
+                                            lineNumber: 222,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ChatSupport.js",
-                                    lineNumber: 217,
+                                    lineNumber: 218,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
@@ -3473,18 +3508,18 @@ function ChatSupport() {
                                         }
                                     }, void 0, false, {
                                         fileName: "[project]/components/ChatSupport.js",
-                                        lineNumber: 231,
+                                        lineNumber: 232,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/ChatSupport.js",
-                                    lineNumber: 226,
+                                    lineNumber: 227,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ChatSupport.js",
-                            lineNumber: 216,
+                            lineNumber: 217,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3499,7 +3534,7 @@ function ChatSupport() {
                                     children: "Chat"
                                 }, void 0, false, {
                                     fileName: "[project]/components/ChatSupport.js",
-                                    lineNumber: 237,
+                                    lineNumber: 238,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
@@ -3511,13 +3546,13 @@ function ChatSupport() {
                                     children: "FAQ"
                                 }, void 0, false, {
                                     fileName: "[project]/components/ChatSupport.js",
-                                    lineNumber: 246,
+                                    lineNumber: 247,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ChatSupport.js",
-                            lineNumber: 236,
+                            lineNumber: 237,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3545,14 +3580,14 @@ function ChatSupport() {
                                                                             children: line.replace(/\*\*/g, '')
                                                                         }, i, false, {
                                                                             fileName: "[project]/components/ChatSupport.js",
-                                                                            lineNumber: 278,
+                                                                            lineNumber: 279,
                                                                             columnNumber: 37
                                                                         }, this);
                                                                     }
                                                                     if (line.trim() === '') {
                                                                         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("br", {}, i, false, {
                                                                             fileName: "[project]/components/ChatSupport.js",
-                                                                            lineNumber: 284,
+                                                                            lineNumber: 285,
                                                                             columnNumber: 42
                                                                         }, this);
                                                                     }
@@ -3561,13 +3596,13 @@ function ChatSupport() {
                                                                         children: line
                                                                     }, i, false, {
                                                                         fileName: "[project]/components/ChatSupport.js",
-                                                                        lineNumber: 286,
+                                                                        lineNumber: 287,
                                                                         columnNumber: 40
                                                                     }, this);
                                                                 })
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/ChatSupport.js",
-                                                                lineNumber: 273,
+                                                                lineNumber: 274,
                                                                 columnNumber: 29
                                                             }, this),
                                                             message.relatedFAQs && message.relatedFAQs.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3578,7 +3613,7 @@ function ChatSupport() {
                                                                         children: "Potrebbe interessarti:"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/components/ChatSupport.js",
-                                                                        lineNumber: 294,
+                                                                        lineNumber: 295,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     message.relatedFAQs.map((faq)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
@@ -3592,20 +3627,20 @@ function ChatSupport() {
                                                                                     }
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/components/ChatSupport.js",
-                                                                                    lineNumber: 301,
+                                                                                    lineNumber: 302,
                                                                                     columnNumber: 35
                                                                                 }, this),
                                                                                 faq.question
                                                                             ]
                                                                         }, faq.id, true, {
                                                                             fileName: "[project]/components/ChatSupport.js",
-                                                                            lineNumber: 296,
+                                                                            lineNumber: 297,
                                                                             columnNumber: 33
                                                                         }, this))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/components/ChatSupport.js",
-                                                                lineNumber: 293,
+                                                                lineNumber: 294,
                                                                 columnNumber: 29
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3616,18 +3651,18 @@ function ChatSupport() {
                                                                 })
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/ChatSupport.js",
-                                                                lineNumber: 309,
+                                                                lineNumber: 310,
                                                                 columnNumber: 27
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/ChatSupport.js",
-                                                        lineNumber: 271,
+                                                        lineNumber: 272,
                                                         columnNumber: 25
                                                     }, this)
                                                 }, message.id, false, {
                                                     fileName: "[project]/components/ChatSupport.js",
-                                                    lineNumber: 264,
+                                                    lineNumber: 265,
                                                     columnNumber: 23
                                                 }, this)),
                                             isLoading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3637,11 +3672,6 @@ function ChatSupport() {
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("span", {}, void 0, false, {
                                                             fileName: "[project]/components/ChatSupport.js",
-                                                            lineNumber: 322,
-                                                            columnNumber: 27
-                                                        }, this),
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("span", {}, void 0, false, {
-                                                            fileName: "[project]/components/ChatSupport.js",
                                                             lineNumber: 323,
                                                             columnNumber: 27
                                                         }, this),
@@ -3649,29 +3679,34 @@ function ChatSupport() {
                                                             fileName: "[project]/components/ChatSupport.js",
                                                             lineNumber: 324,
                                                             columnNumber: 27
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("span", {}, void 0, false, {
+                                                            fileName: "[project]/components/ChatSupport.js",
+                                                            lineNumber: 325,
+                                                            columnNumber: 27
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/ChatSupport.js",
-                                                    lineNumber: 321,
+                                                    lineNumber: 322,
                                                     columnNumber: 25
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ChatSupport.js",
-                                                lineNumber: 320,
+                                                lineNumber: 321,
                                                 columnNumber: 23
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
                                                 ref: messagesEndRef
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ChatSupport.js",
-                                                lineNumber: 329,
+                                                lineNumber: 330,
                                                 columnNumber: 21
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ChatSupport.js",
-                                        lineNumber: 262,
+                                        lineNumber: 263,
                                         columnNumber: 19
                                     }, this),
                                     showSuggestions && messages.length <= 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3687,14 +3722,14 @@ function ChatSupport() {
                                                         }
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/ChatSupport.js",
-                                                        lineNumber: 336,
+                                                        lineNumber: 337,
                                                         columnNumber: 25
                                                     }, this),
                                                     "Suggerimenti"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/ChatSupport.js",
-                                                lineNumber: 335,
+                                                lineNumber: 336,
                                                 columnNumber: 23
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3705,18 +3740,18 @@ function ChatSupport() {
                                                         children: suggestion
                                                     }, i, false, {
                                                         fileName: "[project]/components/ChatSupport.js",
-                                                        lineNumber: 341,
+                                                        lineNumber: 342,
                                                         columnNumber: 27
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ChatSupport.js",
-                                                lineNumber: 339,
+                                                lineNumber: 340,
                                                 columnNumber: 23
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ChatSupport.js",
-                                        lineNumber: 334,
+                                        lineNumber: 335,
                                         columnNumber: 21
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3735,7 +3770,7 @@ function ChatSupport() {
                                                     disabled: isLoading
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ChatSupport.js",
-                                                    lineNumber: 356,
+                                                    lineNumber: 357,
                                                     columnNumber: 23
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
@@ -3752,23 +3787,23 @@ function ChatSupport() {
                                                         }
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/ChatSupport.js",
-                                                        lineNumber: 374,
+                                                        lineNumber: 375,
                                                         columnNumber: 25
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ChatSupport.js",
-                                                    lineNumber: 366,
+                                                    lineNumber: 367,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/ChatSupport.js",
-                                            lineNumber: 355,
+                                            lineNumber: 356,
                                             columnNumber: 21
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/ChatSupport.js",
-                                        lineNumber: 354,
+                                        lineNumber: 355,
                                         columnNumber: 19
                                     }, this)
                                 ]
@@ -3786,7 +3821,7 @@ function ChatSupport() {
                                                 }
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ChatSupport.js",
-                                                lineNumber: 383,
+                                                lineNumber: 384,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("input", {
@@ -3797,13 +3832,13 @@ function ChatSupport() {
                                                 style: styles.searchInput
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ChatSupport.js",
-                                                lineNumber: 384,
+                                                lineNumber: 385,
                                                 columnNumber: 21
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ChatSupport.js",
-                                        lineNumber: 382,
+                                        lineNumber: 383,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3822,7 +3857,7 @@ function ChatSupport() {
                                                                 children: faq.question
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/ChatSupport.js",
-                                                                lineNumber: 405,
+                                                                lineNumber: 406,
                                                                 columnNumber: 29
                                                             }, this),
                                                             expandedFAQ === faq.id ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi$2f$index$2e$mjs__$5b$ssr$5d$__$28$ecmascript$29$__["HiChevronUp"], {
@@ -3832,7 +3867,7 @@ function ChatSupport() {
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/ChatSupport.js",
-                                                                lineNumber: 407,
+                                                                lineNumber: 408,
                                                                 columnNumber: 31
                                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$icons$2f$hi$2f$index$2e$mjs__$5b$ssr$5d$__$28$ecmascript$29$__["HiChevronDown"], {
                                                                 style: {
@@ -3841,13 +3876,13 @@ function ChatSupport() {
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/ChatSupport.js",
-                                                                lineNumber: 409,
+                                                                lineNumber: 410,
                                                                 columnNumber: 31
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/ChatSupport.js",
-                                                        lineNumber: 398,
+                                                        lineNumber: 399,
                                                         columnNumber: 27
                                                     }, this),
                                                     expandedFAQ === faq.id && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -3859,7 +3894,7 @@ function ChatSupport() {
                                                                     children: line.replace(/\*\*/g, '')
                                                                 }, i, false, {
                                                                     fileName: "[project]/components/ChatSupport.js",
-                                                                    lineNumber: 417,
+                                                                    lineNumber: 418,
                                                                     columnNumber: 37
                                                                 }, this);
                                                             }
@@ -3868,19 +3903,19 @@ function ChatSupport() {
                                                                 children: line
                                                             }, i, false, {
                                                                 fileName: "[project]/components/ChatSupport.js",
-                                                                lineNumber: 422,
+                                                                lineNumber: 423,
                                                                 columnNumber: 40
                                                             }, this);
                                                         })
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/ChatSupport.js",
-                                                        lineNumber: 413,
+                                                        lineNumber: 414,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, faq.id, true, {
                                                 fileName: "[project]/components/ChatSupport.js",
-                                                lineNumber: 397,
+                                                lineNumber: 398,
                                                 columnNumber: 25
                                             }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
                                             style: styles.emptyState,
@@ -3894,7 +3929,7 @@ function ChatSupport() {
                                                     }
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ChatSupport.js",
-                                                    lineNumber: 430,
+                                                    lineNumber: 431,
                                                     columnNumber: 25
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("p", {
@@ -3902,40 +3937,40 @@ function ChatSupport() {
                                                     children: searchQuery ? 'Nessun risultato trovato' : 'Cerca nelle FAQ o passa alla chat'
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ChatSupport.js",
-                                                    lineNumber: 431,
+                                                    lineNumber: 432,
                                                     columnNumber: 25
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/ChatSupport.js",
-                                            lineNumber: 429,
+                                            lineNumber: 430,
                                             columnNumber: 23
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/ChatSupport.js",
-                                        lineNumber: 394,
+                                        lineNumber: 395,
                                         columnNumber: 19
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/ChatSupport.js",
-                                lineNumber: 380,
+                                lineNumber: 381,
                                 columnNumber: 17
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/ChatSupport.js",
-                            lineNumber: 258,
+                            lineNumber: 259,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ChatSupport.js",
-                    lineNumber: 214,
+                    lineNumber: 215,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/ChatSupport.js",
-                lineNumber: 213,
+                lineNumber: 214,
                 columnNumber: 9
             }, this)
         ]
@@ -5153,10 +5188,10 @@ function MyApp({ Component, pageProps }) {
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
                                 name: "viewport",
-                                content: "width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover"
+                                content: "width=device-width, initial-scale=1.0, viewport-fit=cover"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 354,
+                                lineNumber: 357,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -5164,7 +5199,7 @@ function MyApp({ Component, pageProps }) {
                                 content: "yes"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 355,
+                                lineNumber: 358,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -5172,7 +5207,7 @@ function MyApp({ Component, pageProps }) {
                                 content: "yes"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 356,
+                                lineNumber: 359,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -5180,7 +5215,7 @@ function MyApp({ Component, pageProps }) {
                                 content: "black-translucent"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 357,
+                                lineNumber: 360,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -5188,7 +5223,7 @@ function MyApp({ Component, pageProps }) {
                                 content: "MegaPixelAI ToolSuite"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 358,
+                                lineNumber: 361,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -5196,7 +5231,7 @@ function MyApp({ Component, pageProps }) {
                                 content: "#0a0e1a"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 359,
+                                lineNumber: 362,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -5204,7 +5239,7 @@ function MyApp({ Component, pageProps }) {
                                 content: "#0a0e1a"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 360,
+                                lineNumber: 363,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
@@ -5212,7 +5247,7 @@ function MyApp({ Component, pageProps }) {
                                 content: "#0a0e1a"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 361,
+                                lineNumber: 364,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5221,7 +5256,7 @@ function MyApp({ Component, pageProps }) {
                                 type: "image/svg+xml"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 362,
+                                lineNumber: 365,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5230,7 +5265,7 @@ function MyApp({ Component, pageProps }) {
                                 type: "image/svg+xml"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 363,
+                                lineNumber: 366,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5238,7 +5273,7 @@ function MyApp({ Component, pageProps }) {
                                 href: "/logo-with-text.jpg"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 364,
+                                lineNumber: 367,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5247,7 +5282,7 @@ function MyApp({ Component, pageProps }) {
                                 crossOrigin: "anonymous"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 367,
+                                lineNumber: 370,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5256,7 +5291,7 @@ function MyApp({ Component, pageProps }) {
                                 crossOrigin: "anonymous"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 368,
+                                lineNumber: 371,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5265,7 +5300,7 @@ function MyApp({ Component, pageProps }) {
                                 crossOrigin: "anonymous"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 369,
+                                lineNumber: 372,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5274,7 +5309,7 @@ function MyApp({ Component, pageProps }) {
                                 crossOrigin: "anonymous"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 370,
+                                lineNumber: 373,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5283,7 +5318,7 @@ function MyApp({ Component, pageProps }) {
                                 crossOrigin: "anonymous"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 371,
+                                lineNumber: 374,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5292,7 +5327,7 @@ function MyApp({ Component, pageProps }) {
                                 crossOrigin: "anonymous"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 372,
+                                lineNumber: 375,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5300,7 +5335,7 @@ function MyApp({ Component, pageProps }) {
                                 href: "https://www.googletagmanager.com"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 375,
+                                lineNumber: 378,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5308,7 +5343,7 @@ function MyApp({ Component, pageProps }) {
                                 href: "https://www.google-analytics.com"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 376,
+                                lineNumber: 379,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5316,7 +5351,7 @@ function MyApp({ Component, pageProps }) {
                                 href: "https://connect.facebook.net"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 377,
+                                lineNumber: 380,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5324,7 +5359,7 @@ function MyApp({ Component, pageProps }) {
                                 href: "https://www.clarity.ms"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 378,
+                                lineNumber: 381,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5332,7 +5367,7 @@ function MyApp({ Component, pageProps }) {
                                 href: "https://fonts.googleapis.com"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 379,
+                                lineNumber: 382,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5340,7 +5375,7 @@ function MyApp({ Component, pageProps }) {
                                 href: "https://fonts.gstatic.com"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 380,
+                                lineNumber: 383,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5348,7 +5383,7 @@ function MyApp({ Component, pageProps }) {
                                 href: "https://fonts.googleapis.com"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 385,
+                                lineNumber: 388,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5356,7 +5391,7 @@ function MyApp({ Component, pageProps }) {
                                 href: "https://fonts.gstatic.com"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 386,
+                                lineNumber: 389,
                                 columnNumber: 11
                             }, this),
                             ("TURBOPACK compile-time value", "development") === 'production' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["Fragment"], {
@@ -5367,7 +5402,7 @@ function MyApp({ Component, pageProps }) {
                                         as: "document"
                                     }, void 0, false, {
                                         fileName: "[project]/pages/_app.js",
-                                        lineNumber: 391,
+                                        lineNumber: 394,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5376,7 +5411,7 @@ function MyApp({ Component, pageProps }) {
                                         as: "document"
                                     }, void 0, false, {
                                         fileName: "[project]/pages/_app.js",
-                                        lineNumber: 392,
+                                        lineNumber: 395,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
@@ -5385,7 +5420,7 @@ function MyApp({ Component, pageProps }) {
                                         as: "document"
                                     }, void 0, false, {
                                         fileName: "[project]/pages/_app.js",
-                                        lineNumber: 393,
+                                        lineNumber: 396,
                                         columnNumber: 15
                                     }, this)
                                 ]
@@ -5394,7 +5429,7 @@ function MyApp({ Component, pageProps }) {
                                 children: "Tool Suite - Upscaler AI & PDF Converter"
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 397,
+                                lineNumber: 400,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("style", {
@@ -5460,8 +5495,8 @@ function MyApp({ Component, pageProps }) {
               button, a, [role="button"] {
                 -webkit-tap-highlight-color: rgba(102, 126, 234, 0.3);
                 touch-action: manipulation;
-                user-select: none;
                 -webkit-user-select: none;
+                user-select: none;
               }
               /* Prevent text selection on buttons */
               input, textarea {
@@ -5484,13 +5519,13 @@ function MyApp({ Component, pageProps }) {
           `
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 398,
+                                lineNumber: 401,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/pages/_app.js",
-                        lineNumber: 353,
+                        lineNumber: 356,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$script$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -5499,7 +5534,7 @@ function MyApp({ Component, pageProps }) {
                         src: "https://www.googletagmanager.com/gtag/js?id=G-34NK4NEB9B"
                     }, void 0, false, {
                         fileName: "[project]/pages/_app.js",
-                        lineNumber: 485,
+                        lineNumber: 488,
                         columnNumber: 7
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$script$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -5520,7 +5555,7 @@ function MyApp({ Component, pageProps }) {
                         }
                     }, void 0, false, {
                         fileName: "[project]/pages/_app.js",
-                        lineNumber: 490,
+                        lineNumber: 493,
                         columnNumber: 7
                     }, this),
                     __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$analytics$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__.GTM_ID && __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$analytics$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__.GTM_ID !== 'GTM-XXXXXXX' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["Fragment"], {
@@ -5539,7 +5574,7 @@ function MyApp({ Component, pageProps }) {
                                 }
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 511,
+                                lineNumber: 514,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("noscript", {
@@ -5553,12 +5588,12 @@ function MyApp({ Component, pageProps }) {
                                     }
                                 }, void 0, false, {
                                     fileName: "[project]/pages/_app.js",
-                                    lineNumber: 525,
+                                    lineNumber: 528,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 524,
+                                lineNumber: 527,
                                 columnNumber: 11
                             }, this)
                         ]
@@ -5570,7 +5605,7 @@ function MyApp({ Component, pageProps }) {
                                 src: `https://www.googletagmanager.com/gtag/js?id=${__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$analytics$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__.GA_TRACKING_ID}`
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 538,
+                                lineNumber: 541,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$script$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -5593,7 +5628,7 @@ function MyApp({ Component, pageProps }) {
                                 }
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 542,
+                                lineNumber: 545,
                                 columnNumber: 11
                             }, this)
                         ]
@@ -5619,7 +5654,7 @@ function MyApp({ Component, pageProps }) {
                                 }
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 567,
+                                lineNumber: 570,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("noscript", {
@@ -5633,12 +5668,12 @@ function MyApp({ Component, pageProps }) {
                                     alt: ""
                                 }, void 0, false, {
                                     fileName: "[project]/pages/_app.js",
-                                    lineNumber: 586,
+                                    lineNumber: 589,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 585,
+                                lineNumber: 588,
                                 columnNumber: 11
                             }, this)
                         ]
@@ -5657,41 +5692,41 @@ function MyApp({ Component, pageProps }) {
                         }
                     }, void 0, false, {
                         fileName: "[project]/pages/_app.js",
-                        lineNumber: 599,
+                        lineNumber: 602,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$Toast$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                         fileName: "[project]/pages/_app.js",
-                        lineNumber: 614,
+                        lineNumber: 617,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(Component, {
                         ...pageProps
                     }, void 0, false, {
                         fileName: "[project]/pages/_app.js",
-                        lineNumber: 615,
+                        lineNumber: 618,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$DownloadManager$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                         fileName: "[project]/pages/_app.js",
-                        lineNumber: 616,
+                        lineNumber: 619,
                         columnNumber: 9
                     }, this),
                     mounted && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ChatSupport$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                         fileName: "[project]/pages/_app.js",
-                        lineNumber: 617,
+                        lineNumber: 620,
                         columnNumber: 21
                     }, this),
                     ("TURBOPACK compile-time value", "development") === 'production' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["Fragment"], {
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$externals$5d2f40$vercel$2f$speed$2d$insights$2f$next__$5b$external$5d$__$2840$vercel$2f$speed$2d$insights$2f$next$2c$__esm_import$29$__["SpeedInsights"], {}, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 620,
+                                lineNumber: 623,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$externals$5d2f40$vercel$2f$analytics$2f$react__$5b$external$5d$__$2840$vercel$2f$analytics$2f$react$2c$__esm_import$29$__["Analytics"], {}, void 0, false, {
                                 fileName: "[project]/pages/_app.js",
-                                lineNumber: 621,
+                                lineNumber: 624,
                                 columnNumber: 13
                             }, this)
                         ]
@@ -5699,17 +5734,17 @@ function MyApp({ Component, pageProps }) {
                 ]
             }, void 0, true, {
                 fileName: "[project]/pages/_app.js",
-                lineNumber: 352,
+                lineNumber: 355,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/pages/_app.js",
-            lineNumber: 351,
+            lineNumber: 354,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/pages/_app.js",
-        lineNumber: 350,
+        lineNumber: 353,
         columnNumber: 5
     }, this);
 }

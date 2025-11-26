@@ -40,7 +40,7 @@ class ToolsService:
                     import tempfile
                     import mimetypes
                     # Validate target format
-                    valid_formats = ["mp4", "avi", "mov", "webm", "mkv", "flv"]
+                    valid_formats = ["mp4", "avi", "mov", "webm", "mkv", "flv", "avif"]
                     if target_format not in valid_formats:
                         raise ValueError(f"Formato non supportato: {target_format}")
                     # Create temp files
@@ -75,29 +75,66 @@ class ToolsService:
                 except Exception as exc:
                     logger.error(f"Convert video error: {exc}", exc_info=True)
                     raise
-        async def convert_audio(
-            self,
-            file_content: bytes,
-            filename: str,
-            target_format: str = "mp3",
-        ) -> Dict:
-            """Convert audio file to target format (mp3, wav, flac, ogg, m4a, aac)"""
+    async def convert_audio(
+        self,
+        file_content: bytes,
+        filename: str,
+        target_format: str = "mp3",
+    ) -> Dict:
+        """Convert audio file to target format (mp3, wav, flac, ogg, m4a, aac)"""
+        try:
+            import ffmpeg
+            import tempfile
+            import mimetypes
+            # Validate target format
+            valid_formats = ["mp3", "wav", "flac", "ogg", "m4a", "aac"]  # AVIF non è audio
+                async def convert_image(
+                    self,
+                    file_content: bytes,
+                    filename: str,
+                    target_format: str = "png",
+                ) -> Dict:
+                    """Convert image file to target format (jpg, jpeg, png, webp, avif)"""
+                    try:
+                        valid_formats = ["jpg", "jpeg", "png", "webp", "avif"]
+                        if target_format not in valid_formats:
+                            raise ValueError(f"Formato non supportato: {target_format}")
+                        image = Image.open(BytesIO(file_content))
+                        import tempfile
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{target_format}') as output_file:
+                            if target_format == "jpg" or target_format == "jpeg":
+                                image.save(output_file.name, format="JPEG", quality=95, optimize=True)
+                                mime_type = "image/jpeg"
+                            elif target_format == "png":
+                                image.save(output_file.name, format="PNG", optimize=True)
+                                mime_type = "image/png"
+                            elif target_format == "webp":
+                                image.save(output_file.name, format="WEBP", quality=95)
+                                mime_type = "image/webp"
+                            elif target_format == "avif":
+                                image.save(output_file.name, format="AVIF")
+                                mime_type = "image/avif"
+                            output_file.seek(0)
+                            out_bytes = output_file.read()
+                        data_url = f"data:{mime_type};base64,{base64.b64encode(out_bytes).decode()}"
+                        result_name = filename.rsplit('.', 1)[0] + f'_converted.{target_format}'
+                        return {
+                            "url": data_url,
+                            "name": result_name,
+                        }
+                    except Exception as exc:
+                        logger.error(f"Convert image error: {exc}", exc_info=True)
+                        raise
+            if target_format not in valid_formats:
+                raise ValueError(f"Formato non supportato: {target_format}")
+            # Create temp files
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".input") as input_file:
+                input_file.write(file_content)
+                input_path = input_file.name
+            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{target_format}") as output_file:
+                output_path = output_file.name
             try:
-                import ffmpeg
-                import tempfile
-                import mimetypes
-                # Validate target format
-                valid_formats = ["mp3", "wav", "flac", "ogg", "m4a", "aac"]
-                if target_format not in valid_formats:
-                    raise ValueError(f"Formato non supportato: {target_format}")
-                # Create temp files
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".input") as input_file:
-                    input_file.write(file_content)
-                    input_path = input_file.name
-                with tempfile.NamedTemporaryFile(delete=False, suffix=f".{target_format}") as output_file:
-                    output_path = output_file.name
-                try:
-                    # FFmpeg conversion
+                # FFmpeg conversion
                     stream = ffmpeg.input(input_path)
                     stream = ffmpeg.output(stream, output_path, acodec=target_format)
                     ffmpeg.run(stream, overwrite_output=True, quiet=True)

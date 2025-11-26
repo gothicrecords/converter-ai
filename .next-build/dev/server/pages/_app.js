@@ -1,4 +1,5 @@
 var R=require("../chunks/ssr/[turbopack]_runtime.js")("server/pages/_app.js")
+R.c("server/chunks/ssr/utils_getApiUrl_7c6d923e.js")
 R.c("server/chunks/ssr/[root-of-the-server]__6fbb01e0._.js")
 R.c("server/chunks/ssr/node_modules_b878e2c8._.js")
 R.m("[project]/pages/_app.js [ssr] (ecmascript)")
