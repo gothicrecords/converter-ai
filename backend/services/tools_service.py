@@ -101,11 +101,10 @@ class ToolsService:
             # Try advanced upscaling with scikit-image if available
             if SKIMAGE_AVAILABLE:
                 from skimage.transform import resize
+                from skimage import restoration
                 import numpy as np
-                
                 # Convert PIL to numpy array
                 img_array = np.array(image)
-                
                 # Denoise before upscaling
                 if len(img_array.shape) == 3:
                     # Color image
@@ -117,7 +116,6 @@ class ToolsService:
                 else:
                     # Grayscale
                     denoised = restoration.denoise_tv_chambolle(img_array, weight=0.1)
-                
                 # Upscale using LANCZOS (high quality)
                 upscaled_array = resize(
                     denoised,
@@ -126,10 +124,8 @@ class ToolsService:
                     anti_aliasing=True,
                     preserve_range=True
                 ).astype(img_array.dtype)
-                
                 # Convert back to PIL
                 upscaled = Image.fromarray(upscaled_array)
-                
                 # Apply sharpening filter
                 from PIL import ImageFilter
                 upscaled = upscaled.filter(ImageFilter.UnsharpMask(radius=1, percent=150, threshold=3))
