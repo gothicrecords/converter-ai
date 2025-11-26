@@ -88,26 +88,27 @@ class ToolsService:
             import mimetypes
             # Validate target format
             valid_formats = ["mp3", "wav", "flac", "ogg", "m4a", "aac"]  # AVIF non è audio
-                async def convert_image(
-                    self,
-                    file_content: bytes,
-                    filename: str,
-                    target_format: str = "png",
-                ) -> Dict:
-                    """Convert image file to target format (jpg, jpeg, png, webp, avif)"""
-                    try:
-                        valid_formats = ["jpg", "jpeg", "png", "webp", "avif"]
-                        if target_format not in valid_formats:
-                            raise ValueError(f"Formato non supportato: {target_format}")
-                        image = Image.open(BytesIO(file_content))
-                        import tempfile
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{target_format}') as output_file:
-                            if target_format == "jpg" or target_format == "jpeg":
-                                image.save(output_file.name, format="JPEG", quality=95, optimize=True)
-                                mime_type = "image/jpeg"
-                            elif target_format == "png":
-                                image.save(output_file.name, format="PNG", optimize=True)
-                                mime_type = "image/png"
+
+    async def convert_image(
+        self,
+        file_content: bytes,
+        filename: str,
+        target_format: str = "png",
+    ) -> Dict:
+        """Convert image file to target format (jpg, jpeg, png, webp, avif)"""
+        try:
+            valid_formats = ["jpg", "jpeg", "png", "webp", "avif"]
+            if target_format not in valid_formats:
+                raise ValueError(f"Formato non supportato: {target_format}")
+            image = Image.open(BytesIO(file_content))
+            import tempfile
+            with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{target_format}') as output_file:
+                if target_format == "jpg" or target_format == "jpeg":
+                    image.save(output_file.name, format="JPEG", quality=95, optimize=True)
+                    mime_type = "image/jpeg"
+                elif target_format == "png":
+                    image.save(output_file.name, format="PNG", optimize=True)
+                    mime_type = "image/png"
                             elif target_format == "webp":
                                 image.save(output_file.name, format="WEBP", quality=95)
                                 mime_type = "image/webp"
