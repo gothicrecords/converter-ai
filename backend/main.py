@@ -25,6 +25,7 @@ from backend.routers import (
     health,
     oauth,
     audio,
+    video,
 )
 from backend.middleware.error_handler import error_handler
 from backend.middleware.logging_middleware import LoggingMiddleware
@@ -106,6 +107,7 @@ app.include_router(stripe.router, prefix="/api/stripe", tags=["stripe"])
 app.include_router(support.router, prefix="/api/support", tags=["support"])
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(audio.router, prefix="/api/audio", tags=["audio"])
+app.include_router(video.router, prefix="/api/video", tags=["video"])
 
 
 @app.get("/")
