@@ -50,19 +50,20 @@ class ToolsService:
                 output = remove(file_content)
             except ImportError:
                 # Fallback: use OpenCV for basic background removal
+                if not CV2_AVAILABLE:
+                    raise RuntimeError("OpenCV (cv2) non disponibile per la rimozione dello sfondo.")
                 image = Image.open(BytesIO(file_content))
                 image_array = np.array(image)
-                
+                # Check shape and channels
+                if len(image_array.shape) != 3 or image_array.shape[2] < 3:
+                    raise ValueError("Immagine non valida o non RGB.")
                 # Convert to RGBA if needed
                 if image_array.shape[2] == 3:
                     image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2RGBA)
-                
                 # Simple background removal using color thresholding
-                # This is a basic implementation - rembg is much better
                 gray = cv2.cvtColor(image_array[:, :, :3], cv2.COLOR_RGB2GRAY)
                 _, mask = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY_INV)
                 image_array[:, :, 3] = mask
-                
                 output_buffer = BytesIO()
                 output_image = Image.fromarray(image_array)
                 output_image.save(output_buffer, format='PNG')
