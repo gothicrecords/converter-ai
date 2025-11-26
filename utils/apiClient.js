@@ -1,26 +1,16 @@
 /**
- * API Client - Centralized API calls to Python backend
+ * API Client - Centralized API calls with automatic fallback
+ * Uses Python backend if available, otherwise falls back to Next.js API routes
  */
-const getApiBaseUrl = () => {
-  // In browser, use environment variable or current origin
-  if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_PYTHON_API_URL || 
-           process.env.NEXT_PUBLIC_API_URL || 
-           window.location.origin;
-  }
-  // Server-side: use environment variable or default
-  return process.env.NEXT_PUBLIC_PYTHON_API_URL || 
-         process.env.NEXT_PUBLIC_API_URL || 
-         'http://localhost:8000';
-};
+import { getApiUrl, getApiUrlSync, resetBackendStatusCache } from './getApiUrl';
 
 /**
- * Make API call to Python backend
+ * Make API call with automatic fallback
+ * @param {string} endpoint - API endpoint (e.g., '/api/tools/upscale')
+ * @param {object} options - Fetch options
+ * @param {boolean} retryWithFallback - If true, retry with Next.js API on error
  */
-export async function apiCall(endpoint, options = {}) {
-  const baseUrl = getApiBaseUrl();
-  const url = `${baseUrl}${endpoint}`;
-  
+export async function apiCall(endpoint, options = {}, retryWithFallback = true) {
   const defaultOptions = {
     headers: {
       'Accept': 'application/json',
@@ -41,6 +31,15 @@ export async function apiCall(endpoint, options = {}) {
       ...(options.headers || {}),
     },
   };
+
+  // Get URL (async, checks backend availability)
+  let url;
+  try {
+    url = await getApiUrl(endpoint);
+  } catch (error) {
+    // Se getApiUrl fallisce, usa versione sync
+    url = getApiUrlSync(endpoint);
+  }
   
   try {
     const response = await fetch(url, config);
@@ -65,6 +64,47 @@ export async function apiCall(endpoint, options = {}) {
       return await response.blob();
     }
   } catch (error) {
+    // Se è un errore di rete e retryWithFallback è true, prova con Next.js API
+    if (retryWithFallback && 
+        (error.name === 'TypeError' || 
+         error.message.includes('fetch') || 
+         error.message.includes('Failed to fetch') ||
+         error.message.includes('NetworkError'))) {
+      
+      // Reset cache per forzare nuovo controllo
+      resetBackendStatusCache();
+      
+      // Prova con Next.js API (fallback)
+      const fallbackUrl = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      console.warn(`Backend Python non disponibile, uso fallback Next.js API: ${fallbackUrl}`);
+      
+      try {
+        const fallbackResponse = await fetch(fallbackUrl, config);
+        
+        const contentType = fallbackResponse.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await fallbackResponse.json();
+          
+          if (!fallbackResponse.ok) {
+            throw new Error(data.error || data.message || `HTTP ${fallbackResponse.status}`);
+          }
+          
+          return data;
+        } else {
+          if (!fallbackResponse.ok) {
+            const text = await fallbackResponse.text();
+            throw new Error(text || `HTTP ${fallbackResponse.status}`);
+          }
+          
+          return await fallbackResponse.blob();
+        }
+      } catch (fallbackError) {
+        // Se anche il fallback fallisce, rilancia l'errore originale
+        console.error('API call error (both backend and fallback failed):', error);
+        throw new Error(`Errore di connessione: ${error.message}. Verifica che il backend sia disponibile o che le API Next.js siano configurate correttamente.`);
+      }
+    }
+    
     console.error('API call error:', error);
     throw error;
   }

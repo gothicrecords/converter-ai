@@ -201,7 +201,7 @@ function GenericConverter({ tool }) {
       
       // Use getApiUrl to support Python backend with fallback
       const { getApiUrl } = await import('../utils/getApiUrl');
-      const fullApiUrl = getApiUrl(apiUrl);
+      const fullApiUrl = await getApiUrl(apiUrl);
       
       // Prepara i campi aggiuntivi per la chiamata API
       const additionalFields = {

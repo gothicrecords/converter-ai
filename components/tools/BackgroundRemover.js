@@ -133,7 +133,7 @@ const BackgroundRemover = () => {
         try {
             // Use Python backend if configured
             const { getApiUrl } = await import('../../utils/getApiUrl');
-            const apiUrl = getApiUrl('/api/tools/remove-background');
+            const apiUrl = await getApiUrl('/api/tools/remove-background');
             
             console.log('Sending request to:', apiUrl);
             const response = await fetch(apiUrl, {

@@ -62,7 +62,8 @@ export default function DocumentTranslator() {
             formData.append('preserveFormatting', preserveFormatting.toString());
 
             const { getApiUrl } = await import('../../utils/getApiUrl');
-            const response = await fetch(getApiUrl('/api/tools/translate-document'), {
+            const apiUrl = await getApiUrl('/api/tools/translate-document');
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 body: formData,
             });
