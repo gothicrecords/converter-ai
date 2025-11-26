@@ -127,11 +127,9 @@ class ToolsService:
         except Exception as exc:
             logger.error(f"Convert image error: {exc}", exc_info=True)
             raise
-            except Exception as exc:
-                logger.error(f"Convert audio error: {exc}", exc_info=True)
-                raise
+
     """Service for AI tools"""
-    
+
     def __init__(self):
         """Initialize tools service"""
         pass
