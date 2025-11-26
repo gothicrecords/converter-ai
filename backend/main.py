@@ -26,11 +26,16 @@ from backend.routers import (
     oauth,
     audio,
     video,
+    metrics,
 )
 from backend.middleware.error_handler import error_handler
 from backend.middleware.logging_middleware import LoggingMiddleware
 from backend.middleware.rate_limit import RateLimitMiddleware
 from backend.middleware.security import SecurityMiddleware
+<<<<<<< HEAD
+=======
+from backend.middleware.tool_monitoring import ToolMonitoringMiddleware
+>>>>>>> 86f08af (ðŸš€ Sistema Perfetto: Architettura Scalabile e Performance Ultra-Veloce)
 
 # Get settings after all imports
 settings = get_settings()
@@ -54,9 +59,21 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting FastAPI server...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
+    
+    # Start job queue
+    from backend.utils.queue import get_job_queue
+    queue = get_job_queue()
+    await queue.start()
+    logger.info("Job queue started")
+    
     yield
+    
     # Shutdown
     logger.info("Shutting down FastAPI server...")
+    
+    # Stop job queue
+    await queue.stop()
+    logger.info("Job queue stopped")
 
 
 # Create FastAPI app
@@ -92,13 +109,21 @@ else:
         expose_headers=["*"],
     )
 
+<<<<<<< HEAD
 # Custom middleware (order matters - security first, then rate limiting, then logging)
+=======
+# Custom middleware (order matters - security first, then rate limiting, then monitoring, then logging)
+>>>>>>> 86f08af (ðŸš€ Sistema Perfetto: Architettura Scalabile e Performance Ultra-Veloce)
 app.add_middleware(SecurityMiddleware)
 app.add_middleware(
     RateLimitMiddleware,
     default_limit=100,  # requests per window
     window_seconds=60,  # 1 minute window
 )
+<<<<<<< HEAD
+=======
+app.add_middleware(ToolMonitoringMiddleware)
+>>>>>>> 86f08af (ðŸš€ Sistema Perfetto: Architettura Scalabile e Performance Ultra-Veloce)
 app.add_middleware(LoggingMiddleware)
 
 # Exception handlers
@@ -119,6 +144,7 @@ app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(stripe.router, prefix="/api/stripe", tags=["stripe"])
 app.include_router(support.router, prefix="/api/support", tags=["support"])
 app.include_router(health.router, prefix="/api", tags=["health"])
+app.include_router(metrics.router, prefix="/api", tags=["metrics"])
 app.include_router(audio.router, prefix="/api/audio", tags=["audio"])
 app.include_router(video.router, prefix="/api/video", tags=["video"])
 
