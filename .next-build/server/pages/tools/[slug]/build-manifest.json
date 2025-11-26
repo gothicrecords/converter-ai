@@ -7,14 +7,16 @@
   "pages": {
     "/tools/[slug]": [
       "static/chunks/27ae9006aacde68c.js",
-      "static/chunks/2c75d2242366ea34.js",
-      "static/chunks/21bbfc9589113a13.js",
+      "static/chunks/7f5fa041c878d4ab.js",
+      "static/chunks/a883b57b3bafb763.js",
+      "static/chunks/2faba439c25a55d3.js",
+      "static/chunks/1b2ecfb616148150.js",
+      "static/chunks/747caa7209e80ed9.js",
+      "static/chunks/be65a9b80c478096.js",
+      "static/chunks/f8f6c0b21dc4c674.js",
       "static/chunks/ee01278c701d5dbb.js",
-      "static/chunks/73a5ae0a632c7283.js",
-      "static/chunks/71aa4e362e1e9af8.js",
-      "static/chunks/426689f0b3a4fa2b.js",
-      "static/chunks/dcd1f0aa3f32d01c.js",
-      "static/chunks/turbopack-1f434dcfd1747287.js"
+      "static/chunks/83f8215fd959c6a9.js",
+      "static/chunks/turbopack-9876fe63aec10c3c.js"
     ]
   },
   "ampFirstPages": []

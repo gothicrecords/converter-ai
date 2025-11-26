@@ -109,9 +109,8 @@ function GenericConverter({ tool }) {
     onDragLeave: () => setIsDragActive(false),
     onDropAccepted: () => setIsDragActive(false),
     onDropRejected: () => {
-        Audio: ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'weba'],
-        Video: ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'avif'],
-        Image: ['jpg', 'jpeg', 'png', 'webp', 'avif']
+      setError('Formato file non supportato.');
+    }
   });
 
   const handleConvert = useCallback(async () => {

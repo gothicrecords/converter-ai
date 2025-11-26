@@ -6,12 +6,15 @@
   "rootMainFiles": [],
   "pages": {
     "/upscaler": [
-      "static/chunks/ce74743df06758a3.js",
+      "static/chunks/6a4d7cff2a5ffb03.js",
       "static/chunks/27ae9006aacde68c.js",
-      "static/chunks/71aa4e362e1e9af8.js",
-      "static/chunks/dcd1f0aa3f32d01c.js",
-      "static/chunks/d7289f5fd5078ba3.js",
-      "static/chunks/turbopack-6b1e7fc70191c18d.js"
+      "static/chunks/5abd7b939a10ad9c.js",
+      "static/chunks/2faba439c25a55d3.js",
+      "static/chunks/be65a9b80c478096.js",
+      "static/chunks/83f8215fd959c6a9.js",
+      "static/chunks/a883b57b3bafb763.js",
+      "static/chunks/f8f6c0b21dc4c674.js",
+      "static/chunks/turbopack-90611be6fb4c85b8.js"
     ]
   },
   "ampFirstPages": []

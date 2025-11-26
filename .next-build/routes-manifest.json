@@ -16,49 +16,19 @@
   ],
   "headers": [
     {
-      "source": "/:nextInternalLocale(en|it|es|fr|de|pt|ru|ja|zh|ar|hi|ko)/:all*(svg|jpg|png|webp|avif|gif|woff|woff2|ttf|eot)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ],
-      "regex": "^(?:/(en|it|es|fr|de|pt|ru|ja|zh|ar|hi|ko))(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(svg|jpg|png|webp|avif|gif|woff|woff2|ttf|eot)(?:/)?$"
-    },
-    {
-      "source": "/:nextInternalLocale(en|it|es|fr|de|pt|ru|ja|zh|ar|hi|ko)/_next/static/:path*",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ],
-      "regex": "^(?:/(en|it|es|fr|de|pt|ru|ja|zh|ar|hi|ko))/_next/static(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
-    },
-    {
-      "source": "/:nextInternalLocale(en|it|es|fr|de|pt|ru|ja|zh|ar|hi|ko)/_next/image",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ],
-      "regex": "^(?:/(en|it|es|fr|de|pt|ru|ja|zh|ar|hi|ko))/_next/image(?:/)?$"
-    },
-    {
       "source": "/:nextInternalLocale(en|it|es|fr|de|pt|ru|ja|zh|ar|hi|ko)/:path*",
       "headers": [
         {
-          "key": "X-DNS-Prefetch-Control",
-          "value": "on"
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
         },
         {
           "key": "X-Frame-Options",
           "value": "SAMEORIGIN"
         },
         {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
         },
         {
           "key": "Referrer-Policy",
@@ -560,55 +530,55 @@
   "dataRoutes": [
     {
       "page": "/",
-      "dataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/index\\.json$"
+      "dataRouteRegex": "^/_next/data/build\\-1764141049295/index\\.json$"
     },
     {
       "page": "/chat",
-      "dataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/chat\\.json$"
+      "dataRouteRegex": "^/_next/data/build\\-1764141049295/chat\\.json$"
     },
     {
       "page": "/dashboard",
-      "dataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/dashboard\\.json$"
+      "dataRouteRegex": "^/_next/data/build\\-1764141049295/dashboard\\.json$"
     },
     {
       "page": "/home",
-      "dataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/home\\.json$"
+      "dataRouteRegex": "^/_next/data/build\\-1764141049295/home\\.json$"
     },
     {
       "page": "/pdf",
-      "dataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/pdf\\.json$"
+      "dataRouteRegex": "^/_next/data/build\\-1764141049295/pdf\\.json$"
     },
     {
       "page": "/pdf/[slug]",
       "routeKeys": {
         "nxtPslug": "nxtPslug"
       },
-      "dataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/pdf/([^/]+?)\\.json$",
-      "namedDataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/pdf/(?<nxtPslug>[^/]+?)\\.json$"
+      "dataRouteRegex": "^/_next/data/build\\-1764141049295/pdf/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/build\\-1764141049295/pdf/(?<nxtPslug>[^/]+?)\\.json$"
     },
     {
       "page": "/pricing",
-      "dataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/pricing\\.json$"
+      "dataRouteRegex": "^/_next/data/build\\-1764141049295/pricing\\.json$"
     },
     {
       "page": "/sitemap.xml",
-      "dataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/sitemap.xml\\.json$"
+      "dataRouteRegex": "^/_next/data/build\\-1764141049295/sitemap.xml\\.json$"
     },
     {
       "page": "/tools",
-      "dataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/tools\\.json$"
+      "dataRouteRegex": "^/_next/data/build\\-1764141049295/tools\\.json$"
     },
     {
       "page": "/tools/rimozione-sfondo-ai",
-      "dataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/tools/rimozione-sfondo-ai\\.json$"
+      "dataRouteRegex": "^/_next/data/build\\-1764141049295/tools/rimozione-sfondo-ai\\.json$"
     },
     {
       "page": "/tools/[slug]",
       "routeKeys": {
         "nxtPslug": "nxtPslug"
       },
-      "dataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/tools/([^/]+?)\\.json$",
-      "namedDataRouteRegex": "^/_next/data/j9Fxv3a4Pg6yTOjeDsjvZ/tools/(?<nxtPslug>[^/]+?)\\.json$"
+      "dataRouteRegex": "^/_next/data/build\\-1764141049295/tools/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/build\\-1764141049295/tools/(?<nxtPslug>[^/]+?)\\.json$"
     }
   ],
   "i18n": {

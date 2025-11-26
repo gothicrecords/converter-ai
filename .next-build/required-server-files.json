@@ -1,7 +1,9 @@
 {
   "version": 1,
   "config": {
-    "env": {},
+    "env": {
+      "NEXT_PUBLIC_API_URL": "http://localhost:8000"
+    },
     "typescript": {
       "ignoreBuildErrors": false
     },
@@ -71,8 +73,8 @@
       "position": "bottom-left"
     },
     "onDemandEntries": {
-      "maxInactiveAge": 25000,
-      "pagesBufferLength": 2
+      "maxInactiveAge": 60000,
+      "pagesBufferLength": 5
     },
     "basePath": "",
     "sassOptions": {},
@@ -110,7 +112,8 @@
           "warn"
         ]
       },
-      "reactRemoveProperties": true
+      "reactRemoveProperties": true,
+      "styledComponents": false
     },
     "expireTime": 31536000,
     "staticPageGenerationTimeout": 60,
@@ -191,7 +194,7 @@
       "workerThreads": false,
       "optimizeCss": false,
       "nextScriptWorkers": false,
-      "scrollRestoration": true,
+      "scrollRestoration": false,
       "externalDir": false,
       "disableOptimizedLoading": false,
       "gzipSize": true,
@@ -206,7 +209,6 @@
       "parallelServerBuildTraces": false,
       "ppr": false,
       "authInterrupts": false,
-      "webpackBuildWorker": false,
       "webpackMemoryOptimizations": false,
       "optimizeServerReact": true,
       "viewTransition": false,
@@ -236,6 +238,9 @@
         "@tanstack/react-query",
         "date-fns",
         "react-markdown",
+        "pdf-lib",
+        "pdfjs-dist",
+        "tesseract.js",
         "lucide-react",
         "lodash-es",
         "ramda",
@@ -311,6 +316,14 @@
         "react-icons/vsc",
         "react-icons/wi"
       ],
+      "webVitalsAttribution": [
+        "CLS",
+        "LCP",
+        "FCP",
+        "FID",
+        "TTFB",
+        "INP"
+      ],
       "trustHostHeader": false,
       "isExperimentalCompile": false
     },
@@ -320,8 +333,7 @@
     "turbopack": {
       "root": "C:\\Users\\jurit\\OneDrive\\Desktop\\sito upscale"
     },
-    "distDirRoot": ".next-build",
-    "_originalRedirects": []
+    "distDirRoot": ".next-build"
   },
   "appDir": "C:\\Users\\jurit\\OneDrive\\Desktop\\sito upscale",
   "relativeAppDir": "",

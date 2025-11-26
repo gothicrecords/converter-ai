@@ -1,9 +1,0 @@
-__turbopack_load_page_chunks__("/pdf/[slug]", [
-  "static/chunks/77f810254cd1f54a.js",
-  "static/chunks/b586138b05fad00d.js",
-  "static/chunks/27ae9006aacde68c.js",
-  "static/chunks/71aa4e362e1e9af8.js",
-  "static/chunks/dcd1f0aa3f32d01c.js",
-  "static/chunks/48a2119dfade9107.js",
-  "static/chunks/turbopack-69f6c6559d8e703e.js"
-])
