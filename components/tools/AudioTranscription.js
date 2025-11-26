@@ -34,7 +34,8 @@ export default function AudioTranscription() {
             formData.append('audio', audio);
 
             const { getApiUrl } = await import('../../utils/getApiUrl');
-            const response = await fetch(getApiUrl('/api/tools/transcribe-audio'), {
+            const apiUrl = await getApiUrl('/api/tools/transcribe-audio');
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 body: formData,
             });

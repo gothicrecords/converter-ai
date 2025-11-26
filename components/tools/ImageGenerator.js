@@ -55,7 +55,8 @@ export default function ImageGenerator() {
 
         try {
             const { getApiUrl } = await import('../../utils/getApiUrl');
-            const response = await fetch(getApiUrl('/api/tools/generate-image'), {
+            const apiUrl = await getApiUrl('/api/tools/generate-image');
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt, aspect, detail, realism }),

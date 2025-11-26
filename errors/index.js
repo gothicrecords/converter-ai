@@ -178,7 +178,7 @@ async function logError(error, context = {}) {
 }
 
 /**
- * Format error response for API
+ * Format error response for API with enhanced resolution information
  */
 export function formatErrorResponse(error, includeStack = false, includeDetails = true) {
   const isDevelopment = process.env.NODE_ENV === 'development';
@@ -191,6 +191,36 @@ export function formatErrorResponse(error, includeStack = false, includeDetails 
   // Include details if available and allowed
   if (includeDetails && error.details) {
     response.details = error.details;
+  }
+
+  // Include enhanced error resolution information if available
+  if (error.pattern || error.resolution) {
+    const resolution = error.pattern || error.resolution;
+    response.resolution = {
+      type: resolution.type,
+      severity: resolution.severity,
+      solution: resolution.solution,
+      detailedSolution: resolution.detailedSolution || [],
+      suggestedActions: resolution.suggestedActions || [],
+      canRetry: resolution.recoverySteps?.includes('retry_with_backoff') || 
+                resolution.suggestedActions?.some(a => a.type === 'retry' || a.type === 'wait'),
+    };
+
+    // Include recovery steps if available
+    if (resolution.recoverySteps && resolution.recoverySteps.length > 0) {
+      response.resolution.recoverySteps = resolution.recoverySteps;
+    }
+
+    // Include auto-fix information if attempted
+    if (error.autoFixAttempted !== undefined) {
+      response.resolution.autoFixAttempted = error.autoFixAttempted;
+      if (error.autoFixResult) {
+        response.resolution.autoFixResult = {
+          fixed: error.autoFixResult.fixed,
+          canRetry: error.autoFixResult.canRetry,
+        };
+      }
+    }
   }
 
   // Include stack trace only in development
@@ -215,6 +245,23 @@ export function formatErrorResponse(error, includeStack = false, includeDetails 
  * Handle errors in API routes with improved error resolution
  */
 export async function handleApiError(error, res, context = {}) {
+  // Get error tracker and analyze error pattern
+  let errorInfo = null;
+  try {
+    const { default: errorTracker } = await import('../lib/errorTracker.js');
+    errorInfo = await errorTracker.trackError(error, context);
+    
+    // Attach pattern information to error for response
+    if (errorInfo && errorInfo.pattern) {
+      error.pattern = errorInfo.pattern;
+      error.autoFixAttempted = errorInfo.autoFixAttempted;
+      error.autoFixResult = errorInfo.autoFixResult;
+    }
+  } catch (importError) {
+    // Error tracker not available, continue with basic logging
+    console.warn('Error tracker not available:', importError.message);
+  }
+
   // Log the error with context
   await logError(error, context);
 
@@ -317,16 +364,60 @@ export function asyncHandler(handler) {
 }
 
 /**
- * Retry logic for operations that might fail temporarily
+ * Get contextual error resolution suggestions
  */
-export async function retryOperation(operation, maxRetries = 3, delay = 1000) {
+export async function getErrorResolution(error, context = {}) {
+  try {
+    const { default: errorTracker } = await import('../lib/errorTracker.js');
+    const errorInfo = await errorTracker.trackError(error, context);
+    
+    if (errorInfo && errorInfo.pattern) {
+      return {
+        solution: errorInfo.pattern.solution,
+        detailedSolution: errorInfo.pattern.detailedSolution || [],
+        suggestedActions: errorInfo.pattern.suggestedActions || [],
+        canRetry: errorInfo.autoFixResult?.canRetry || false,
+        autoFixed: errorInfo.autoFixResult?.fixed || false,
+        recoverySteps: errorInfo.pattern.recoverySteps || [],
+      };
+    }
+  } catch (e) {
+    // Error tracker not available
+  }
+  
+  return {
+    solution: 'Si è verificato un errore. Riprova più tardi.',
+    detailedSolution: [],
+    suggestedActions: [],
+    canRetry: false,
+    autoFixed: false,
+    recoverySteps: [],
+  };
+}
+
+/**
+ * Retry logic for operations that might fail temporarily with enhanced error resolution
+ */
+export async function retryOperation(operation, maxRetries = 3, delay = 1000, context = {}) {
   let lastError;
+  let lastErrorResolution = null;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error) {
       lastError = error;
+      
+      // Get error resolution information
+      try {
+        lastErrorResolution = await getErrorResolution(error, {
+          ...context,
+          attempt,
+          maxRetries,
+        });
+      } catch (e) {
+        // Ignore resolution errors
+      }
       
       // Don't retry on certain errors
       if (error instanceof ValidationError || 
@@ -335,15 +426,38 @@ export async function retryOperation(operation, maxRetries = 3, delay = 1000) {
         throw error;
       }
       
+      // Check if error resolution suggests not to retry
+      if (lastErrorResolution && !lastErrorResolution.canRetry && attempt > 1) {
+        throw error;
+      }
+      
       // If last attempt, throw error
       if (attempt === maxRetries) {
         break;
       }
       
-      // Wait before retrying (exponential backoff)
-      const waitTime = delay * Math.pow(2, attempt - 1);
+      // Use suggested wait time if available
+      let waitTime = delay * Math.pow(2, attempt - 1);
+      const waitAction = lastErrorResolution?.suggestedActions?.find(
+        a => a.type === 'wait' && a.waitTime
+      );
+      if (waitAction) {
+        waitTime = waitAction.waitTime;
+      }
+      
+      // Wait before retrying (exponential backoff or suggested wait)
       await new Promise(resolve => setTimeout(resolve, waitTime));
+      
+      // Log retry attempt
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Retrying operation (attempt ${attempt + 1}/${maxRetries})...`);
+      }
     }
+  }
+  
+  // Attach resolution information to error if available
+  if (lastErrorResolution && lastError) {
+    lastError.resolution = lastErrorResolution;
   }
   
   throw lastError;

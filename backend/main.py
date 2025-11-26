@@ -29,16 +29,23 @@ from backend.routers import (
 )
 from backend.middleware.error_handler import error_handler
 from backend.middleware.logging_middleware import LoggingMiddleware
+from backend.middleware.rate_limit import RateLimitMiddleware
+from backend.middleware.security import SecurityMiddleware
 
 # Get settings after all imports
 settings = get_settings()
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+from backend.utils.logger import setup_logging, get_logger
+
+# Setup structured logging
+log_level = settings.ENVIRONMENT.upper() if settings.ENVIRONMENT == "production" else "INFO"
+setup_logging(
+    level=log_level,
+    json_format=settings.ENVIRONMENT == "production",
+    log_file=None  # Can be configured via env var
 )
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -85,7 +92,13 @@ else:
         expose_headers=["*"],
     )
 
-# Custom middleware
+# Custom middleware (order matters - security first, then rate limiting, then logging)
+app.add_middleware(SecurityMiddleware)
+app.add_middleware(
+    RateLimitMiddleware,
+    default_limit=100,  # requests per window
+    window_seconds=60,  # 1 minute window
+)
 app.add_middleware(LoggingMiddleware)
 
 # Exception handlers

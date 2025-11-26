@@ -1,7 +1,7 @@
 """
 Users router - handles user operations
 """
-from fastapi import APIRouter, HTTPException, Header, Depends, Depends, Depends
+from fastapi import APIRouter, HTTPException, Header, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, Dict

@@ -36,8 +36,6 @@ def _check_weasyprint():
             logger.warning("WeasyPrint not available - HTML to PDF conversion will use fallback")
     return WEASYPRINT_AVAILABLE
 
-logger = logging.getLogger(__name__)
-
 
 class PDFConverterService:
     """Service for PDF conversions"""

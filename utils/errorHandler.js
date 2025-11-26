@@ -86,7 +86,86 @@ export function getErrorDetails(error) {
 }
 
 /**
- * Handle API error response
+ * Get enhanced error resolution suggestions
+ */
+export function getErrorResolution(error) {
+  // Check if error has resolution information from API
+  if (error?.resolution) {
+    return {
+      solution: error.resolution.solution || null,
+      detailedSolution: error.resolution.detailedSolution || [],
+      suggestedActions: error.resolution.suggestedActions || [],
+      canRetry: error.resolution.canRetry || false,
+      autoFixed: error.resolution.autoFixResult?.fixed || false,
+      recoverySteps: error.resolution.recoverySteps || [],
+    };
+  }
+
+  // Generate basic resolution based on error code
+  const resolution = {
+    solution: null,
+    detailedSolution: [],
+    suggestedActions: [],
+    canRetry: false,
+    autoFixed: false,
+    recoverySteps: [],
+  };
+
+  // Map common error codes to solutions
+  if (error?.code) {
+    switch (error.code) {
+      case 'NETWORK_ERROR':
+        resolution.solution = 'Errore di connessione. Controlla la tua connessione internet';
+        resolution.detailedSolution = [
+          'Verifica che la connessione internet sia attiva',
+          'Controlla che il server sia raggiungibile',
+          'Riprova l\'operazione tra qualche istante'
+        ];
+        resolution.canRetry = true;
+        resolution.suggestedActions.push({
+          type: 'retry',
+          action: 'retry_operation',
+          description: 'Riprova l\'operazione',
+        });
+        break;
+      case 'TIMEOUT_ERROR':
+        resolution.solution = 'Timeout: l\'operazione ha richiesto troppo tempo';
+        resolution.detailedSolution = [
+          'L\'operazione sta richiedendo più tempo del previsto',
+          'Riprova l\'operazione',
+          'Se il problema persiste, contatta il supporto'
+        ];
+        resolution.canRetry = true;
+        resolution.suggestedActions.push({
+          type: 'retry',
+          action: 'retry_with_increased_timeout',
+          description: 'Riprova con timeout aumentato',
+        });
+        break;
+      case 'RATE_LIMIT_EXCEEDED':
+        resolution.solution = 'Limite di richieste superato. Attendi prima di riprovare';
+        resolution.detailedSolution = [
+          'Hai superato il limite di richieste consentite',
+          'Attendi alcuni minuti prima di riprovare',
+          'Riduci la frequenza delle richieste'
+        ];
+        resolution.canRetry = true;
+        const retryAfter = error.details?.retryAfter || 60;
+        resolution.suggestedActions.push({
+          type: 'wait',
+          action: 'wait_and_retry',
+          description: `Attendi ${retryAfter} secondi prima di riprovare`,
+          waitTime: retryAfter * 1000,
+        });
+        break;
+    }
+  }
+
+  return resolution;
+}
+
+/**
+ * Handle API error response with enhanced resolution information
  */
 export async function handleApiErrorResponse(response) {
   let errorData;
@@ -106,23 +185,78 @@ export async function handleApiErrorResponse(response) {
   const errorCode = errorData.code || 'UNKNOWN_ERROR';
   const errorDetails = getErrorDetails(errorData);
 
-  // Determine error type based on status code
+  // Extract resolution information if available
+  const resolution = errorData.resolution || null;
+  let resolutionMessage = null;
+  let canRetry = false;
+  let suggestedActions = [];
+
+  if (resolution) {
+    // Build resolution message with detailed solutions
+    if (resolution.detailedSolution && resolution.detailedSolution.length > 0) {
+      resolutionMessage = resolution.detailedSolution.join('\n• ');
+    } else if (resolution.solution) {
+      resolutionMessage = resolution.solution;
+    }
+
+    canRetry = resolution.canRetry || false;
+    suggestedActions = resolution.suggestedActions || [];
+
+    // If auto-fix was attempted and succeeded, show success message
+    if (resolution.autoFixAttempted && resolution.autoFixResult?.fixed) {
+      showToast(
+        'Errore risolto automaticamente. Riprova l\'operazione.',
+        'success',
+        4000
+      );
+      return {
+        message: errorMessage,
+        code: errorCode,
+        status: response.status,
+        details: errorData.details,
+        resolution: resolution,
+        canRetry: true,
+        original: errorData,
+      };
+    }
+  }
+
+  // Determine error type based on status code and resolution
   let errorType = 'error';
   if (response.status >= 400 && response.status < 500) {
     // Client errors - show as warning
     errorType = response.status === 401 || response.status === 403 ? 'error' : 'warning';
   }
 
-  // Show toast notification
+  // If error can be retried, show info message
+  if (canRetry) {
+    errorType = 'info';
+  }
+
+  // Build details message with resolution information
+  let detailsMessage = errorData.details ? (typeof errorData.details === 'string' 
+    ? errorData.details 
+    : JSON.stringify(errorData.details, null, 2)) : null;
+
+  if (resolutionMessage) {
+    if (detailsMessage) {
+      detailsMessage = `Risoluzione:\n${resolutionMessage}\n\nDettagli:\n${detailsMessage}`;
+    } else {
+      detailsMessage = `Risoluzione:\n${resolutionMessage}`;
+    }
+  }
+
+  // Show toast notification with enhanced information
   showToast(
     errorMessage,
     errorType,
-    6000, // Show for 6 seconds
+    canRetry ? 8000 : 6000, // Show longer if can retry
     {
-      details: errorData.details ? (typeof errorData.details === 'string' 
-        ? errorData.details 
-        : JSON.stringify(errorData.details, null, 2)) : null,
+      details: detailsMessage,
       technical: errorDetails,
+      canRetry: canRetry,
+      suggestedActions: suggestedActions,
+      resolution: resolution,
     }
   );
 
@@ -132,6 +266,9 @@ export async function handleApiErrorResponse(response) {
     code: errorCode,
     status: response.status,
     details: errorData.details,
+    resolution: resolution,
+    canRetry: canRetry,
+    suggestedActions: suggestedActions,
     original: errorData,
   };
 }
@@ -255,16 +392,27 @@ export function handleError(error, customMessage = null) {
 }
 
 /**
- * Retry operation with exponential backoff
+ * Retry operation with exponential backoff and enhanced error resolution
  */
-export async function retryOperation(operation, maxRetries = 3, delay = 1000) {
+export async function retryOperation(operation, maxRetries = 3, delay = 1000, context = {}) {
   let lastError;
+  let lastErrorResolution = null;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error) {
       lastError = error;
+      
+      // Extract resolution information from error if available
+      if (error.resolution) {
+        lastErrorResolution = error.resolution;
+      } else if (error.canRetry !== undefined) {
+        lastErrorResolution = {
+          canRetry: error.canRetry,
+          suggestedActions: error.suggestedActions || [],
+        };
+      }
       
       // Don't retry on certain errors
       if (error.code === 'VALIDATION_ERROR' || 
@@ -276,24 +424,47 @@ export async function retryOperation(operation, maxRetries = 3, delay = 1000) {
         throw error;
       }
       
+      // Check if error resolution suggests not to retry
+      if (lastErrorResolution && !lastErrorResolution.canRetry && attempt > 1) {
+        throw error;
+      }
+      
       // If last attempt, throw error
       if (attempt === maxRetries) {
         break;
       }
       
-      // Wait before retrying (exponential backoff)
-      const waitTime = delay * Math.pow(2, attempt - 1);
+      // Determine wait time - use suggested wait time if available
+      let waitTime = delay * Math.pow(2, attempt - 1);
+      const waitAction = lastErrorResolution?.suggestedActions?.find(
+        a => a.type === 'wait' && a.waitTime
+      );
+      if (waitAction) {
+        waitTime = waitAction.waitTime;
+      }
+      
+      // Wait before retrying (exponential backoff or suggested wait)
       await new Promise(resolve => setTimeout(resolve, waitTime));
       
-      // Show retry notification
+      // Show retry notification with resolution info if available
+      let retryMessage = `Tentativo ${attempt + 1} di ${maxRetries}...`;
+      if (lastErrorResolution?.solution) {
+        retryMessage = `${retryMessage}\n${lastErrorResolution.solution}`;
+      }
+      
       if (attempt < maxRetries) {
         showToast(
-          `Tentativo ${attempt + 1} di ${maxRetries}...`,
+          retryMessage,
           'info',
-          2000
+          3000
         );
       }
     }
+  }
+  
+  // If error has resolution info, include it in the thrown error
+  if (lastErrorResolution && lastError) {
+    lastError.resolution = lastErrorResolution;
   }
   
   throw lastError;

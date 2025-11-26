@@ -7,6 +7,8 @@ from typing import Optional
 import logging
 
 from backend.services.tools_service import ToolsService
+from backend.utils.response_validator import validate_response
+from backend.utils.exceptions import ProcessingException
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +29,12 @@ async def remove_background(
         result = await tools_service.remove_background(
             file_content, file.filename or "file.jpg", type, size, crop
         )
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Remove background processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Remove background error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -39,7 +46,12 @@ async def upscale(image: UploadFile = File(...), scale: int = Form(default=2)):
     try:
         file_content = await image.read()
         result = await tools_service.upscale(file_content, image.filename or "file.jpg", scale)
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Upscale processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Upscale error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -51,7 +63,12 @@ async def compress_video(file: UploadFile = File(...), quality: str = "medium"):
     try:
         file_content = await file.read()
         result = await tools_service.compress_video(file_content, file.filename or "file.mp4", quality)
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Compress video processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Compress video error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -63,7 +80,12 @@ async def transcribe_audio(file: UploadFile = File(...)):
     try:
         file_content = await file.read()
         result = await tools_service.transcribe_audio(file_content, file.filename or "file.mp3")
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="json", required_fields=["text"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Transcribe audio processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Transcribe audio error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -75,7 +97,12 @@ async def ocr_advanced(file: UploadFile = File(...)):
     try:
         file_content = await file.read()
         result = await tools_service.ocr_advanced(file_content, file.filename or "file.jpg")
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="json", required_fields=["text"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"OCR processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"OCR error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -91,7 +118,12 @@ async def generate_image(
     """Generate image from prompt"""
     try:
         result = await tools_service.generate_image(prompt, style, aspect, quality)
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="url", required_fields=["url"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Generate image processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Generate image error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -110,7 +142,12 @@ async def combine_split_pdf(
             file_contents.append((content, file.filename or "file.pdf"))
         
         result = await tools_service.combine_split_pdf(file_contents, mode)
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Combine/split PDF processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Combine/split PDF error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -122,7 +159,12 @@ async def clean_noise(file: UploadFile = File(...)):
     try:
         file_content = await file.read()
         result = await tools_service.clean_noise(file_content, file.filename or "file.mp3")
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Clean noise processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Clean noise error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -139,7 +181,12 @@ async def translate_document(
         result = await tools_service.translate_document(
             file_content, file.filename or "file.txt", target_language
         )
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Translate document processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Translate document error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -150,7 +197,12 @@ async def text_summarizer(text: str = Form(...), length: str = Form("medium")):
     """Summarize text"""
     try:
         result = await tools_service.text_summarizer(text, length)
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="json", required_fields=["summary"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Text summarizer processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Text summarizer error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -161,7 +213,12 @@ async def grammar_checker(text: str = Form(...)):
     """Check grammar"""
     try:
         result = await tools_service.grammar_checker(text)
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="json", required_fields=["corrected"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Grammar checker processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Grammar checker error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -179,7 +236,12 @@ async def thumbnail_generator(
         result = await tools_service.thumbnail_generator(
             file_content, file.filename or "file.jpg", width, height
         )
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Thumbnail generator processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Thumbnail generator error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))

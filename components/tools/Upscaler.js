@@ -97,7 +97,8 @@ export default function Upscaler() {
     fd.append('image', originalFile);
     try {
       const { getApiUrl } = await import('../../utils/getApiUrl');
-      const res = await fetch(getApiUrl('/api/tools/upscale'), { method: 'POST', body: fd });
+      const apiUrl = await getApiUrl('/api/tools/upscale');
+      const res = await fetch(apiUrl, { method: 'POST', body: fd });
       const j = await res.json();
       if (!res.ok) {
         // Se è un errore di limite, crea un errore speciale

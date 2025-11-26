@@ -8,6 +8,12 @@ from typing import Optional
 import logging
 
 from backend.services.auth_service import AuthService
+from backend.utils.exceptions import (
+    ValidationException,
+    AuthenticationException,
+    ConflictException,
+    DatabaseException,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +46,11 @@ async def signup(request: SignupRequest):
             "user": result["user"],
             "sessionToken": result["sessionToken"],
         }, status_code=201)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except (ValidationException, ConflictException) as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except DatabaseException as e:
+        logger.error(f"Signup database error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Signup failed")
     except Exception as exc:
         logger.error(f"Signup error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail="Signup failed")
@@ -60,8 +69,11 @@ async def login(request: LoginRequest):
             "user": result["user"],
             "sessionToken": result["sessionToken"],
         })
-    except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
+    except (ValidationException, AuthenticationException) as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except DatabaseException as e:
+        logger.error(f"Login database error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Login failed")
     except Exception as exc:
         logger.error(f"Login error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail="Login failed")

@@ -1,1 +1,2 @@
-web: uvicorn backend.main:app --host 0.0.0.0 --port $PORT --workers 1 --log-level info
+web: python start_backend_production.py
+watchdog: python start_backend_watchdog.py

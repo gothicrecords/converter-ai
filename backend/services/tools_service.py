@@ -88,7 +88,41 @@ class ToolsService:
             import tempfile
             import mimetypes
             # Validate target format
-            valid_formats = ["mp3", "wav", "flac", "ogg", "m4a", "aac"]  # AVIF non è audio
+            valid_formats = ["mp3", "wav", "flac", "ogg", "m4a", "aac"]
+            if target_format not in valid_formats:
+                raise ValueError(f"Formato non supportato: {target_format}")
+            # Create temp files
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".input") as input_file:
+                input_file.write(file_content)
+                input_path = input_file.name
+            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{target_format}") as output_file:
+                output_path = output_file.name
+            try:
+                # FFmpeg conversion
+                stream = ffmpeg.input(input_path)
+                stream = ffmpeg.output(stream, output_path)
+                ffmpeg.run(stream, overwrite_output=True, quiet=True)
+                # Read output
+                with open(output_path, "rb") as f:
+                    out_bytes = f.read()
+                mime_type = mimetypes.guess_type(output_path)[0] or f"audio/{target_format}"
+                data_url = f"data:{mime_type};base64,{base64.b64encode(out_bytes).decode()}"
+                result_name = filename.rsplit('.', 1)[0] + f'_converted.{target_format}'
+                return {
+                    "url": data_url,
+                    "name": result_name,
+                }
+            finally:
+                try:
+                    os.unlink(input_path)
+                    os.unlink(output_path)
+                except Exception:
+                    pass
+        except ImportError:
+            raise RuntimeError("FFmpeg non installato o non disponibile nel backend.")
+        except Exception as exc:
+            logger.error(f"Convert audio error: {exc}", exc_info=True)
+            raise
 
     async def convert_image(
         self,

@@ -5,6 +5,7 @@ import { HiUpload, HiX, HiDownload } from 'react-icons/hi';
 import * as analytics from '../lib/analytics';
 import { fetchWithErrorHandling, handleError } from '../utils/errorHandler';
 import { uploadFile, apiCall } from '../utils/apiClient';
+import { safeUploadFile } from '../utils/safeApiCall';
 import ConverterCards from './ConverterCards';
 
 // Generic converter UI: upload a file, select output (currently limited), perform placeholder conversion.
@@ -201,7 +202,7 @@ function GenericConverter({ tool }) {
       
       // Use getApiUrl to support Python backend with fallback
       const { getApiUrl } = await import('../utils/getApiUrl');
-      const fullApiUrl = getApiUrl(apiUrl);
+      const fullApiUrl = await getApiUrl(apiUrl);
       
       // Prepara i campi aggiuntivi per la chiamata API
       const additionalFields = {
@@ -222,84 +223,36 @@ function GenericConverter({ tool }) {
         }
       });
       
-      // Crea un AbortController per gestire timeout
-      const controller = new AbortController();
-      let timeoutId;
-      let data;
+      setProgress(30);
+      setProgressMessage('Conversione in corso...');
       
-      try {
-        timeoutId = setTimeout(() => {
-          controller.abort();
-        }, 300000); // 5 minuti
-        
-        setProgress(30);
-        setProgressMessage('Conversione in corso...');
-        
-        // Use API client helper with full URL
-        data = await uploadFile(fullApiUrl, file, additionalFields);
-        
-        setProgress(80);
-        setProgressMessage('Finalizzazione...');
-        
-        // Pulisci il timeout se la richiesta è completata
-        clearTimeout(timeoutId);
-        
-        // Se la richiesta è stata abortita, esci
-        if (controller.signal.aborted) {
-          throw new Error('Operazione annullata per timeout');
-        }
-      } catch (fetchError) {
-        // Pulisci sempre il timeout in caso di errore
-        clearTimeout(timeoutId);
-        
-        // Log dettagliato dell'errore per debugging
-        console.error('Errore fetch API:', {
-          error: fetchError,
-          name: fetchError.name,
-          message: fetchError.message,
-          stack: fetchError.stack,
-          apiUrl: apiUrl,
-          origin: typeof window !== 'undefined' ? window.location.origin : 'N/A'
-        });
-        
-        // Gestisci errori di rete
-        if (fetchError.name === 'AbortError') {
-          throw new Error('Timeout: l\'operazione ha richiesto troppo tempo. Riprova con un file più piccolo.');
-        }
-        
-        if (fetchError instanceof TypeError && fetchError.message.includes('fetch')) {
-          throw new Error(`Errore di connessione all'API. Controlla la tua connessione internet e riprova.`);
-        }
-        
-        // Rilancia altri errori con più informazioni
-        throw new Error(`Errore durante la richiesta: ${fetchError.message || 'Errore sconosciuto'}`);
-      }
+      // Usa safeUploadFile per gestione automatica errori e validazione
+      const data = await safeUploadFile(fullApiUrl, file, additionalFields, {
+        validator: 'dataUrl',
+        maxRetries: 3,
+        timeout: 300000, // 5 minuti
+        silentErrors: false,
+      });
+      
+      setProgress(80);
+      setProgressMessage('Finalizzazione...');
       
       const duration = Date.now() - startTime;
       
-      // Verifica che i dati siano validi
-      if (!data || (typeof data !== 'object')) {
-        throw new Error('Formato risposta non valido dal server');
-      }
-      
+      // I dati sono già validati da safeUploadFile
       // Gestisci due tipi di risposta:
       // 1. { name, dataUrl } - da /api/convert/[target]
-      // 2. { url } - da /api/pdf/pdf-to-* (ConvertAPI o altro)
+      // 2. { name, url } - da /api/pdf/pdf-to-* (ConvertAPI o altro)
       let resultName = null;
       let resultDataUrl = null;
       
       if (data.dataUrl) {
-        // Formato standard { name, dataUrl }
-        if (typeof data.dataUrl !== 'string' || data.dataUrl.trim().length === 0) {
-          throw new Error('Data URL non valido nella risposta');
-        }
+        // Formato standard { name, dataUrl } - già validato
         resultName = data.name || `converted.${outputFormat}`;
         resultDataUrl = data.dataUrl;
       } else if (data.url) {
-        // Formato PDF converter { url, name? }
-        if (typeof data.url !== 'string' || data.url.trim().length === 0) {
-          throw new Error('URL non valido nella risposta');
-        }
+        // Formato PDF converter { url, name? } - già validato
+        resultName = data.name || file.name.replace(/\.[^.]+$/, `.${outputFormat}`);
         
         // Gestisci diversi tipi di URL:
         // 1. Data URL già presente (es. pdf-to-pptx, pdf-to-xlsx)
@@ -310,9 +263,15 @@ function GenericConverter({ tool }) {
         } else if (data.url.startsWith('http://') || data.url.startsWith('https://')) {
           // URL esterno (es. ConvertAPI) - scarica il file e convertilo in data URL
           try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minuto per download
+            
             const fileResponse = await fetch(data.url, { 
               signal: controller.signal 
             });
+            
+            clearTimeout(timeoutId);
+            
             if (!fileResponse.ok) {
               throw new Error(`Errore nel download del file convertito: HTTP ${fileResponse.status}`);
             }
@@ -340,10 +299,10 @@ function GenericConverter({ tool }) {
           // Altro formato - prova a usarlo come data URL
           resultDataUrl = data.url;
         }
-        resultName = data.name || file.name.replace(/\.[^.]+$/, `.${outputFormat}`);
       } else {
-        console.error('Risposta non riconosciuta:', data);
-        throw new Error('Formato risposta non riconosciuto dal server. Risposta: ' + JSON.stringify(data).substring(0, 100));
+        // Questo non dovrebbe mai accadere perché safeUploadFile valida già
+        console.error('Risposta non riconosciuta (dovrebbe essere già validata):', data);
+        throw new Error('Formato risposta non riconosciuto dal server');
       }
       
       // Track successful conversion
@@ -375,15 +334,11 @@ function GenericConverter({ tool }) {
         'conversion_error'
       );
       
-      // Error handling
+      // Error handling - safeUploadFile ha già mostrato il toast, ma impostiamo anche l'errore locale
       const handledError = handleError(e);
       setError(handledError.message);
       console.error('Errore conversione:', e);
     } finally {
-      // Assicurati che il timeout venga sempre pulito
-      if (typeof timeoutId !== 'undefined') {
-        clearTimeout(timeoutId);
-      }
       clearInterval(progressInterval);
       setLoading(false);
       

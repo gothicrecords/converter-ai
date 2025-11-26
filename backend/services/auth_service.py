@@ -6,18 +6,16 @@ from typing import Dict, Optional
 import secrets
 from datetime import datetime, timedelta
 from backend.config import get_settings
+from backend.utils.database import db_pool
+from backend.utils.exceptions import (
+    ValidationException,
+    AuthenticationException,
+    ConflictException,
+    DatabaseException,
+)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
-
-# Neon/PostgreSQL is optional
-try:
-    import psycopg2
-    from psycopg2 import pool
-    PSYCOPG2_AVAILABLE = True
-except ImportError:
-    PSYCOPG2_AVAILABLE = False
-    logger.warning("psycopg2 not available - database features will be limited")
 
 
 class AuthService:
@@ -25,213 +23,182 @@ class AuthService:
     
     def __init__(self):
         """Initialize auth service"""
-        if PSYCOPG2_AVAILABLE and (settings.NEON_DATABASE_URL or settings.DATABASE_URL):
-            db_url = settings.NEON_DATABASE_URL or settings.DATABASE_URL
-            try:
-                self.db_pool = psycopg2.pool.SimpleConnectionPool(1, 5, db_url)
-            except Exception as e:
-                logger.warning(f"Could not connect to Neon database: {e}")
-                self.db_pool = None
-        else:
-            self.db_pool = None
-            logger.warning("Neon database not configured - auth features will be limited")
-    
-    def _get_connection(self):
-        """Get database connection from pool"""
-        if not self.db_pool:
-            raise ValueError("Database not configured")
-        return self.db_pool.getconn()
-    
-    def _return_connection(self, conn):
-        """Return connection to pool"""
-        if self.db_pool:
-            self.db_pool.putconn(conn)
+        self.db_pool = db_pool
     
     async def register_user(self, name: str, email: str, password: str) -> Dict:
         """Register a new user"""
-        if not self.db_pool:
-            raise ValueError("Database not configured")
+        if not self.db_pool._pool:
+            raise DatabaseException("Database not configured")
         
-        conn = None
+        # Validate input
+        if not name or len(name.strip()) < 2:
+            raise ValidationException("Name must be at least 2 characters")
+        if not email or "@" not in email:
+            raise ValidationException("Invalid email address")
+        if not password or len(password) < 8:
+            raise ValidationException("Password must be at least 8 characters")
+        
         try:
-            conn = self._get_connection()
-            cur = conn.cursor()
-            
-            # Check if user exists
-            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-            if cur.fetchone():
-                raise ValueError("Email already registered")
-            
-            # Hash password
-            from passlib.context import CryptContext
-            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-            password_hash = pwd_context.hash(password)
-            
-            # Create user
-            cur.execute(
-                """INSERT INTO users (email, name, password_hash, created_at)
-                   VALUES (%s, %s, %s, %s) RETURNING id, email, name, created_at""",
-                (email, name, password_hash, datetime.utcnow())
-            )
-            user = cur.fetchone()
-            conn.commit()
-            
-            if not user:
-                raise ValueError("Failed to create user")
-            
-            user_dict = {
-                'id': user[0],
-                'email': user[1],
-                'name': user[2],
-                'created_at': user[3].isoformat() if user[3] else None,
-            }
-            
-            # Create session
-            session_token = secrets.token_urlsafe(32)
-            expires_at = datetime.utcnow() + timedelta(days=7)
-            
-            cur.execute(
-                """INSERT INTO user_sessions (user_id, session_token, expires_at)
-                   VALUES (%s, %s, %s)""",
-                (user_dict['id'], session_token, expires_at)
-            )
-            conn.commit()
-            
-            return {
-                'user': user_dict,
-                'sessionToken': session_token,
-                'expiresAt': expires_at.isoformat(),
-            }
-        except Exception as e:
-            if conn:
-                conn.rollback()
+            with self.db_pool.get_cursor() as cur:
+                # Check if user exists
+                cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+                if cur.fetchone():
+                    raise ConflictException("Email already registered")
+                
+                # Hash password
+                from passlib.context import CryptContext
+                pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+                password_hash = pwd_context.hash(password)
+                
+                # Create user
+                cur.execute(
+                    """INSERT INTO users (email, name, password_hash, created_at)
+                       VALUES (%s, %s, %s, %s) RETURNING id, email, name, created_at""",
+                    (email, name.strip(), password_hash, datetime.utcnow())
+                )
+                user = cur.fetchone()
+                
+                if not user:
+                    raise DatabaseException("Failed to create user")
+                
+                user_dict = {
+                    'id': user[0],
+                    'email': user[1],
+                    'name': user[2],
+                    'created_at': user[3].isoformat() if user[3] else None,
+                }
+                
+                # Create session
+                session_token = secrets.token_urlsafe(32)
+                expires_at = datetime.utcnow() + timedelta(days=7)
+                
+                cur.execute(
+                    """INSERT INTO user_sessions (user_id, session_token, expires_at)
+                       VALUES (%s, %s, %s)""",
+                    (user_dict['id'], session_token, expires_at)
+                )
+                
+                return {
+                    'user': user_dict,
+                    'sessionToken': session_token,
+                    'expiresAt': expires_at.isoformat(),
+                }
+        except (ConflictException, ValidationException):
             raise
-        finally:
-            if conn:
-                self._return_connection(conn)
+        except Exception as e:
+            logger.error(f"Registration error: {e}", exc_info=True)
+            raise DatabaseException("Registration failed") from e
     
     async def authenticate_user(self, email: str, password: str) -> Dict:
         """Authenticate user"""
-        if not self.db_pool:
-            raise ValueError("Database not configured")
+        if not self.db_pool._pool:
+            raise DatabaseException("Database not configured")
         
-        conn = None
+        if not email or not password:
+            raise ValidationException("Email and password are required")
+        
         try:
-            conn = self._get_connection()
-            cur = conn.cursor()
-            
-            # Get user
-            cur.execute("SELECT id, email, name, password_hash, created_at FROM users WHERE email = %s", (email,))
-            user = cur.fetchone()
-            
-            if not user:
-                raise ValueError("Invalid email or password")
-            
-            # Verify password
-            from passlib.context import CryptContext
-            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-            
-            if not pwd_context.verify(password, user[3]):
-                raise ValueError("Invalid email or password")
-            
-            user_dict = {
-                'id': user[0],
-                'email': user[1],
-                'name': user[2],
-                'created_at': user[4].isoformat() if user[4] else None,
-            }
-            
-            # Create session
-            session_token = secrets.token_urlsafe(32)
-            expires_at = datetime.utcnow() + timedelta(days=7)
-            
-            cur.execute(
-                """INSERT INTO user_sessions (user_id, session_token, expires_at)
-                   VALUES (%s, %s, %s)""",
-                (user_dict['id'], session_token, expires_at)
-            )
-            conn.commit()
-            
-            return {
-                'user': user_dict,
-                'sessionToken': session_token,
-                'expiresAt': expires_at.isoformat(),
-            }
-        except Exception as e:
-            if conn:
-                conn.rollback()
+            with self.db_pool.get_cursor() as cur:
+                # Get user
+                cur.execute(
+                    "SELECT id, email, name, password_hash, created_at FROM users WHERE email = %s",
+                    (email,)
+                )
+                user = cur.fetchone()
+                
+                if not user:
+                    raise AuthenticationException("Invalid email or password")
+                
+                # Verify password
+                from passlib.context import CryptContext
+                pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+                
+                if not pwd_context.verify(password, user[3]):
+                    raise AuthenticationException("Invalid email or password")
+                
+                user_dict = {
+                    'id': user[0],
+                    'email': user[1],
+                    'name': user[2],
+                    'created_at': user[4].isoformat() if user[4] else None,
+                }
+                
+                # Create session
+                session_token = secrets.token_urlsafe(32)
+                expires_at = datetime.utcnow() + timedelta(days=7)
+                
+                cur.execute(
+                    """INSERT INTO user_sessions (user_id, session_token, expires_at)
+                       VALUES (%s, %s, %s)""",
+                    (user_dict['id'], session_token, expires_at)
+                )
+                
+                return {
+                    'user': user_dict,
+                    'sessionToken': session_token,
+                    'expiresAt': expires_at.isoformat(),
+                }
+        except (AuthenticationException, ValidationException):
             raise
-        finally:
-            if conn:
-                self._return_connection(conn)
+        except Exception as e:
+            logger.error(f"Authentication error: {e}", exc_info=True)
+            raise DatabaseException("Authentication failed") from e
     
     async def get_user_from_session(self, session_token: str) -> Optional[Dict]:
         """Get user from session token"""
-        if not self.db_pool or not session_token:
+        if not self.db_pool._pool or not session_token:
             return None
         
-        conn = None
         try:
-            conn = self._get_connection()
-            cur = conn.cursor()
-            
-            # Get session
-            cur.execute(
-                """SELECT user_id, expires_at FROM user_sessions 
-                   WHERE session_token = %s""",
-                (session_token,)
-            )
-            session = cur.fetchone()
-            
-            if not session:
-                return None
-            
-            # Check if expired
-            expires_at = session[1]
-            if expires_at < datetime.utcnow():
-                return None
-            
-            # Get user
-            cur.execute(
-                "SELECT id, email, name, created_at FROM users WHERE id = %s",
-                (session[0],)
-            )
-            user = cur.fetchone()
-            
-            if not user:
-                return None
-            
-            return {
-                'id': user[0],
-                'email': user[1],
-                'name': user[2],
-                'created_at': user[3].isoformat() if user[3] else None,
-            }
-        except Exception:
+            with self.db_pool.get_cursor() as cur:
+                # Get session
+                cur.execute(
+                    """SELECT user_id, expires_at FROM user_sessions 
+                       WHERE session_token = %s""",
+                    (session_token,)
+                )
+                session = cur.fetchone()
+                
+                if not session:
+                    return None
+                
+                # Check if expired
+                expires_at = session[1]
+                if expires_at < datetime.utcnow():
+                    return None
+                
+                # Get user
+                cur.execute(
+                    "SELECT id, email, name, created_at FROM users WHERE id = %s",
+                    (session[0],)
+                )
+                user = cur.fetchone()
+                
+                if not user:
+                    return None
+                
+                return {
+                    'id': user[0],
+                    'email': user[1],
+                    'name': user[2],
+                    'created_at': user[3].isoformat() if user[3] else None,
+                }
+        except Exception as e:
+            logger.error(f"Get session error: {e}", exc_info=True)
             return None
-        finally:
-            if conn:
-                self._return_connection(conn)
     
     async def logout(self, session_token: str) -> bool:
         """Logout user by deleting session"""
-        if not self.db_pool or not session_token:
+        if not self.db_pool._pool or not session_token:
             return False
         
-        conn = None
         try:
-            conn = self._get_connection()
-            cur = conn.cursor()
-            cur.execute("DELETE FROM user_sessions WHERE session_token = %s", (session_token,))
-            conn.commit()
-            return cur.rowcount > 0
-        except Exception:
-            if conn:
-                conn.rollback()
+            with self.db_pool.get_cursor() as cur:
+                cur.execute("DELETE FROM user_sessions WHERE session_token = %s", (session_token,))
+                return cur.rowcount > 0
+        except Exception as e:
+            logger.error(f"Logout error: {e}", exc_info=True)
             return False
-        finally:
-            if conn:
-                self._return_connection(conn)
     
     async def register_or_login_oauth_user(
         self, 
@@ -242,84 +209,79 @@ class AuthService:
         avatar_url: Optional[str] = None
     ) -> Dict:
         """Register or login OAuth user"""
-        if not self.db_pool:
-            raise ValueError("Database not configured")
+        if not self.db_pool._pool:
+            raise DatabaseException("Database not configured")
         
-        conn = None
+        if not provider or not provider_id or not email:
+            raise ValidationException("Provider, provider_id, and email are required")
+        
         try:
-            conn = self._get_connection()
-            cur = conn.cursor()
-            
-            # Check if user exists by email or provider_id
-            cur.execute(
-                """SELECT id, email, name, auth_provider, provider_id FROM users 
-                   WHERE email = %s OR (auth_provider = %s AND provider_id = %s)""",
-                (email, provider, provider_id)
-            )
-            existing_user = cur.fetchone()
-            
-            if existing_user:
-                # User exists - update if needed and create session
-                user_id = existing_user[0]
-                
-                # Update OAuth info if changed
+            with self.db_pool.get_cursor() as cur:
+                # Check if user exists by email or provider_id
                 cur.execute(
-                    """UPDATE users SET 
-                       auth_provider = %s, 
-                       provider_id = %s, 
-                       provider_email = %s,
-                       avatar_url = COALESCE(%s, avatar_url),
-                       name = COALESCE(%s, name)
-                       WHERE id = %s""",
-                    (provider, provider_id, email, avatar_url, name, user_id)
+                    """SELECT id, email, name, auth_provider, provider_id FROM users 
+                       WHERE email = %s OR (auth_provider = %s AND provider_id = %s)""",
+                    (email, provider, provider_id)
                 )
-                conn.commit()
+                existing_user = cur.fetchone()
                 
-                user_dict = {
-                    'id': user_id,
-                    'email': existing_user[1] or email,
-                    'name': existing_user[2] or name,
-                }
-            else:
-                # New user - create
+                if existing_user:
+                    # User exists - update if needed and create session
+                    user_id = existing_user[0]
+                    
+                    # Update OAuth info if changed
+                    cur.execute(
+                        """UPDATE users SET 
+                           auth_provider = %s, 
+                           provider_id = %s, 
+                           provider_email = %s,
+                           avatar_url = COALESCE(%s, avatar_url),
+                           name = COALESCE(%s, name)
+                           WHERE id = %s""",
+                        (provider, provider_id, email, avatar_url, name, user_id)
+                    )
+                    
+                    user_dict = {
+                        'id': user_id,
+                        'email': existing_user[1] or email,
+                        'name': existing_user[2] or name,
+                    }
+                else:
+                    # New user - create
+                    cur.execute(
+                        """INSERT INTO users (email, name, auth_provider, provider_id, provider_email, avatar_url, created_at)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id, email, name, created_at""",
+                        (email, name, provider, provider_id, email, avatar_url, datetime.utcnow())
+                    )
+                    user = cur.fetchone()
+                    
+                    if not user:
+                        raise DatabaseException("Failed to create user")
+                    
+                    user_dict = {
+                        'id': user[0],
+                        'email': user[1],
+                        'name': user[2],
+                        'created_at': user[3].isoformat() if user[3] else None,
+                    }
+                
+                # Create session
+                session_token = secrets.token_urlsafe(32)
+                expires_at = datetime.utcnow() + timedelta(days=7)
+                
                 cur.execute(
-                    """INSERT INTO users (email, name, auth_provider, provider_id, provider_email, avatar_url, created_at)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id, email, name, created_at""",
-                    (email, name, provider, provider_id, email, avatar_url, datetime.utcnow())
+                    """INSERT INTO user_sessions (user_id, session_token, expires_at)
+                       VALUES (%s, %s, %s)""",
+                    (user_dict['id'], session_token, expires_at)
                 )
-                user = cur.fetchone()
-                conn.commit()
                 
-                if not user:
-                    raise ValueError("Failed to create user")
-                
-                user_dict = {
-                    'id': user[0],
-                    'email': user[1],
-                    'name': user[2],
-                    'created_at': user[3].isoformat() if user[3] else None,
+                return {
+                    'user': user_dict,
+                    'sessionToken': session_token,
+                    'expiresAt': expires_at.isoformat(),
                 }
-            
-            # Create session
-            session_token = secrets.token_urlsafe(32)
-            expires_at = datetime.utcnow() + timedelta(days=7)
-            
-            cur.execute(
-                """INSERT INTO user_sessions (user_id, session_token, expires_at)
-                   VALUES (%s, %s, %s)""",
-                (user_dict['id'], session_token, expires_at)
-            )
-            conn.commit()
-            
-            return {
-                'user': user_dict,
-                'sessionToken': session_token,
-                'expiresAt': expires_at.isoformat(),
-            }
-        except Exception as e:
-            if conn:
-                conn.rollback()
+        except (ValidationException, DatabaseException):
             raise
-        finally:
-            if conn:
-                self._return_connection(conn)
+        except Exception as e:
+            logger.error(f"OAuth registration/login error: {e}", exc_info=True)
+            raise DatabaseException("OAuth authentication failed") from e

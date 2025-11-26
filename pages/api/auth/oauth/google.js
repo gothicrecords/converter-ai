@@ -14,7 +14,8 @@ export default async function googleOAuthHandler(req, res) {
 
   try {
     // Check OAuth configuration
-    const { clientId, redirectBaseUrl } = config.oauth?.google || {};
+    const { clientId } = config.oauth?.google || {};
+    const redirectBaseUrl = config.oauth?.redirectBaseUrl;
     
     if (!clientId) {
       console.error('Google OAuth not configured: missing clientId');

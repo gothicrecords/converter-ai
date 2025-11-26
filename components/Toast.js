@@ -18,7 +18,10 @@ export const showToast = (message, type = 'success', duration = 4000, options = 
         progress: options.progress,
         details: options.details,
         technical: options.technical,
-        action: options.action
+        action: options.action,
+        canRetry: options.canRetry || false,
+        suggestedActions: options.suggestedActions || [],
+        resolution: options.resolution || null
     };
     toastListeners.forEach(listener => listener(toast));
     return id;
@@ -217,27 +220,73 @@ export default function ToastContainer() {
                             </button>
                         </div>
                         
-                        {toast.action && (
+                        {(toast.action || toast.canRetry || (toast.suggestedActions && toast.suggestedActions.length > 0)) && (
                             <div style={styles.actionContainer}>
-                                <button 
-                                    onClick={() => {
-                                        toast.action.onClick();
-                                        if (toast.action.closeOnClick) {
-                                            removeToast(toast.id);
-                                        }
-                                    }}
-                                    style={styles.actionButton}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
-                                        e.currentTarget.style.transform = 'translateY(-1px)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-                                        e.currentTarget.style.transform = 'translateY(0)';
-                                    }}
-                                >
-                                    {toast.action.label}
-                                </button>
+                                {toast.action && (
+                                    <button 
+                                        onClick={() => {
+                                            toast.action.onClick();
+                                            if (toast.action.closeOnClick) {
+                                                removeToast(toast.id);
+                                            }
+                                        }}
+                                        style={styles.actionButton}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                                            e.currentTarget.style.transform = 'translateY(-1px)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                                            e.currentTarget.style.transform = 'translateY(0)';
+                                        }}
+                                    >
+                                        {toast.action.label}
+                                    </button>
+                                )}
+                                {toast.canRetry && !toast.action && (
+                                    <button 
+                                        onClick={() => {
+                                            if (typeof window !== 'undefined' && window.location) {
+                                                window.location.reload();
+                                            }
+                                        }}
+                                        style={styles.actionButton}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                                            e.currentTarget.style.transform = 'translateY(-1px)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                                            e.currentTarget.style.transform = 'translateY(0)';
+                                        }}
+                                    >
+                                        Riprova
+                                    </button>
+                                )}
+                                {toast.suggestedActions && toast.suggestedActions.length > 0 && !toast.action && !toast.canRetry && (
+                                    toast.suggestedActions.map((suggestedAction, idx) => (
+                                        <button 
+                                            key={idx}
+                                            onClick={() => {
+                                                if (suggestedAction.action === 'retry_operation' && typeof window !== 'undefined') {
+                                                    window.location.reload();
+                                                }
+                                                removeToast(toast.id);
+                                            }}
+                                            style={styles.actionButton}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                            }}
+                                        >
+                                            {suggestedAction.description || 'Riprova'}
+                                        </button>
+                                    ))
+                                )}
                             </div>
                         )}
                     </div>

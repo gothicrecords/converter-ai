@@ -27,6 +27,10 @@ COPY . .
 # Expose port (Railway will set PORT env var)
 EXPOSE 8000
 
+# Crea directory per logs
+RUN mkdir -p /app/logs
+
 # Run the application (Railway sets PORT env var)
-CMD uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --log-level info
+# Usa lo script di produzione per workers multipli e ottimizzazioni
+CMD python start_backend_production.py
 
