@@ -51,7 +51,8 @@ export default function VideoCompressor() {
             formData.append('quality', quality);
 
             const { getApiUrl } = await import('../../utils/getApiUrl');
-            const response = await fetch(getApiUrl('/api/tools/compress-video'), {
+            const apiUrl = await getApiUrl('/api/tools/compress-video');
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 body: formData,
             });

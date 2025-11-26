@@ -72,7 +72,7 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
     try{
       // Use getApiUrl to support Python backend with fallback
       const { getApiUrl } = await import('../utils/getApiUrl');
-      let fullRoute = getApiUrl(route);
+      let fullRoute = await getApiUrl(route);
       
       // Try Python backend first, fallback to Next.js API if connection fails
       try {

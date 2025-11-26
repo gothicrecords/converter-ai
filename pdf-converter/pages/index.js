@@ -28,7 +28,7 @@ export default function Home(){
       : active === 'pdf2jpg' ? '/api/pdf/pdf-to-jpg'
       : active === 'docx2pdf' ? '/api/pdf/docx-to-pdf'
       : '/api/pdf/pdf-to-docx';
-    const route = getApiUrl(endpoint);
+    const route = await getApiUrl(endpoint);
 
     try{
       const res = await fetch(route,{ method:'POST', body: fd });
