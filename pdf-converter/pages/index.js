@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getApiUrl } from '../../utils/getApiUrl';
 
 const tabs = [
   { key: 'jpg2pdf', label: 'JPG -> PDF' },
@@ -23,10 +24,11 @@ export default function Home(){
     if (active === 'jpg2pdf') files.forEach(f=>fd.append('images', f));
     else fd.append('file', files[0]);
 
-    const route = active === 'jpg2pdf' ? '/api/jpg-to-pdf'
-      : active === 'pdf2jpg' ? '/api/pdf-to-jpg'
-      : active === 'docx2pdf' ? '/api/docx-to-pdf'
-      : '/api/pdf-to-docx';
+    const endpoint = active === 'jpg2pdf' ? '/api/pdf/jpg-to-pdf'
+      : active === 'pdf2jpg' ? '/api/pdf/pdf-to-jpg'
+      : active === 'docx2pdf' ? '/api/pdf/docx-to-pdf'
+      : '/api/pdf/pdf-to-docx';
+    const route = getApiUrl(endpoint);
 
     try{
       const res = await fetch(route,{ method:'POST', body: fd });
