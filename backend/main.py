@@ -142,11 +142,15 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     import os
-    # Railway sets PORT automatically, use it if available
-    port = int(os.getenv("PORT", settings.PORT))
+    
+    # Railway imposta PORT automaticamente, usa quello se disponibile
+    # Se non c'è PORT usa 8000 in locale
+    port = int(os.environ.get("PORT", 8000))
+    
+    # Avvia il server FastAPI
     uvicorn.run(
-        "backend.main:app",
-        host=settings.HOST,
+        app,
+        host="0.0.0.0",
         port=port,
         reload=settings.DEBUG,
         log_level="info"

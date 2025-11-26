@@ -18,8 +18,10 @@ logger = logging.getLogger(__name__)
 def main():
     """Avvia il server in modalità produzione"""
     # Configurazione per produzione
-    port = int(os.getenv("PORT", "8000"))
-    host = os.getenv("HOST", "0.0.0.0")
+    # Railway imposta PORT automaticamente, usa quello se disponibile
+    # Se non c'è PORT usa 8000 in locale
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
     
     # Numero di workers (2-4x CPU cores, max 4 per limiti memoria)
     cpu_count = os.cpu_count() or 1
