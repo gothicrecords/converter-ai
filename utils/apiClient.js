@@ -76,7 +76,14 @@ export async function apiCall(endpoint, options = {}, retryWithFallback = true) 
       
       // Prova con Next.js API (fallback)
       const fallbackUrl = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-      console.warn(`Backend Python non disponibile, uso fallback Next.js API: ${fallbackUrl}`);
+      
+      // Log solo in sviluppo locale
+      const isLocal = typeof window !== 'undefined' && 
+                     (window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1');
+      if (isLocal) {
+        console.warn(`[apiClient] Backend Python non disponibile, uso fallback Next.js API: ${fallbackUrl}`);
+      }
       
       try {
         const fallbackResponse = await fetch(fallbackUrl, config);

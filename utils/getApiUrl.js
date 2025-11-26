@@ -11,18 +11,47 @@ const backendStatusCache = {
 };
 
 /**
+ * Check if we're running in local development
+ */
+function isLocalDevelopment() {
+  if (typeof window !== 'undefined') {
+    // Client-side: check if we're on localhost
+    return window.location.hostname === 'localhost' || 
+           window.location.hostname === '127.0.0.1' ||
+           window.location.hostname === '';
+  }
+  // Server-side: check NODE_ENV
+  return process.env.NODE_ENV === 'development' || 
+         !process.env.NODE_ENV ||
+         process.env.NEXT_PUBLIC_APP_URL?.includes('localhost');
+}
+
+/**
  * Get Python backend URL from environment
+ * Automatically uses localhost:8000 in local development if not explicitly set
  */
 function getPythonBackendUrl() {
+  let url;
+  
   if (typeof window !== 'undefined') {
-    return (
+    url = (
       window.__NEXT_DATA__?.env?.NEXT_PUBLIC_API_URL ||
       window.__NEXT_DATA__?.env?.NEXT_PUBLIC_PYTHON_API_URL ||
       process.env.NEXT_PUBLIC_API_URL ||
       process.env.NEXT_PUBLIC_PYTHON_API_URL
     );
+  } else {
+    url = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_PYTHON_API_URL;
   }
-  return process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_PYTHON_API_URL;
+  
+  // Se siamo in locale e non c'è URL configurato, usa localhost:8000
+  if (!url || url === 'undefined' || url === '') {
+    if (isLocalDevelopment()) {
+      return 'http://localhost:8000';
+    }
+  }
+  
+  return url;
 }
 
 /**
@@ -84,6 +113,9 @@ export async function getApiUrl(endpoint, forceBackend = false) {
   // Se non c'è backend configurato, usa sempre Next.js API
   if (!pythonApiUrl || pythonApiUrl === 'undefined' || pythonApiUrl === '') {
     if (typeof window !== 'undefined') {
+      if (isLocalDevelopment()) {
+        console.log(`[getApiUrl] Nessun backend configurato, uso API Next.js: ${cleanEndpoint}`);
+      }
       return cleanEndpoint;
     }
     return `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}${cleanEndpoint}`;
@@ -92,7 +124,11 @@ export async function getApiUrl(endpoint, forceBackend = false) {
   // Se forceBackend è true, usa direttamente il backend Python
   if (forceBackend) {
     const baseUrl = pythonApiUrl.endsWith('/') ? pythonApiUrl.slice(0, -1) : pythonApiUrl;
-    return `${baseUrl}${cleanEndpoint}`;
+    const fullUrl = `${baseUrl}${cleanEndpoint}`;
+    if (isLocalDevelopment()) {
+      console.log(`[getApiUrl] Forzo uso backend Python: ${fullUrl}`);
+    }
+    return fullUrl;
   }
 
   // Controlla se il backend è disponibile (con cache)
@@ -101,11 +137,18 @@ export async function getApiUrl(endpoint, forceBackend = false) {
   if (isBackendAvailable) {
     // Usa backend Python
     const baseUrl = pythonApiUrl.endsWith('/') ? pythonApiUrl.slice(0, -1) : pythonApiUrl;
-    return `${baseUrl}${cleanEndpoint}`;
+    const fullUrl = `${baseUrl}${cleanEndpoint}`;
+    if (isLocalDevelopment()) {
+      console.log(`[getApiUrl] Backend Python disponibile, uso: ${fullUrl}`);
+    }
+    return fullUrl;
   }
 
   // Fallback a Next.js API routes
   if (typeof window !== 'undefined') {
+    if (isLocalDevelopment()) {
+      console.warn(`[getApiUrl] Backend Python non disponibile (${pythonApiUrl}), uso fallback Next.js API: ${cleanEndpoint}`);
+    }
     return cleanEndpoint;
   }
 
