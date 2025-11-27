@@ -100,18 +100,20 @@ export async function checkPythonBackend(baseUrl = null, forceCheck = false) {
 /**
  * Lista di endpoint che devono sempre usare Next.js API routes
  * Questi endpoint non sono disponibili nel backend Python o funzionano meglio in Next.js
+ * NOTA: Gli endpoint PDF sono stati rimossi perché il backend Python li supporta
  */
 const NEXTJS_ONLY_ENDPOINTS = [
-  '/api/pdf/jpg-to-pdf',
-  '/api/pdf/pdf-to-jpg',
-  '/api/pdf/pdf-to-png',
-  '/api/pdf/pdf-to-txt',
-  '/api/pdf/pdf-to-html',
-  '/api/pdf/pdf-to-pdfa',
-  '/api/pdf/docx-to-pdf',
-  '/api/pdf/ppt-to-pdf',
-  '/api/pdf/xls-to-pdf',
-  '/api/pdf/html-to-pdf',
+  // Endpoint PDF rimossi - il backend Python li supporta
+  // '/api/pdf/jpg-to-pdf',
+  // '/api/pdf/pdf-to-jpg',
+  // '/api/pdf/pdf-to-png',
+  // '/api/pdf/pdf-to-txt',
+  // '/api/pdf/pdf-to-html',
+  // '/api/pdf/pdf-to-pdfa',
+  // '/api/pdf/docx-to-pdf',
+  // '/api/pdf/ppt-to-pdf',
+  // '/api/pdf/xls-to-pdf',
+  // '/api/pdf/html-to-pdf',
   '/api/diagnostics',
   '/api/diagnostics-enhanced',
   '/api/health',

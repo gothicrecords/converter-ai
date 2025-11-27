@@ -213,7 +213,13 @@ export async function apiCall(endpoint, options = {}, retryWithFallback = true, 
  */
 export async function uploadFile(endpoint, file, additionalFields = {}) {
   const formData = new FormData();
-  formData.append('file', file);
+  
+  // Backend Python per jpg-to-pdf si aspetta 'images' invece di 'file'
+  const fieldName = endpoint.includes('/jpg-to-pdf') || endpoint.includes('/image-to-pdf') 
+    ? 'images' 
+    : 'file';
+  
+  formData.append(fieldName, file);
   
   // Add additional fields
   Object.entries(additionalFields).forEach(([key, value]) => {
