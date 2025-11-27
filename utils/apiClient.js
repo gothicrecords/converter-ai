@@ -228,8 +228,10 @@ export async function uploadFile(endpoint, file, additionalFields = {}) {
     }
   });
   
-  // Log per debug (sempre attivo per vedere URL chiamati online)
-  console.log(`[uploadFile] Chiamata a: ${endpoint}, campo: ${fieldName}, file: ${file?.name || 'unknown'}`);
+  // Log per debug (solo in sviluppo per evitare spam in produzione)
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    console.log(`[uploadFile] Chiamata a: ${endpoint}, campo: ${fieldName}, file: ${file?.name || 'unknown'}`);
+  }
   
   return apiCall(endpoint, {
     method: 'POST',

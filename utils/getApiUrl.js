@@ -170,11 +170,13 @@ export async function getApiUrl(endpoint, forceBackend = false) {
   // (ma solo se non è nella whitelist Next.js-only)
   if (forceBackend) {
     const baseUrl = pythonApiUrl.endsWith('/') ? pythonApiUrl.slice(0, -1) : pythonApiUrl;
-    const endpoint = cleanEndpoint.startsWith('/') ? cleanEndpoint : `/${cleanEndpoint}`;
-    const fullUrl = `${baseUrl}${endpoint}`;
+    const endpointPath = cleanEndpoint.startsWith('/') ? cleanEndpoint : `/${cleanEndpoint}`;
+    const fullUrl = `${baseUrl}${endpointPath}`;
     
-    // Log sempre per debug
-    console.log(`[getApiUrl] Forzo uso backend Python: ${fullUrl}`);
+    // Log solo in sviluppo per evitare spam in produzione
+    if (isLocalDevelopment()) {
+      console.log(`[getApiUrl] Forzo uso backend Python: ${fullUrl}`);
+    }
     
     return fullUrl;
   }
@@ -187,11 +189,13 @@ export async function getApiUrl(endpoint, forceBackend = false) {
     // Rimuovi trailing slash dal base URL e assicurati che l'endpoint inizi con /
     const baseUrl = pythonApiUrl.endsWith('/') ? pythonApiUrl.slice(0, -1) : pythonApiUrl;
     // Assicurati che cleanEndpoint inizi con / (già fatto sopra, ma doppio check)
-    const endpoint = cleanEndpoint.startsWith('/') ? cleanEndpoint : `/${cleanEndpoint}`;
-    const fullUrl = `${baseUrl}${endpoint}`;
+    const endpointPath = cleanEndpoint.startsWith('/') ? cleanEndpoint : `/${cleanEndpoint}`;
+    const fullUrl = `${baseUrl}${endpointPath}`;
     
-    // Log sempre in produzione per debug
-    console.log(`[getApiUrl] Backend Python disponibile: ${fullUrl}`);
+    // Log solo in sviluppo per evitare spam in produzione
+    if (isLocalDevelopment()) {
+      console.log(`[getApiUrl] Backend Python disponibile: ${fullUrl}`);
+    }
     
     return fullUrl;
   }
