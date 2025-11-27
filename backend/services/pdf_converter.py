@@ -88,8 +88,29 @@ class PDFConverterService:
         try:
             from pptx import Presentation
             
-            # Open PDF and convert to images
-            images = convert_from_bytes(pdf_content, dpi=200)
+            # Try using pdf2image (requires Poppler)
+            try:
+                images = convert_from_bytes(pdf_content, dpi=200)
+            except Exception as poppler_error:
+                # Fallback to PyMuPDF if Poppler is not available
+                logger.warning(f"pdf2image failed (Poppler may not be installed): {poppler_error}. Using PyMuPDF fallback.")
+                
+                # Use PyMuPDF (fitz) as fallback
+                pdf_document = fitz.open(stream=pdf_content, filetype="pdf")
+                images = []
+                
+                for page_num in range(len(pdf_document)):
+                    pdf_page = pdf_document[page_num]
+                    # Render page to image (pixmap)
+                    mat = fitz.Matrix(200/72, 200/72)  # 200 DPI
+                    pix = pdf_page.get_pixmap(matrix=mat)
+                    
+                    # Convert pixmap to PIL Image
+                    img_data = pix.tobytes("ppm")
+                    image = Image.open(BytesIO(img_data))
+                    images.append(image)
+                
+                pdf_document.close()
             
             # Create PPTX
             prs = Presentation()
@@ -195,14 +216,38 @@ class PDFConverterService:
     async def pdf_to_jpg(self, pdf_content: bytes, filename: str, page: int = 0) -> Dict[str, str]:
         """Convert PDF page to JPG"""
         try:
-            # Convert PDF to images
-            images = convert_from_bytes(pdf_content, dpi=300, first_page=page + 1, last_page=page + 1)
-            
-            if not images:
-                raise ValueError("No pages found in PDF")
-            
-            # Get first (and only) image
-            image = images[0]
+            # Try using pdf2image (requires Poppler)
+            try:
+                images = convert_from_bytes(pdf_content, dpi=300, first_page=page + 1, last_page=page + 1)
+                
+                if not images:
+                    raise ValueError("No pages found in PDF")
+                
+                # Get first (and only) image
+                image = images[0]
+            except Exception as poppler_error:
+                # Fallback to PyMuPDF if Poppler is not available
+                logger.warning(f"pdf2image failed (Poppler may not be installed): {poppler_error}. Using PyMuPDF fallback.")
+                
+                # Use PyMuPDF (fitz) as fallback
+                pdf_document = fitz.open(stream=pdf_content, filetype="pdf")
+                
+                if page >= len(pdf_document):
+                    pdf_document.close()
+                    raise ValueError(f"Page {page + 1} not found in PDF (total pages: {len(pdf_document)})")
+                
+                # Get the specific page
+                pdf_page = pdf_document[page]
+                
+                # Render page to image (pixmap)
+                mat = fitz.Matrix(300/72, 300/72)  # 300 DPI
+                pix = pdf_page.get_pixmap(matrix=mat)
+                
+                # Convert pixmap to PIL Image
+                img_data = pix.tobytes("ppm")
+                image = Image.open(BytesIO(img_data))
+                
+                pdf_document.close()
             
             # Convert to JPG
             output_buffer = BytesIO()

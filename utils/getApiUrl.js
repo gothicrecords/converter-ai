@@ -98,6 +98,34 @@ export async function checkPythonBackend(baseUrl = null, forceCheck = false) {
 }
 
 /**
+ * Lista di endpoint che devono sempre usare Next.js API routes
+ * Questi endpoint non sono disponibili nel backend Python o funzionano meglio in Next.js
+ */
+const NEXTJS_ONLY_ENDPOINTS = [
+  '/api/pdf/jpg-to-pdf',
+  '/api/pdf/pdf-to-jpg',
+  '/api/pdf/pdf-to-png',
+  '/api/pdf/pdf-to-txt',
+  '/api/pdf/pdf-to-html',
+  '/api/pdf/pdf-to-pdfa',
+  '/api/pdf/docx-to-pdf',
+  '/api/pdf/ppt-to-pdf',
+  '/api/pdf/xls-to-pdf',
+  '/api/pdf/html-to-pdf',
+  '/api/diagnostics',
+  '/api/diagnostics-enhanced',
+  '/api/health',
+];
+
+/**
+ * Check if endpoint should always use Next.js API
+ */
+function shouldUseNextJsOnly(endpoint) {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return NEXTJS_ONLY_ENDPOINTS.some(pattern => cleanEndpoint.startsWith(pattern));
+}
+
+/**
  * Get API URL with automatic fallback
  * @param {string} endpoint - API endpoint (e.g., '/api/tools/upscale')
  * @param {boolean} forceBackend - Force use of Python backend (skip availability check)
@@ -106,6 +134,17 @@ export async function checkPythonBackend(baseUrl = null, forceCheck = false) {
 export async function getApiUrl(endpoint, forceBackend = false) {
   // Remove leading slash if present
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  // Se l'endpoint è nella lista Next.js only, usa sempre Next.js
+  if (shouldUseNextJsOnly(cleanEndpoint)) {
+    if (typeof window !== 'undefined') {
+      if (isLocalDevelopment()) {
+        console.log(`[getApiUrl] Endpoint Next.js only, uso: ${cleanEndpoint}`);
+      }
+      return cleanEndpoint;
+    }
+    return `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}${cleanEndpoint}`;
+  }
 
   // Get Python backend URL
   const pythonApiUrl = getPythonBackendUrl();
@@ -162,6 +201,15 @@ export async function getApiUrl(endpoint, forceBackend = false) {
  */
 export function getApiUrlSync(endpoint) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  
+  // Se l'endpoint è nella lista Next.js only, usa sempre Next.js
+  if (shouldUseNextJsOnly(cleanEndpoint)) {
+    if (typeof window !== 'undefined') {
+      return cleanEndpoint;
+    }
+    return `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}${cleanEndpoint}`;
+  }
+  
   const pythonApiUrl = getPythonBackendUrl();
 
   if (!pythonApiUrl || pythonApiUrl === 'undefined' || pythonApiUrl === '') {

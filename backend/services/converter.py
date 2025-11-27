@@ -125,8 +125,27 @@ class ConverterService:
                     if not pages:
                         raise ValueError("No pages found in PDF")
                     image = pages[0]
-                except ImportError:
-                    raise ValueError("pdf2image library not installed. Install it with: pip install pdf2image")
+                except (ImportError, Exception) as e:
+                    # Fallback to PyMuPDF if pdf2image fails (Poppler not installed)
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"pdf2image failed (Poppler may not be installed): {e}. Using PyMuPDF fallback.")
+                    
+                    import fitz  # PyMuPDF
+                    from io import BytesIO
+                    pdf_document = fitz.open(stream=file_content, filetype="pdf")
+                    page_num = page if page is not None and page >= 0 else 0
+                    
+                    if page_num >= len(pdf_document):
+                        pdf_document.close()
+                        raise ValueError(f"Page {page_num + 1} not found in PDF (total pages: {len(pdf_document)})")
+                    
+                    pdf_page = pdf_document[page_num]
+                    mat = fitz.Matrix(150/72, 150/72)  # 150 DPI
+                    pix = pdf_page.get_pixmap(matrix=mat)
+                    img_data = pix.tobytes("ppm")
+                    image = Image.open(BytesIO(img_data))
+                    pdf_document.close()
             else:
                 image = Image.open(image_input)
             

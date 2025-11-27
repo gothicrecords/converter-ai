@@ -213,6 +213,20 @@ const nextConfig = {
     locales: ['en', 'it', 'es', 'fr', 'de', 'pt', 'ru', 'ja', 'zh', 'ar', 'hi', 'ko'],
   },
 
+  // Rewrites for API compatibility
+  async rewrites() {
+    return [
+      {
+        source: '/health/health',
+        destination: '/api/health/health',
+      },
+      {
+        source: '/health',
+        destination: '/api/health',
+      },
+    ];
+  },
+
   // Headers for security
   async headers() {
     return [

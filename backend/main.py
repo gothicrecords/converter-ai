@@ -173,4 +173,7 @@ if __name__ == "__main__":
     # legge la porta da variabile d'ambiente PORT, se non c'è usa 8000 di default
     port = int(os.environ.get("PORT", 8000))
     
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # Abilita reload automatico in sviluppo (equivalente a --reload)
+    reload = os.environ.get("ENVIRONMENT", "development") != "production"
+    
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=reload)

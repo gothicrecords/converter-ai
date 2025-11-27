@@ -291,6 +291,26 @@ class ToolsService:
             logger.error(f"Convert audio error: {exc}", exc_info=True)
             raise
     
+    def _get_audio_content_type(self, file_ext: str) -> str:
+        """Get MIME content type for audio file extension"""
+        content_types = {
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav',
+            '.m4a': 'audio/mp4',
+            '.ogg': 'audio/ogg',
+            '.flac': 'audio/flac',
+            '.aac': 'audio/aac',
+            '.weba': 'audio/webm',
+            '.opus': 'audio/opus',
+            '.mp4': 'audio/mp4',
+            '.webm': 'audio/webm',
+        }
+        # Normalize extension
+        ext = file_ext.lower()
+        if not ext.startswith('.'):
+            ext = f'.{ext}'
+        return content_types.get(ext, 'audio/mpeg')
+    
     def _get_audio_codec(self, format: str) -> str:
         """Get audio codec for format"""
         codecs = {
@@ -768,28 +788,41 @@ class ToolsService:
         try:
             # Use OpenAI Whisper or similar
             import openai
+            import tempfile
             from backend.config import get_settings
             
             settings = get_settings()
             
             if not settings.OPENAI_API_KEY:
-                raise ValueError("OpenAI API key not configured")
+                raise ValueError("OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.")
             
-            # Create temporary file
-            tmp_dir = os.getenv('TEMP_DIR', '/tmp')
-            os.makedirs(tmp_dir, exist_ok=True)
-            input_path = os.path.join(tmp_dir, f"audio_{os.urandom(8).hex()}.mp3")
+            # Create temporary file (cross-platform)
+            # Use tempfile module for proper Windows support
+            file_ext = os.path.splitext(filename)[1] or '.mp3'
+            suffix = file_ext if file_ext.startswith('.') else f'.{file_ext}'
+            
+            # Create temporary file with proper extension
+            # Write file content and close it before passing to OpenAI
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
+                input_path = tmp_file.name
+                tmp_file.write(file_content)
+                # File is automatically closed when exiting the 'with' block
             
             try:
-                with open(input_path, 'wb') as f:
-                    f.write(file_content)
-                
                 # Use OpenAI Whisper API
                 client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-                with open(input_path, 'rb') as f:
+                
+                # OpenAI SDK accepts file path directly or file object
+                # Open file in binary mode for upload (file is already written and closed)
+                with open(input_path, 'rb') as audio_file:
+                    # Create file tuple: (filename, file_object, content_type)
+                    # This is the format expected by OpenAI SDK for file uploads
+                    file_tuple = (filename, audio_file, self._get_audio_content_type(file_ext))
+                    
                     transcript = client.audio.transcriptions.create(
                         model="whisper-1",
-                        file=f,
+                        file=file_tuple,
+                        response_format="json",
                     )
                 
                 text = transcript.text
@@ -800,11 +833,16 @@ class ToolsService:
                 }
             
             finally:
+                # Clean up temporary file
                 try:
-                    os.unlink(input_path)
-                except:
-                    pass
+                    if os.path.exists(input_path):
+                        os.unlink(input_path)
+                except Exception as cleanup_error:
+                    logger.warning(f"Failed to cleanup temp file {input_path}: {cleanup_error}")
         
+        except ImportError as import_error:
+            logger.error(f"OpenAI library not installed: {import_error}")
+            raise ValueError("OpenAI library not installed. Install it with: pip install openai")
         except Exception as exc:
             logger.error(f"Transcribe audio error: {exc}", exc_info=True)
             raise
