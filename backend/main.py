@@ -2,6 +2,7 @@
 FastAPI Backend Server
 Main entry point for the Python backend API
 """
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -170,17 +171,8 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    import os
     
-    # Railway imposta PORT automaticamente, usa quello se disponibile
-    # Se non c'è PORT usa 8000 in locale
+    # legge la porta da variabile d'ambiente PORT, se non c'è usa 8000 di default
     port = int(os.environ.get("PORT", 8000))
     
-    # Avvia il server FastAPI
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=port,
-        reload=settings.DEBUG,
-        log_level="info"
-    )
+    uvicorn.run(app, host="0.0.0.0", port=port)
