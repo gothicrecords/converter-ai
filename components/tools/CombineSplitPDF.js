@@ -85,7 +85,7 @@ export default function CombineSplitPDF() {
                         const text = await response.text();
                         if (text && text.trim()) {
                             const errorData = JSON.parse(text);
-                            errorMessage = errorData.error || errorMessage;
+                            errorMessage = errorData.detail || errorData.error || errorMessage;
                         }
                     } catch (e) {
                         // Se il parsing JSON fallisce, usa il messaggio di default
@@ -110,12 +110,31 @@ export default function CombineSplitPDF() {
                 throw new Error(errorMessage);
             }
 
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
+            // Gestisci sia blob binario che JSON con dataUrl
+            const contentType = response.headers.get('content-type');
+            let url;
+            let filename = mode === 'combine' ? 'combined.pdf' : 'split.pdf';
+            
+            if (contentType && contentType.includes('application/json')) {
+                // Risposta JSON con dataUrl (backend Python)
+                const jsonData = await response.json();
+                if (jsonData.url || jsonData.dataUrl) {
+                    url = jsonData.url || jsonData.dataUrl;
+                    if (jsonData.name) {
+                        filename = jsonData.name;
+                    }
+                } else {
+                    throw new Error('Formato risposta non valido');
+                }
+            } else {
+                // Risposta blob binario (API Next.js)
+                const blob = await response.blob();
+                url = URL.createObjectURL(blob);
+            }
             
             setResult({
                 url,
-                filename: mode === 'combine' ? 'combined.pdf' : 'split.pdf'
+                filename
             });
         } catch (err) {
             console.error('Errore:', err);

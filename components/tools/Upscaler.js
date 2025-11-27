@@ -48,10 +48,15 @@ export default function Upscaler() {
       setStatus('Seleziona un file immagine.');
       return;
     }
+    // Cleanup previous URLs to prevent memory leaks
+    if (originalUrl) {
+      URL.revokeObjectURL(originalUrl);
+    }
     setOriginalFile(file);
     const url = URL.createObjectURL(file);
     setOriginalUrl(url);
     setUpscaledUrl(null);
+    setSliderPos(50); // Reset slider position
     setStatus(`Selezionato: ${file.name}`);
     
     // Track file upload
@@ -366,16 +371,39 @@ export default function Upscaler() {
               aria-valuemax={100} 
               aria-valuenow={Math.round(sliderPos)}
             >
-              <img src={originalUrl} alt="Originale" style={styles.sliderImg} />
+              {/* Original image - always visible */}
+              {originalUrl && (
+                <img 
+                  key="original" 
+                  src={originalUrl} 
+                  alt="Originale" 
+                  style={styles.sliderImg}
+                  onLoad={() => {
+                    // Ensure image is loaded before showing
+                  }}
+                />
+              )}
               <div style={styles.badgeLeft}>Originale</div>
-              <div
-                style={{
-                  ...styles.clip,
-                  clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)`
-                }}
-              >
-                <img src={upscaledUrl} alt="Upscalata" style={styles.sliderImg} />
-              </div>
+              {/* Upscaled image - clipped to show comparison */}
+              {upscaledUrl && (
+                <div
+                  key="upscaled-clip"
+                  style={{
+                    ...styles.clip,
+                    clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)`
+                  }}
+                >
+                  <img 
+                    key="upscaled" 
+                    src={upscaledUrl} 
+                    alt="Upscalata" 
+                    style={styles.sliderImg}
+                    onLoad={() => {
+                      // Ensure image is loaded before showing
+                    }}
+                  />
+                </div>
+              )}
               <div 
                 style={{
                   ...styles.divider,
@@ -600,7 +628,10 @@ const styles = {
     height: '100%',
     objectFit: 'contain',
     background: '#000',
-    transition: 'opacity 0.3s ease'
+    display: 'block',
+    pointerEvents: 'none',
+    userSelect: 'none',
+    WebkitUserSelect: 'none'
   },
   clip: {
     position: 'absolute',

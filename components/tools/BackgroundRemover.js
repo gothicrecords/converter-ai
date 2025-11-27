@@ -28,7 +28,6 @@ const BackgroundRemover = () => {
     const [cropMargin, setCropMargin] = useState(8);
     const [bgPreview, setBgPreview] = useState('checker');
     const [autoProcess, setAutoProcess] = useState(false); // Disabilitato di default - l'utente deve cliccare manualmente
-    const [compare, setCompare] = useState(50);
     const [showExportModal, setShowExportModal] = useState(false);
     const progressIntervalRef = useRef(null);
     const toastIdRef = useRef(null);
@@ -105,7 +104,7 @@ const BackgroundRemover = () => {
         formData.append('type', subjectType);
         formData.append('size', mappedSize);
         formData.append('crop', crop ? 'true' : 'false');
-        if (crop) formData.append('crop_margin', `${cropMargin}%`);
+        if (crop) formData.append('cropMargin', String(cropMargin));
 
         // Verifica che il file sia nel FormData
         console.log('FormData entries:', Array.from(formData.entries()).map(([key, value]) => [
@@ -167,10 +166,13 @@ const BackgroundRemover = () => {
                 try {
                     const contentType = response.headers.get('content-type');
                     if (contentType && contentType.includes('application/json')) {
-                        const errorData = await response.json();
-                        errorMessage = errorData.error || errorMessage;
-                        errorDetails = errorData.debug ? JSON.stringify(errorData.debug, null, 2) : '';
-                        console.error('Error details from server:', errorData);
+                        const text = await response.text();
+                        if (text && text.trim()) {
+                            const errorData = JSON.parse(text);
+                            errorMessage = errorData.detail || errorData.error || errorMessage;
+                            errorDetails = errorData.debug ? JSON.stringify(errorData.debug, null, 2) : '';
+                            console.error('Error details from server:', errorData);
+                        }
                     } else {
                         const errorText = await response.text();
                         errorMessage = errorText || errorMessage;
@@ -184,8 +186,31 @@ const BackgroundRemover = () => {
                 throw new Error(errorMessage);
             }
 
-            const blob = await response.blob();
-            const imageUrl = URL.createObjectURL(blob);
+            // Handle JSON response with dataUrl
+            const contentType = response.headers.get('content-type');
+            let imageUrl;
+            
+            if (contentType && contentType.includes('application/json')) {
+                const textResponse = await response.text();
+                let resultData;
+                try {
+                    resultData = textResponse ? JSON.parse(textResponse) : {};
+                } catch (e) {
+                    throw new Error('Risposta non valida dal server');
+                }
+                
+                const dataUrl = resultData.dataUrl || resultData.url;
+                if (!dataUrl) {
+                    throw new Error('URL del file processato non trovato nella risposta');
+                }
+                
+                imageUrl = dataUrl;
+            } else {
+                // Fallback: try as blob
+                const blob = await response.blob();
+                imageUrl = URL.createObjectURL(blob);
+            }
+            
             setProcessedImage(imageUrl);
             setProgress(100);
 
@@ -524,36 +549,24 @@ const BackgroundRemover = () => {
                 {processedImage && (
                     <SafeMotionDiv
                         {...scaleIn}
-                        style={styles.compareSection}
+                        style={styles.resultSection}
                     >
-                        <h3 style={styles.compareTitle}>Confronto Prima/Dopo</h3>
-                        <div style={{...styles.compareBox, background: bgPreview==='white'?'#fff':bgPreview==='black'?'#000':'transparent'}}>
+                        <h3 style={styles.resultTitle}>Immagine Processata</h3>
+                        <div style={{...styles.resultBox, background: bgPreview==='white'?'#fff':bgPreview==='black'?'#000':'transparent'}}>
                             {bgPreview==='checker' && (
                                 <div style={styles.checkerBg} />
                             )}
                             <div style={styles.imageContainer}>
-                                <img src={files[0]?.preview} alt="Prima" style={styles.beforeImg} />
-                                <img src={processedImage} alt="Dopo" style={{...styles.afterImg, clipPath:`polygon(0 0, ${compare}% 0, ${compare}% 100%, 0 100%)`}} />
-                                <div style={{...styles.divider, left:`calc(${compare}% - 1px)`}}>
-                                    <div style={styles.dividerLine} />
-                                </div>
+                                <img 
+                                    key="result" 
+                                    src={processedImage} 
+                                    alt="Sfondo rimosso" 
+                                    style={styles.resultImg}
+                                    onLoad={() => {
+                                        // Ensure image is loaded
+                                    }}
+                                />
                             </div>
-                        </div>
-                        <div style={styles.sliderRow}>
-                            <span style={styles.sliderLabel}>Prima</span>
-                            <input 
-                                type="range" 
-                                min="0" 
-                                max="100" 
-                                value={compare} 
-                                onChange={(e)=>setCompare(parseInt(e.target.value,10))} 
-                                style={styles.compareSlider}
-                                aria-label={`Confronto prima/dopo: ${compare}%`}
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                                aria-valuenow={compare}
-                            />
-                            <span style={styles.sliderLabel}>Dopo</span>
                         </div>
                     </SafeMotionDiv>
                 )}
@@ -633,9 +646,9 @@ const styles = {
     downloadBtnDisabled: { padding: '12px 24px', background: '#4b5563', color: '#9ca3af', fontWeight: 700, borderRadius: '8px', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'not-allowed', fontSize: '15px' },
     downloadIcon: { width: '20px', height: '20px', marginRight: '8px' },
     errorBox: { marginTop: '24px', padding: '16px', background: 'rgba(153, 27, 27, 0.8)', border: '1px solid rgba(220, 38, 38, 0.6)', borderRadius: '8px', color: '#fecaca', textAlign: 'center' },
-    compareSection: { marginTop: '32px', width: '100%' },
-    compareTitle: { fontSize: '24px', fontWeight: 700, color: '#fff', textAlign: 'center', marginBottom: '24px' },
-    compareBox: { 
+    resultSection: { marginTop: '32px', width: '100%' },
+    resultTitle: { fontSize: '24px', fontWeight: 700, color: '#fff', textAlign: 'center', marginBottom: '24px' },
+    resultBox: { 
         position: 'relative', 
         width: '100%', 
         maxWidth: '100%',
@@ -649,11 +662,5 @@ const styles = {
     },
     checkerBg: { position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(45deg, #4a5568 25%, transparent 25%), linear-gradient(-45deg, #4a5568 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #4a5568 75%), linear-gradient(-45deg, transparent 75%, #4a5568 75%)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px' },
     imageContainer: { position: 'relative', width: '100%', height: '100%', minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-    beforeImg: { display: 'block', maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', objectFit: 'contain', userSelect: 'none' },
-    afterImg: { position: 'absolute', inset: 0, maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', margin: 'auto', objectFit: 'contain' },
-    divider: { position: 'absolute', top: 0, bottom: 0 },
-    dividerLine: { width: '2px', height: '100%', background: '#a78bfa', boxShadow: '0 0 8px rgba(167, 139, 250, 0.6)' },
-    sliderRow: { marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px' },
-    sliderLabel: { fontSize: '12px', color: '#94a3b8' },
-    compareSlider: { flex: 1, cursor: 'pointer' }
+    resultImg: { display: 'block', maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', objectFit: 'contain', userSelect: 'none', pointerEvents: 'none' }
 };

@@ -474,7 +474,31 @@ class PDFConverterService:
         try:
             # Convert HTML to PDF
             html_string = html_content.decode('utf-8')
-            pdf_bytes = HTML(string=html_string).write_pdf()
+            
+            # Check if WeasyPrint is available
+            if _check_weasyprint():
+                from weasyprint import HTML
+                pdf_bytes = HTML(string=html_string).write_pdf()
+            else:
+                # Fallback: use reportlab to create PDF from text
+                from reportlab.lib.styles import getSampleStyleSheet
+                from reportlab.platypus import SimpleDocTemplate, Paragraph
+                
+                output_buffer = BytesIO()
+                doc = SimpleDocTemplate(output_buffer, pagesize=A4)
+                styles = getSampleStyleSheet()
+                story = []
+                
+                # Simple HTML to text conversion
+                import re
+                text = re.sub(r'<[^>]+>', '', html_string)
+                paragraphs = text.split('\n')
+                for para in paragraphs:
+                    if para.strip():
+                        story.append(Paragraph(para.strip(), styles['Normal']))
+                
+                doc.build(story)
+                pdf_bytes = output_buffer.getvalue()
             
             # Convert to data URL
             data_url = f"data:application/pdf;base64,{base64.b64encode(pdf_bytes).decode()}"

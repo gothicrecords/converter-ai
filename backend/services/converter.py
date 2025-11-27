@@ -74,8 +74,10 @@ class ConverterService:
             # Handle audio/video conversions
             audio_formats = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'weba', 'opus', 'ac3', 'aif', 'aiff', 'wma']
             video_formats = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', '3gp', 'mpeg', 'mpg', 'ts', 'wmv']
+            video_input_formats = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', '3gp', 'mpeg', 'mpg', 'ts', 'wmv', 'mpg', 'm4v']
             
-            if lower_target in audio_formats or lower_target in video_formats:
+            # Check if target is audio/video OR input is video (to allow video to video conversion)
+            if (lower_target in audio_formats or lower_target in video_formats) or (input_ext in video_input_formats):
                 return await self._convert_audio_video(
                     file_content, original_filename, input_ext, lower_target, vwidth, vheight, vbitrate, abitrate
                 )
@@ -107,6 +109,10 @@ class ConverterService:
     ) -> Dict[str, str]:
         """Convert image to target format"""
         try:
+            # Validate file content
+            if not file_content or len(file_content) == 0:
+                raise ValueError("File is empty. Please upload a valid file.")
+            
             # Open image
             image_input = BytesIO(file_content)
             
@@ -206,8 +212,8 @@ class ConverterService:
         original_filename: str,
         input_ext: str,
         target_format: str,
-        width: Optional[str] = None,
-        height: Optional[str] = None,
+        vwidth: Optional[str] = None,
+        vheight: Optional[str] = None,
         vbitrate: Optional[str] = None,
         abitrate: Optional[str] = None,
     ) -> Dict[str, str]:
@@ -287,13 +293,13 @@ class ConverterService:
                     else:
                         output_opts['acodec'] = 'aac'
                     
-                    # Resize if specified
-                    if width and height:
-                        output_opts['s'] = f'{int(width)}x{int(height)}'
-                    elif width:
-                        output_opts['s'] = f'{int(width)}x?'
-                    elif height:
-                        output_opts['s'] = f'?x{int(height)}'
+                    # Resize if specified (use vwidth/vheight for video)
+                    if vwidth and vheight:
+                        output_opts['s'] = f'{int(vwidth)}x{int(vheight)}'
+                    elif vwidth:
+                        output_opts['s'] = f'{int(vwidth)}x?'
+                    elif vheight:
+                        output_opts['s'] = f'?x{int(vheight)}'
                     
                     # Thread optimization
                     output_opts['threads'] = '0'  # Use all available cores

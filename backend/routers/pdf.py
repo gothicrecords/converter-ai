@@ -18,8 +18,12 @@ async def pdf_to_docx(file: UploadFile = File(...)):
     """Convert PDF to DOCX"""
     try:
         file_content = await file.read()
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
         result = await pdf_service.pdf_to_docx(file_content, file.filename or "file.pdf")
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"PDF to DOCX error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -30,8 +34,12 @@ async def pdf_to_pptx(file: UploadFile = File(...)):
     """Convert PDF to PPTX"""
     try:
         file_content = await file.read()
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
         result = await pdf_service.pdf_to_pptx(file_content, file.filename or "file.pdf")
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"PDF to PPTX error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -42,8 +50,12 @@ async def pdf_to_xlsx(file: UploadFile = File(...)):
     """Convert PDF to XLSX"""
     try:
         file_content = await file.read()
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
         result = await pdf_service.pdf_to_xlsx(file_content, file.filename or "file.pdf")
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"PDF to XLSX error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -54,8 +66,12 @@ async def pdf_to_jpg(file: UploadFile = File(...), page: int = Form(0)):
     """Convert PDF to JPG"""
     try:
         file_content = await file.read()
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
         result = await pdf_service.pdf_to_jpg(file_content, file.filename or "file.pdf", page)
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"PDF to JPG error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -66,8 +82,12 @@ async def pdf_to_txt(file: UploadFile = File(...)):
     """Convert PDF to TXT"""
     try:
         file_content = await file.read()
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
         result = await pdf_service.pdf_to_txt(file_content, file.filename or "file.pdf")
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"PDF to TXT error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -78,8 +98,12 @@ async def pdf_to_html(file: UploadFile = File(...)):
     """Convert PDF to HTML"""
     try:
         file_content = await file.read()
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
         result = await pdf_service.pdf_to_html(file_content, file.filename or "file.pdf")
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"PDF to HTML error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -90,8 +114,12 @@ async def pdf_to_pdfa(file: UploadFile = File(...)):
     """Convert PDF to PDF/A"""
     try:
         file_content = await file.read()
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
         result = await pdf_service.pdf_to_pdfa(file_content, file.filename or "file.pdf")
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"PDF to PDF/A error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -102,8 +130,12 @@ async def docx_to_pdf(file: UploadFile = File(...)):
     """Convert DOCX to PDF"""
     try:
         file_content = await file.read()
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
         result = await pdf_service.docx_to_pdf(file_content, file.filename or "file.docx")
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"DOCX to PDF error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -114,8 +146,12 @@ async def ppt_to_pdf(file: UploadFile = File(...)):
     """Convert PPT/PPTX to PDF"""
     try:
         file_content = await file.read()
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
         result = await pdf_service.ppt_to_pdf(file_content, file.filename or "file.pptx")
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"PPT to PDF error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -126,8 +162,12 @@ async def xls_to_pdf(file: UploadFile = File(...)):
     """Convert XLS/XLSX to PDF"""
     try:
         file_content = await file.read()
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
         result = await pdf_service.xls_to_pdf(file_content, file.filename or "file.xlsx")
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"XLS to PDF error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -138,8 +178,12 @@ async def html_to_pdf(file: UploadFile = File(...)):
     """Convert HTML to PDF"""
     try:
         file_content = await file.read()
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
         result = await pdf_service.html_to_pdf(file_content, file.filename or "file.html")
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"HTML to PDF error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -153,6 +197,8 @@ async def jpg_to_pdf(images: list[UploadFile] = File(...)):
         if len(images) == 1:
             # Single image
             file_content = await images[0].read()
+            if not file_content or len(file_content) == 0:
+                raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
             filename = images[0].filename or "file.jpg"
             result = await pdf_service.jpg_to_pdf(file_content, filename)
         else:
@@ -161,6 +207,8 @@ async def jpg_to_pdf(images: list[UploadFile] = File(...)):
             filename = "images.pdf"
             for file in images:
                 content = await file.read()
+                if not content or len(content) == 0:
+                    raise HTTPException(status_code=400, detail=f"File {file.filename or 'unknown'} is empty. Please upload valid files.")
                 image_contents.append(content)
                 if not filename or filename == "images.pdf":
                     filename = file.filename or "file.jpg"
@@ -169,6 +217,8 @@ async def jpg_to_pdf(images: list[UploadFile] = File(...)):
             result = await pdf_service.jpg_to_pdf(image_contents, filename)
         
         return JSONResponse(result)
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"JPG to PDF error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))

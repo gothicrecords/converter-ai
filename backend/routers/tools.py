@@ -22,16 +22,23 @@ async def remove_background(
     type: Optional[str] = Form(None),
     size: Optional[str] = Form(None),
     crop: Optional[str] = Form(None),
+    cropMargin: Optional[str] = Form(None),
 ):
-    """Remove background from image"""
+    """Remove background from image with advanced edge refinement"""
     try:
         file_content = await file.read()
+        
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
+        
         result = await tools_service.remove_background(
-            file_content, file.filename or "file.jpg", type, size, crop
+            file_content, file.filename or "file.jpg", type, size, crop, cropMargin
         )
         # Valida sempre la risposta prima di restituirla
         validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
         return JSONResponse(validated)
+    except HTTPException:
+        raise
     except ProcessingException as exc:
         logger.error(f"Remove background processing error: {exc}", exc_info=True)
         raise HTTPException(status_code=exc.status_code, detail=exc.message)
@@ -133,18 +140,23 @@ async def generate_image(
 async def combine_split_pdf(
     files: list[UploadFile] = File(...),
     mode: str = Form("combine"),
+    ranges: str = Form(None),
 ):
     """Combine or split PDF files"""
     try:
         file_contents = []
         for file in files:
             content = await file.read()
+            if not content or len(content) == 0:
+                raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
             file_contents.append((content, file.filename or "file.pdf"))
         
-        result = await tools_service.combine_split_pdf(file_contents, mode)
+        result = await tools_service.combine_split_pdf(file_contents, mode, ranges)
         # Valida sempre la risposta prima di restituirla
         validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
         return JSONResponse(validated)
+    except HTTPException:
+        raise
     except ProcessingException as exc:
         logger.error(f"Combine/split PDF processing error: {exc}", exc_info=True)
         raise HTTPException(status_code=exc.status_code, detail=exc.message)

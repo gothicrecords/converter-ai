@@ -6,10 +6,16 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from typing import Optional
 import logging
 import secrets
-import httpx
 from urllib.parse import urlencode
 
 from backend.config import get_settings
+
+try:
+    import httpx
+    HTTPX_AVAILABLE = True
+except ImportError:
+    HTTPX_AVAILABLE = False
+    httpx = None
 from backend.services.auth_service import AuthService
 
 logger = logging.getLogger(__name__)

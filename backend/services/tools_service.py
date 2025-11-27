@@ -33,127 +33,377 @@ class ToolsService:
         file_content: bytes,
         filename: str,
         target_format: str = "mp4",
+        vwidth: Optional[str] = None,
+        vheight: Optional[str] = None,
+        vbitrate: Optional[str] = None,
+        abitrate: Optional[str] = None,
     ) -> Dict:
         """Convert video file to target format (mp4, avi, mov, webm, mkv, flv)"""
         try:
             import ffmpeg
-            import tempfile
+            import platform
             import mimetypes
+            
             # Validate target format
-            valid_formats = ["mp4", "avi", "mov", "webm", "mkv", "flv", "avif"]
-            if target_format not in valid_formats:
+            valid_formats = ["mp4", "avi", "mov", "webm", "mkv", "flv", "3gp", "mpeg", "mpg", "ts", "wmv"]
+            if target_format.lower() not in valid_formats:
                 raise ValueError(f"Formato non supportato: {target_format}")
-            # Create temp files
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".input") as input_file:
-                input_file.write(file_content)
-                input_path = input_file.name
-            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{target_format}") as output_file:
-                output_path = output_file.name
+            
+            # Validate file content
+            if not file_content or len(file_content) == 0:
+                raise ValueError("File is empty. Please upload a valid file.")
+            
+            # Set FFmpeg path on Windows
+            if platform.system() == 'Windows':
+                possible_paths = [
+                    r'C:\ffmpeg\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe',
+                    r'C:\ffmpeg\bin\ffmpeg.exe',
+                    r'C:\Program Files\ffmpeg\bin\ffmpeg.exe',
+                    os.path.join(os.environ.get('USERPROFILE', ''), 'ffmpeg', 'bin', 'ffmpeg.exe'),
+                ]
+                for path in possible_paths:
+                    if os.path.exists(path):
+                        os.environ['FFMPEG_BINARY'] = path
+                        # Also set in PATH for subprocess
+                        ffmpeg_dir = os.path.dirname(path)
+                        if ffmpeg_dir not in os.environ.get('PATH', ''):
+                            os.environ['PATH'] = ffmpeg_dir + os.pathsep + os.environ.get('PATH', '')
+                        break
+            
+            # Create temporary files
+            tmp_dir = os.getenv('TEMP_DIR', '/tmp')
+            os.makedirs(tmp_dir, exist_ok=True)
+            
+            # Get input extension from filename
+            input_ext = filename.split('.')[-1].lower() if '.' in filename else 'mp4'
+            input_path = os.path.join(tmp_dir, f"input_{os.urandom(8).hex()}.{input_ext}")
+            output_path = os.path.join(tmp_dir, f"output_{os.urandom(8).hex()}.{target_format}")
+            
+            # Write input file
+            with open(input_path, 'wb') as f:
+                f.write(file_content)
+            
             try:
-                # FFmpeg conversion
+                # Build FFmpeg command
                 stream = ffmpeg.input(input_path)
-                stream = ffmpeg.output(stream, output_path)
+                
+                # Video codec and settings
+                video_codec = self._get_video_codec(target_format)
+                video_bitrate = vbitrate or '1800k'
+                audio_bitrate = abitrate or '128k'
+                
+                output_opts = {
+                    'vcodec': video_codec,
+                    'video_bitrate': video_bitrate,
+                    'b:a': audio_bitrate,
+                }
+                
+                # Audio codec based on video format
+                if target_format.lower() == 'mp4':
+                    output_opts['acodec'] = 'aac'
+                elif target_format.lower() == 'webm':
+                    output_opts['acodec'] = 'libvorbis'
+                else:
+                    output_opts['acodec'] = 'aac'
+                
+                # Resize if specified
+                if vwidth and vheight:
+                    output_opts['s'] = f'{int(vwidth)}x{int(vheight)}'
+                elif vwidth:
+                    output_opts['s'] = f'{int(vwidth)}x?'
+                elif vheight:
+                    output_opts['s'] = f'?x{int(vheight)}'
+                
+                # Thread optimization
+                output_opts['threads'] = '0'  # Use all available cores
+                
+                # Additional format-specific options
+                if target_format.lower() == 'mp4':
+                    output_opts['movflags'] = '+faststart'  # Web optimization
+                elif target_format.lower() == 'webm':
+                    output_opts['deadline'] = 'good'  # Encoding quality
+                
+                stream = ffmpeg.output(stream, output_path, **output_opts)
+                
+                # Run FFmpeg
                 ffmpeg.run(stream, overwrite_output=True, quiet=True)
-                # Read output
-                with open(output_path, "rb") as f:
-                    out_bytes = f.read()
+                
+                # Read output file
+                with open(output_path, 'rb') as f:
+                    output_content = f.read()
+                
+                # Convert to data URL
                 mime_type = mimetypes.guess_type(output_path)[0] or f"video/{target_format}"
-                data_url = f"data:{mime_type};base64,{base64.b64encode(out_bytes).decode()}"
-                result_name = filename.rsplit('.', 1)[0] + f'_converted.{target_format}'
+                data_url = f"data:{mime_type};base64,{base64.b64encode(output_content).decode()}"
+                
+                result_name = filename.rsplit('.', 1)[0] + f'.{target_format}'
+                
                 return {
                     "url": data_url,
                     "name": result_name,
                 }
+            
             finally:
+                # Cleanup
                 try:
                     os.unlink(input_path)
+                except:
+                    pass
+                try:
                     os.unlink(output_path)
-                except Exception:
+                except:
                     pass
         except ImportError:
             raise RuntimeError("FFmpeg non installato o non disponibile nel backend.")
         except Exception as exc:
             logger.error(f"Convert video error: {exc}", exc_info=True)
             raise
+    
+    def _get_video_codec(self, format: str) -> str:
+        """Get video codec for format"""
+        codecs = {
+            'mp4': 'libx264',
+            'webm': 'libvpx',
+            'mkv': 'libx264',
+            'avi': 'libxvid',
+            'mov': 'libx264',
+            'flv': 'flv1',
+            '3gp': 'h263',
+            'mpeg': 'mpeg2video',
+            'mpg': 'mpeg2video',
+            'ts': 'libx264',
+            'wmv': 'wmv2',
+        }
+        return codecs.get(format.lower(), 'libx264')
 
     async def convert_audio(
         self,
         file_content: bytes,
         filename: str,
         target_format: str = "mp3",
+        abitrate: Optional[str] = None,
     ) -> Dict:
-        """Convert audio file to target format (mp3, wav, flac, ogg, m4a, aac)"""
+        """Convert audio file to target format (mp3, wav, flac, ogg, m4a, aac, weba, opus)"""
         try:
             import ffmpeg
-            import tempfile
+            import platform
             import mimetypes
+            
             # Validate target format
-            valid_formats = ["mp3", "wav", "flac", "ogg", "m4a", "aac"]
-            if target_format not in valid_formats:
+            valid_formats = ["mp3", "wav", "flac", "ogg", "m4a", "aac", "weba", "opus", "ac3", "aif", "aiff", "wma"]
+            if target_format.lower() not in valid_formats:
                 raise ValueError(f"Formato non supportato: {target_format}")
-            # Create temp files
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".input") as input_file:
-                input_file.write(file_content)
-                input_path = input_file.name
-            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{target_format}") as output_file:
-                output_path = output_file.name
+            
+            # Validate file content
+            if not file_content or len(file_content) == 0:
+                raise ValueError("File is empty. Please upload a valid file.")
+            
+            # Set FFmpeg path on Windows
+            if platform.system() == 'Windows':
+                possible_paths = [
+                    r'C:\ffmpeg\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe',
+                    r'C:\ffmpeg\bin\ffmpeg.exe',
+                    r'C:\Program Files\ffmpeg\bin\ffmpeg.exe',
+                    os.path.join(os.environ.get('USERPROFILE', ''), 'ffmpeg', 'bin', 'ffmpeg.exe'),
+                ]
+                for path in possible_paths:
+                    if os.path.exists(path):
+                        os.environ['FFMPEG_BINARY'] = path
+                        ffmpeg_dir = os.path.dirname(path)
+                        if ffmpeg_dir not in os.environ.get('PATH', ''):
+                            os.environ['PATH'] = ffmpeg_dir + os.pathsep + os.environ.get('PATH', '')
+                        break
+            
+            # Create temporary files
+            tmp_dir = os.getenv('TEMP_DIR', '/tmp')
+            os.makedirs(tmp_dir, exist_ok=True)
+            
+            # Get input extension from filename
+            input_ext = filename.split('.')[-1].lower() if '.' in filename else 'mp3'
+            input_path = os.path.join(tmp_dir, f"input_{os.urandom(8).hex()}.{input_ext}")
+            output_path = os.path.join(tmp_dir, f"output_{os.urandom(8).hex()}.{target_format}")
+            
+            # Write input file
+            with open(input_path, 'wb') as f:
+                f.write(file_content)
+            
             try:
-                # FFmpeg conversion
+                # Build FFmpeg command for audio
                 stream = ffmpeg.input(input_path)
-                stream = ffmpeg.output(stream, output_path)
+                
+                # Audio codec and settings
+                audio_codec = self._get_audio_codec(target_format)
+                audio_bitrate = abitrate or ('160k' if target_format.lower() not in ['flac', 'wav'] else None)
+                
+                # Build output options (extract audio only, no video)
+                output_opts = {
+                    'vn': None,  # No video
+                    'acodec': audio_codec,
+                    'ar': 44100,  # Sample rate
+                    'ac': 2,  # Audio channels (stereo)
+                }
+                
+                if audio_bitrate:
+                    output_opts['b:a'] = audio_bitrate
+                
+                # Format-specific options
+                if target_format.lower() == 'mp3':
+                    output_opts['q:a'] = '3'  # Quality (0-9, lower is better)
+                elif target_format.lower() in ['aac', 'm4a']:
+                    output_opts['profile:a'] = 'aac_low'
+                    output_opts['movflags'] = '+faststart'  # Web optimization
+                elif target_format.lower() in ['opus', 'weba']:
+                    output_opts['compression_level'] = '5'  # Compression level
+                
+                stream = ffmpeg.output(stream, output_path, **output_opts)
+                
+                # Run FFmpeg
                 ffmpeg.run(stream, overwrite_output=True, quiet=True)
-                # Read output
-                with open(output_path, "rb") as f:
-                    out_bytes = f.read()
+                
+                # Read output file
+                with open(output_path, 'rb') as f:
+                    output_content = f.read()
+                
+                # Convert to data URL
                 mime_type = mimetypes.guess_type(output_path)[0] or f"audio/{target_format}"
-                data_url = f"data:{mime_type};base64,{base64.b64encode(out_bytes).decode()}"
-                result_name = filename.rsplit('.', 1)[0] + f'_converted.{target_format}'
+                data_url = f"data:{mime_type};base64,{base64.b64encode(output_content).decode()}"
+                
+                result_name = filename.rsplit('.', 1)[0] + f'.{target_format}'
+                
                 return {
                     "url": data_url,
                     "name": result_name,
                 }
+            
             finally:
+                # Cleanup
                 try:
                     os.unlink(input_path)
+                except:
+                    pass
+                try:
                     os.unlink(output_path)
-                except Exception:
+                except:
                     pass
         except ImportError:
             raise RuntimeError("FFmpeg non installato o non disponibile nel backend.")
         except Exception as exc:
             logger.error(f"Convert audio error: {exc}", exc_info=True)
             raise
+    
+    def _get_audio_codec(self, format: str) -> str:
+        """Get audio codec for format"""
+        codecs = {
+            'mp3': 'libmp3lame',
+            'aac': 'aac',
+            'm4a': 'aac',
+            'flac': 'flac',
+            'wav': 'pcm_s16le',
+            'ogg': 'libvorbis',
+            'opus': 'libopus',
+            'weba': 'libopus',
+            'ac3': 'ac3',
+            'aif': 'pcm_s16le',
+            'aiff': 'pcm_s16le',
+            'wma': 'wmav2',
+        }
+        return codecs.get(format.lower(), 'libmp3lame')
 
     async def convert_image(
         self,
         file_content: bytes,
         filename: str,
         target_format: str = "png",
+        quality: Optional[str] = None,
+        width: Optional[str] = None,
+        height: Optional[str] = None,
     ) -> Dict:
-        """Convert image file to target format (jpg, jpeg, png, webp, avif)"""
-        import tempfile
-        valid_formats = ["jpg", "jpeg", "png", "webp", "avif"]
-        if target_format not in valid_formats:
-            raise ValueError(f"Formato non supportato: {target_format}")
+        """Convert image file to target format (jpg, jpeg, png, webp, avif, tiff, bmp, gif)"""
         try:
+            # Validate file content
+            if not file_content or len(file_content) == 0:
+                raise ValueError("File is empty. Please upload a valid file.")
+            
+            valid_formats = ["jpg", "jpeg", "png", "webp", "avif", "tiff", "bmp", "gif"]
+            if target_format.lower() not in valid_formats:
+                raise ValueError(f"Formato non supportato: {target_format}")
+            
+            # Open image
             image = Image.open(BytesIO(file_content))
-            with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{target_format}') as output_file:
-                if target_format in ["jpg", "jpeg"]:
-                    image.save(output_file.name, format="JPEG", quality=95, optimize=True)
-                    mime_type = "image/jpeg"
-                elif target_format == "png":
-                    image.save(output_file.name, format="PNG", optimize=True)
-                    mime_type = "image/png"
-                elif target_format == "webp":
-                    image.save(output_file.name, format="WEBP", quality=95)
-                    mime_type = "image/webp"
-                elif target_format == "avif":
-                    image.save(output_file.name, format="AVIF")
-                    mime_type = "image/avif"
-                output_file.seek(0)
-                out_bytes = output_file.read()
-            data_url = f"data:{mime_type};base64,{base64.b64encode(out_bytes).decode()}"
-            result_name = filename.rsplit('.', 1)[0] + f'_converted.{target_format}'
+            
+            # Resize if needed (fit inside maintaining aspect ratio)
+            if width or height:
+                original_width, original_height = image.size
+                w = int(width) if width else original_width
+                h = int(height) if height else original_height
+                
+                # Calculate aspect ratio to fit inside
+                aspect_ratio = original_width / original_height
+                if w and h:
+                    target_aspect = w / h
+                    if aspect_ratio > target_aspect:
+                        # Width is limiting factor
+                        h = int(w / aspect_ratio)
+                    else:
+                        # Height is limiting factor
+                        w = int(h * aspect_ratio)
+                elif w:
+                    h = int(w / aspect_ratio)
+                elif h:
+                    w = int(h * aspect_ratio)
+                
+                image = image.resize((w, h), Image.Resampling.LANCZOS)
+            
+            # Convert format (handle RGBA/transparency for JPEG)
+            if image.mode in ('RGBA', 'LA', 'P') and target_format.lower() in ('jpg', 'jpeg'):
+                # Convert RGBA to RGB for JPEG
+                background = Image.new('RGB', image.size, (255, 255, 255))
+                if image.mode == 'P':
+                    image = image.convert('RGBA')
+                background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+                image = background
+            elif image.mode not in ('RGB', 'RGBA', 'L') and target_format.lower() in ('png', 'webp', 'avif'):
+                image = image.convert('RGB')
+            
+            # Save to buffer
+            output_buffer = BytesIO()
+            
+            # Set quality
+            quality_int = int(quality) if quality else 80
+            
+            # Save based on format
+            if target_format.lower() in ('jpg', 'jpeg'):
+                image.save(output_buffer, format='JPEG', quality=quality_int, optimize=True)
+                mime_type = "image/jpeg"
+            elif target_format.lower() == 'png':
+                image.save(output_buffer, format='PNG', compress_level=9)
+                mime_type = "image/png"
+            elif target_format.lower() == 'webp':
+                image.save(output_buffer, format='WEBP', quality=quality_int)
+                mime_type = "image/webp"
+            elif target_format.lower() == 'avif':
+                image.save(output_buffer, format='AVIF', quality=quality_int)
+                mime_type = "image/avif"
+            elif target_format.lower() == 'tiff':
+                image.save(output_buffer, format='TIFF')
+                mime_type = "image/tiff"
+            elif target_format.lower() == 'bmp':
+                image.save(output_buffer, format='BMP')
+                mime_type = "image/bmp"
+            elif target_format.lower() == 'gif':
+                image.save(output_buffer, format='GIF')
+                mime_type = "image/gif"
+            else:
+                image.save(output_buffer, format='PNG')
+                mime_type = "image/png"
+            
+            output_buffer.seek(0)
+            
+            # Convert to data URL
+            data_url = f"data:{mime_type};base64,{base64.b64encode(output_buffer.getvalue()).decode()}"
+            
+            result_name = filename.rsplit('.', 1)[0] + f'.{target_format}'
+            
             return {
                 "url": data_url,
                 "name": result_name,
@@ -175,33 +425,177 @@ class ToolsService:
         type: Optional[str] = None,
         size: Optional[str] = None,
         crop: Optional[str] = None,
+        cropMargin: Optional[str] = None,
     ) -> Dict:
-        """Remove background from image"""
+        """Remove background from image with advanced edge refinement"""
         try:
-            # Use rembg library
+            # Validate file content
+            if not file_content or len(file_content) == 0:
+                raise ValueError("File is empty. Please upload a valid file.")
+            
+            # Use rembg library with model selection
             try:
-                from rembg import remove
-                output = remove(file_content)
+                from rembg import remove, new_session
+                from rembg.sessions import sessions_classes
+                
+                # Map type to model (use u2net for better quality, or specialized models)
+                model_name = "u2net"  # Default high-quality model
+                if type:
+                    type_lower = type.lower()
+                    if type_lower == "person":
+                        model_name = "u2net_human_seg"  # Better for people
+                    elif type_lower == "product":
+                        model_name = "u2netp"  # Faster, good for products
+                    elif type_lower == "car":
+                        model_name = "silueta"  # Good for objects with clean edges
+                    elif type_lower == "animal":
+                        model_name = "isnet-general-use"  # Good for animals
+                
+                # Create session with model
+                try:
+                    session = new_session(model_name)
+                    output = remove(file_content, session=session)
+                except Exception as model_error:
+                    # Fallback to default model if specific model fails
+                    logger.warning(f"Model {model_name} failed, using default: {model_error}")
+                    output = remove(file_content)
+                
             except ImportError:
-                # Fallback: use OpenCV for basic background removal
+                # Fallback: use OpenCV for advanced background removal
                 if not CV2_AVAILABLE:
-                    raise RuntimeError("OpenCV (cv2) non disponibile per la rimozione dello sfondo.")
+                    raise RuntimeError("OpenCV (cv2) non disponibile per la rimozione dello sfondo. Installa rembg per risultati migliori.")
+                
                 image = Image.open(BytesIO(file_content))
                 image_array = np.array(image)
+                
                 # Check shape and channels
                 if len(image_array.shape) != 3 or image_array.shape[2] < 3:
                     raise ValueError("Immagine non valida o non RGB.")
-                # Convert to RGBA if needed
+                
+                # Advanced background removal with edge detection and refinement
                 if image_array.shape[2] == 3:
                     image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2RGBA)
-                # Simple background removal using color thresholding
+                
+                # Convert to grayscale
                 gray = cv2.cvtColor(image_array[:, :, :3], cv2.COLOR_RGB2GRAY)
-                _, mask = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY_INV)
+                
+                # Use advanced edge detection with multiple techniques
+                height, width = gray.shape
+                mask = np.zeros((height, width), np.uint8)
+                
+                # Method 1: Try GrabCut algorithm for better edge detection (if image is large enough)
+                use_grabcut = width > 100 and height > 100
+                if use_grabcut:
+                    bgdModel = np.zeros((1, 65), np.float64)
+                    fgdModel = np.zeros((1, 65), np.float64)
+                    
+                    # Define rectangle for GrabCut (use image bounds with small margin)
+                    margin = min(10, width // 20, height // 20)
+                    rect = (margin, margin, width - 2*margin, height - 2*margin)
+                    
+                    try:
+                        cv2.grabCut(image_array[:, :, :3], mask, rect, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_RECT)
+                        # Create final mask from GrabCut result
+                        mask = np.where((mask == 2) | (mask == 0), 0, 255).astype('uint8')
+                    except:
+                        # Fallback to Otsu thresholding if GrabCut fails
+                        use_grabcut = False
+                
+                # Method 2: Otsu thresholding (fallback or primary for small images)
+                if not use_grabcut:
+                    _, mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+                
+                # Post-processing: Edge refinement using morphological operations
+                kernel = np.ones((3, 3), np.uint8)
+                mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)  # Fill small holes
+                mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)   # Remove small noise
+                
+                # Optional: Find largest contour and use only that (removes small isolated regions)
+                contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                if contours:
+                    # Find largest contour
+                    largest_contour = max(contours, key=cv2.contourArea)
+                    # Create new mask from largest contour
+                    mask = np.zeros((height, width), np.uint8)
+                    cv2.fillPoly(mask, [largest_contour], 255)
+                
+                # Smooth edges with Gaussian blur for better alpha blending
+                mask = cv2.GaussianBlur(mask, (5, 5), 0.5)
+                
+                # Apply mask to alpha channel
                 image_array[:, :, 3] = mask
+                
+                # Convert back to PIL Image and save
                 output_buffer = BytesIO()
                 output_image = Image.fromarray(image_array)
                 output_image.save(output_buffer, format='PNG')
                 output = output_buffer.getvalue()
+            
+            # Post-process to refine edges
+            try:
+                from PIL import Image, ImageFilter
+                import numpy as np
+                
+                # Load output as PIL Image
+                result_image = Image.open(BytesIO(output))
+                
+                # Convert to numpy array
+                img_array = np.array(result_image)
+                
+                if img_array.shape[2] == 4:  # RGBA
+                    # Extract alpha channel
+                    alpha = img_array[:, :, 3]
+                    
+                    # Apply edge refinement with morphological operations
+                    if CV2_AVAILABLE:
+                        # Erode and dilate for cleaner edges
+                        kernel = np.ones((2, 2), np.uint8)
+                        alpha_refined = cv2.morphologyEx(alpha, cv2.MORPH_CLOSE, kernel)
+                        alpha_refined = cv2.morphologyEx(alpha_refined, cv2.MORPH_OPEN, kernel)
+                        
+                        # Apply slight blur to alpha for smoother edges
+                        alpha_refined = cv2.GaussianBlur(alpha_refined, (3, 3), 0.5)
+                        
+                        # Update alpha channel
+                        img_array[:, :, 3] = alpha_refined
+                        
+                        # Convert back to PIL Image
+                        result_image = Image.fromarray(img_array)
+                
+                # Apply optional crop if requested
+                if crop and crop.lower() in ['true', '1', 'yes']:
+                    # Get bounding box of non-transparent pixels
+                    bbox = result_image.getbbox()
+                    if bbox:
+                        # Get margin from parameter or use default
+                        margin_percent = 8  # Default margin percentage
+                        if cropMargin:
+                            try:
+                                margin_percent = float(cropMargin)
+                            except (ValueError, TypeError):
+                                pass
+                        
+                        x0, y0, x1, y1 = bbox
+                        width, height = result_image.size
+                        
+                        # Calculate margin in pixels based on image size
+                        margin_x = int((x1 - x0) * margin_percent / 100)
+                        margin_y = int((y1 - y0) * margin_percent / 100)
+                        
+                        x0 = max(0, x0 - margin_x)
+                        y0 = max(0, y0 - margin_y)
+                        x1 = min(width, x1 + margin_x)
+                        y1 = min(height, y1 + margin_y)
+                        result_image = result_image.crop((x0, y0, x1, y1))
+                
+                # Save to buffer
+                output_buffer = BytesIO()
+                result_image.save(output_buffer, format='PNG', optimize=True)
+                output = output_buffer.getvalue()
+                
+            except Exception as post_error:
+                logger.warning(f"Post-processing failed, using original output: {post_error}")
+                # Use original output if post-processing fails
             
             # Convert to data URL
             data_url = f"data:image/png;base64,{base64.b64encode(output).decode()}"
@@ -574,6 +968,7 @@ class ToolsService:
         self,
         file_contents: List[Tuple[bytes, str]],
         mode: str = "combine",
+        ranges: str = None,
     ) -> Dict:
         """Combine or split PDF files"""
         try:
@@ -581,6 +976,9 @@ class ToolsService:
             
             if mode == "combine":
                 # Combine PDFs
+                if len(file_contents) < 2:
+                    raise ValueError("At least 2 PDF files are required to combine")
+                
                 pdf_writer = pypdf.PdfWriter()
                 
                 for file_content, _ in file_contents:
@@ -601,15 +999,65 @@ class ToolsService:
                     "name": "combined.pdf",
                 }
             else:
-                # Split PDF (return first page as example)
-                pdf_reader = pypdf.PdfReader(BytesIO(file_contents[0][0]))
+                # Split PDF
+                if len(file_contents) == 0:
+                    raise ValueError("At least 1 PDF file is required to split")
                 
-                output_buffer = BytesIO()
+                pdf_reader = pypdf.PdfReader(BytesIO(file_contents[0][0]))
+                total_pages = len(pdf_reader.pages)
+                
+                # Parse ranges (es: "1-3,5,7-10")
+                page_indices = set()
+                
+                if not ranges or ranges.strip() == '':
+                    # Se non ci sono ranges, restituisci tutte le pagine
+                    page_indices = set(range(total_pages))
+                else:
+                    # Parse ranges
+                    parts = [p.strip() for p in ranges.split(',')]
+                    
+                    for part in parts:
+                        if '-' in part:
+                            # Range (es: "1-3")
+                            try:
+                                start_str, end_str = part.split('-', 1)
+                                start = int(start_str.strip())
+                                end = int(end_str.strip())
+                                
+                                # Converti da 1-based a 0-based e valida
+                                start_idx = max(0, start - 1)
+                                end_idx = min(total_pages - 1, end - 1)
+                                
+                                if start_idx <= end_idx:
+                                    for i in range(start_idx, end_idx + 1):
+                                        page_indices.add(i)
+                            except (ValueError, AttributeError):
+                                continue
+                        else:
+                            # Pagina singola
+                            try:
+                                page_num = int(part.strip())
+                                if 1 <= page_num <= total_pages:
+                                    page_indices.add(page_num - 1)  # Converti da 1-based a 0-based
+                            except (ValueError, AttributeError):
+                                continue
+                
+                if len(page_indices) == 0:
+                    raise ValueError("No valid pages specified")
+                
+                # Crea nuovo PDF con le pagine specificate
                 pdf_writer = pypdf.PdfWriter()
-                pdf_writer.add_page(pdf_reader.pages[0])
+                sorted_indices = sorted(page_indices)
+                
+                for idx in sorted_indices:
+                    pdf_writer.add_page(pdf_reader.pages[idx])
+                
+                # Save to buffer
+                output_buffer = BytesIO()
                 pdf_writer.write(output_buffer)
                 output_buffer.seek(0)
                 
+                # Convert to data URL
                 data_url = f"data:application/pdf;base64,{base64.b64encode(output_buffer.getvalue()).decode()}"
                 
                 return {

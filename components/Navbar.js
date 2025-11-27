@@ -40,7 +40,7 @@ const Navbar = () => {
             setIsMobile(isMobileWidth);
             
             // Se non è mobile, chiudi i menu
-            if (!isMobileWidth) {
+            if (!isMobileWidth) { (!isMobileWidth) {
                 setMobileMenuOpen(false);
                 setMobileSecondaryMenuOpen(false);
             }
@@ -70,6 +70,29 @@ const Navbar = () => {
             setExpandedCategory(null);
         }
     }, [isMobile]);
+
+    // Prevent body scroll when mobile menu is open
+    useEffect(() => {
+        if (typeof document === 'undefined') return;
+        
+        if (mobileMenuOpen || mobileSecondaryMenuOpen) {
+            // Prevent scroll
+            const originalOverflow = document.body.style.overflow;
+            const originalPosition = document.body.style.position;
+            const originalWidth = document.body.style.width;
+            
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            
+            return () => {
+                // Restore scroll on cleanup
+                document.body.style.overflow = originalOverflow;
+                document.body.style.position = originalPosition;
+                document.body.style.width = originalWidth;
+            };
+        }
+    }, [mobileMenuOpen, mobileSecondaryMenuOpen]);
 
     useEffect(() => {
         if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -400,7 +423,7 @@ const Navbar = () => {
             overflowY: 'auto',
             overflowX: 'hidden',
             padding: '24px 20px',
-            zIndex: 100004,
+            zIndex: 999999,
             transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s',
             boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.6)',
             WebkitOverflowScrolling: 'touch',
@@ -408,7 +431,9 @@ const Navbar = () => {
             display: 'block',
             visibility: mobileMenuOpen ? 'visible' : 'hidden',
             opacity: mobileMenuOpen ? 1 : 0,
-            pointerEvents: mobileMenuOpen ? 'auto' : 'none'
+            pointerEvents: mobileMenuOpen ? 'auto' : 'none',
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)'
         },
         mobileSecondaryMenu: {
             position: 'fixed',
@@ -425,7 +450,7 @@ const Navbar = () => {
             overflowY: 'auto',
             overflowX: 'hidden',
             padding: '24px 20px',
-            zIndex: 100004,
+            zIndex: 999999,
             transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s',
             boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.6)',
             WebkitOverflowScrolling: 'touch',
@@ -433,7 +458,9 @@ const Navbar = () => {
             display: 'block',
             visibility: mobileSecondaryMenuOpen ? 'visible' : 'hidden',
             opacity: mobileSecondaryMenuOpen ? 1 : 0,
-            pointerEvents: mobileSecondaryMenuOpen ? 'auto' : 'none'
+            pointerEvents: mobileSecondaryMenuOpen ? 'auto' : 'none',
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)'
         },
         mobileOverlay: {
             position: 'fixed',
@@ -444,11 +471,13 @@ const Navbar = () => {
             background: 'rgba(0, 0, 0, 0.75)',
             WebkitBackdropFilter: 'blur(4px)',
             backdropFilter: 'blur(4px)',
-            zIndex: 100003,
+            zIndex: 999998,
             opacity: (mobileMenuOpen || mobileSecondaryMenuOpen) ? 1 : 0,
             visibility: (mobileMenuOpen || mobileSecondaryMenuOpen) ? 'visible' : 'hidden',
             transition: 'opacity 0.3s ease, visibility 0.3s ease',
-            WebkitTapHighlightColor: 'transparent'
+            WebkitTapHighlightColor: 'transparent',
+            WebkitTransform: 'translateZ(0)',
+            transform: 'translateZ(0)'
         },
         mobileMenuHeader: {
             display: 'flex',
