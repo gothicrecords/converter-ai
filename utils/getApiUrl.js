@@ -135,11 +135,12 @@ export async function getApiUrl(endpoint, forceBackend = false) {
   // Remove leading slash if present
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
-  // Se l'endpoint è nella lista Next.js only, usa sempre Next.js
+  // IMPORTANTE: Se l'endpoint è nella lista Next.js only, usa SEMPRE Next.js
+  // anche se forceBackend è true o se il backend Python è disponibile
   if (shouldUseNextJsOnly(cleanEndpoint)) {
     if (typeof window !== 'undefined') {
       if (isLocalDevelopment()) {
-        console.log(`[getApiUrl] Endpoint Next.js only, uso: ${cleanEndpoint}`);
+        console.log(`[getApiUrl] Endpoint Next.js only (whitelist), uso: ${cleanEndpoint}`);
       }
       return cleanEndpoint;
     }
@@ -161,6 +162,7 @@ export async function getApiUrl(endpoint, forceBackend = false) {
   }
 
   // Se forceBackend è true, usa direttamente il backend Python
+  // (ma solo se non è nella whitelist Next.js-only)
   if (forceBackend) {
     const baseUrl = pythonApiUrl.endsWith('/') ? pythonApiUrl.slice(0, -1) : pythonApiUrl;
     const fullUrl = `${baseUrl}${cleanEndpoint}`;

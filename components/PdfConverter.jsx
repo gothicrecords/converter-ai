@@ -82,9 +82,9 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
           signal: AbortSignal.timeout(10000) // 10 second timeout
         });
         
-        // If connection fails, try Next.js API route
-        if (!res.ok && res.status === 0) {
-          throw new Error('Connection refused');
+        // If connection fails or method not allowed (405), try Next.js API route
+        if (!res.ok && (res.status === 0 || res.status === 405)) {
+          throw new Error(`Backend returned ${res.status}, falling back to Next.js`);
         }
         
         // Handle response
@@ -96,7 +96,13 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
           throw new Error('Risposta non valida dal server');
         }
         
-        if (!res.ok) throw new Error(j.hint || j.details || j.error || 'Errore');
+        if (!res.ok) {
+          // If 405, try Next.js fallback
+          if (res.status === 405) {
+            throw new Error(`Method not allowed (405), falling back to Next.js`);
+          }
+          throw new Error(j.hint || j.details || j.error || 'Errore');
+        }
         if (j.urls && Array.isArray(j.urls)) {
           setOutList(j.urls);
         } else if (j.url) {
@@ -109,11 +115,13 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
         setStatus('Fatto!');
         return;
       } catch (fetchError) {
-        // Fallback to Next.js API if Python backend not available
+        // Fallback to Next.js API if Python backend not available or returns 405
         const isConnectionError = fetchError.message.includes('Connection refused') || 
                                   fetchError.message.includes('Failed to fetch') ||
                                   fetchError.message.includes('ERR_CONNECTION_REFUSED') ||
                                   fetchError.message.includes('timeout') ||
+                                  fetchError.message.includes('405') ||
+                                  fetchError.message.includes('falling back') ||
                                   fetchError.name === 'TypeError' ||
                                   fetchError.name === 'AbortError';
         
@@ -121,7 +129,7 @@ export default function PdfConverter({ initialActive = 'jpg2pdf', seoTitle, seoD
         const isPythonBackend = fullRoute.startsWith('http://') || fullRoute.startsWith('https://');
         
         if (isConnectionError && isPythonBackend) {
-          console.warn('Backend Python non disponibile, uso API Next.js come fallback');
+          console.warn('Backend Python non disponibile o errore 405, uso API Next.js come fallback');
           fullRoute = route; // Use Next.js API route directly
         } else if (!isPythonBackend) {
           // Already using Next.js API, just throw the error
