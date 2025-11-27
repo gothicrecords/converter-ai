@@ -17,7 +17,11 @@ const nextConfig = {
   
   // Environment variables exposed to client
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    // Backend Python API URL - Railway in produzione, localhost in sviluppo
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 
+      (process.env.NODE_ENV === 'production' 
+        ? 'https://megapixelsuite.up.railway.app' 
+        : 'http://localhost:8000'),
   },
   
   // Image optimization
