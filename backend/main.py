@@ -32,10 +32,11 @@ from backend.middleware.error_handler import error_handler
 from backend.middleware.logging_middleware import LoggingMiddleware
 from backend.middleware.rate_limit import RateLimitMiddleware
 from backend.middleware.security import SecurityMiddleware
-<<<<<<< HEAD
-=======
-from backend.middleware.tool_monitoring import ToolMonitoringMiddleware
->>>>>>> 86f08af (ðŸš€ Sistema Perfetto: Architettura Scalabile e Performance Ultra-Veloce)
+try:
+    from backend.middleware.tool_monitoring import ToolMonitoringMiddleware
+    TOOL_MONITORING_AVAILABLE = True
+except ImportError:
+    TOOL_MONITORING_AVAILABLE = False
 
 # Get settings after all imports
 settings = get_settings()
@@ -60,20 +61,28 @@ async def lifespan(app: FastAPI):
     logger.info("Starting FastAPI server...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     
-    # Start job queue
-    from backend.utils.queue import get_job_queue
-    queue = get_job_queue()
-    await queue.start()
-    logger.info("Job queue started")
+    # Start job queue if available
+    try:
+        from backend.utils.queue import get_job_queue
+        queue = get_job_queue()
+        await queue.start()
+        logger.info("Job queue started")
+    except ImportError:
+        logger.info("Job queue not available")
     
     yield
     
     # Shutdown
     logger.info("Shutting down FastAPI server...")
     
-    # Stop job queue
-    await queue.stop()
-    logger.info("Job queue stopped")
+    # Stop job queue if available
+    try:
+        from backend.utils.queue import get_job_queue
+        queue = get_job_queue()
+        await queue.stop()
+        logger.info("Job queue stopped")
+    except ImportError:
+        pass
 
 
 # Create FastAPI app
@@ -109,21 +118,15 @@ else:
         expose_headers=["*"],
     )
 
-<<<<<<< HEAD
-# Custom middleware (order matters - security first, then rate limiting, then logging)
-=======
 # Custom middleware (order matters - security first, then rate limiting, then monitoring, then logging)
->>>>>>> 86f08af (ðŸš€ Sistema Perfetto: Architettura Scalabile e Performance Ultra-Veloce)
 app.add_middleware(SecurityMiddleware)
 app.add_middleware(
     RateLimitMiddleware,
     default_limit=100,  # requests per window
     window_seconds=60,  # 1 minute window
 )
-<<<<<<< HEAD
-=======
-app.add_middleware(ToolMonitoringMiddleware)
->>>>>>> 86f08af (ðŸš€ Sistema Perfetto: Architettura Scalabile e Performance Ultra-Veloce)
+if TOOL_MONITORING_AVAILABLE:
+    app.add_middleware(ToolMonitoringMiddleware)
 app.add_middleware(LoggingMiddleware)
 
 # Exception handlers
@@ -181,4 +184,3 @@ if __name__ == "__main__":
         reload=settings.DEBUG,
         log_level="info"
     )
-
