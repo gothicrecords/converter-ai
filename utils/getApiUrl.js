@@ -71,7 +71,10 @@ export async function checkPythonBackend(baseUrl = null, forceCheck = false) {
   }
 
   try {
-    const healthUrl = url.endsWith('/') ? `${url}health` : `${url}/health`;
+    // Costruisci URL health correttamente (sempre /health, non /health/health)
+    const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+    const healthUrl = `${baseUrl}/health`;
+    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 secondi timeout
 
@@ -167,10 +170,12 @@ export async function getApiUrl(endpoint, forceBackend = false) {
   // (ma solo se non è nella whitelist Next.js-only)
   if (forceBackend) {
     const baseUrl = pythonApiUrl.endsWith('/') ? pythonApiUrl.slice(0, -1) : pythonApiUrl;
-    const fullUrl = `${baseUrl}${cleanEndpoint}`;
-    if (isLocalDevelopment()) {
-      console.log(`[getApiUrl] Forzo uso backend Python: ${fullUrl}`);
-    }
+    const endpoint = cleanEndpoint.startsWith('/') ? cleanEndpoint : `/${cleanEndpoint}`;
+    const fullUrl = `${baseUrl}${endpoint}`;
+    
+    // Log sempre per debug
+    console.log(`[getApiUrl] Forzo uso backend Python: ${fullUrl}`);
+    
     return fullUrl;
   }
 
@@ -179,11 +184,15 @@ export async function getApiUrl(endpoint, forceBackend = false) {
 
   if (isBackendAvailable) {
     // Usa backend Python
+    // Rimuovi trailing slash dal base URL e assicurati che l'endpoint inizi con /
     const baseUrl = pythonApiUrl.endsWith('/') ? pythonApiUrl.slice(0, -1) : pythonApiUrl;
-    const fullUrl = `${baseUrl}${cleanEndpoint}`;
-    if (isLocalDevelopment()) {
-      console.log(`[getApiUrl] Backend Python disponibile, uso: ${fullUrl}`);
-    }
+    // Assicurati che cleanEndpoint inizi con / (già fatto sopra, ma doppio check)
+    const endpoint = cleanEndpoint.startsWith('/') ? cleanEndpoint : `/${cleanEndpoint}`;
+    const fullUrl = `${baseUrl}${endpoint}`;
+    
+    // Log sempre in produzione per debug
+    console.log(`[getApiUrl] Backend Python disponibile: ${fullUrl}`);
+    
     return fullUrl;
   }
 
