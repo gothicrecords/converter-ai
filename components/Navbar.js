@@ -40,7 +40,7 @@ const Navbar = () => {
             setIsMobile(isMobileWidth);
             
             // Se non è mobile, chiudi i menu
-            if (!isMobileWidth) { (!isMobileWidth) {
+            if (!isMobileWidth) {
                 setMobileMenuOpen(false);
                 setMobileSecondaryMenuOpen(false);
             }
