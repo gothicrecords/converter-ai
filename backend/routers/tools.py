@@ -103,10 +103,16 @@ async def ocr_advanced(file: UploadFile = File(...)):
     """Advanced OCR"""
     try:
         file_content = await file.read()
+        
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
+        
         result = await tools_service.ocr_advanced(file_content, file.filename or "file.jpg")
         # Valida sempre la risposta prima di restituirla
         validated = validate_response(result, response_type="json", required_fields=["text"])
         return JSONResponse(validated)
+    except HTTPException:
+        raise
     except ProcessingException as exc:
         logger.error(f"OCR processing error: {exc}", exc_info=True)
         raise HTTPException(status_code=exc.status_code, detail=exc.message)
@@ -190,12 +196,18 @@ async def translate_document(
     """Translate document"""
     try:
         file_content = await file.read()
+        
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
+        
         result = await tools_service.translate_document(
             file_content, file.filename or "file.txt", target_language
         )
         # Valida sempre la risposta prima di restituirla
         validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
         return JSONResponse(validated)
+    except HTTPException:
+        raise
     except ProcessingException as exc:
         logger.error(f"Translate document processing error: {exc}", exc_info=True)
         raise HTTPException(status_code=exc.status_code, detail=exc.message)

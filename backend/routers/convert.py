@@ -18,6 +18,7 @@ converter_service = ConverterService()
 async def convert_file(
     target_format: str,
     file: UploadFile = File(...),
+    target: Optional[str] = Form(None),  # Support both path param and form field
     quality: Optional[str] = Form(None),
     width: Optional[str] = Form(None),
     height: Optional[str] = Form(None),
@@ -54,12 +55,15 @@ async def convert_file(
         # Get original filename
         original_filename = file.filename or "file"
         
+        # Use target_format from path, or fallback to form field 'target'
+        final_target_format = target_format or target or "png"
+        
         # Convert file
         page_int = int(page) if page else None
         result = await converter_service.convert(
             file_content=file_content,
             original_filename=original_filename,
-            target_format=target_format,
+            target_format=final_target_format,
             quality=quality,
             width=width,
             height=height,

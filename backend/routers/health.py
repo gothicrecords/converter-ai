@@ -18,6 +18,7 @@ settings = get_settings()
 
 
 @router.get("/health")
+@router.get("/health/health")  # Support both paths
 async def health():
     """Basic health check endpoint"""
     return JSONResponse({
