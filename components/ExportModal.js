@@ -7,6 +7,66 @@ export default function ExportModal({ imageData, filename, onClose }) {
     const [isConverting, setIsConverting] = useState(false);
 
     const handleExport = async () => {
+        setIsConverting(true);
+        try {
+            // Convert image to selected format
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // Necessario per immagini esterne (CORS)
+            img.src = imageData;
+
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = () => reject(new Error('Errore caricamento immagine'));
+            });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            // Convert to blob with quality
+            const mimeType = format === 'png' ? 'image/png' :
+                format === 'jpg' ? 'image/jpeg' : 'image/webp';
+
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    throw new Error('Errore conversione canvas');
+                }
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${filename.replace(/\.[^/.]+$/, '')}.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                setIsConverting(false);
+                onClose();
+            }, mimeType, quality / 100);
+
+        } catch (error) {
+            console.error('Export error, attempting fallback:', error);
+
+            // FALLBACK: Download diretto se la conversione fallisce
+            try {
+                const a = document.createElement('a');
+                a.href = imageData;
+                a.download = filename;
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                onClose();
+            } catch (fallbackError) {
+                console.error('Fallback download failed:', fallbackError);
+            }
+
+            setIsConverting(false);
+        }
+    };
+
+    return (
         <div style={styles.overlay} onClick={onClose}>
             <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
                 <div style={styles.header}>
