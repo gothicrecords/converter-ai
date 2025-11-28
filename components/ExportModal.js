@@ -11,8 +11,9 @@ export default function ExportModal({ imageData, filename, onClose }) {
         try {
             // Convert image to selected format
             const img = new Image();
+            img.crossOrigin = "Anonymous"; // Necessario per immagini esterne (CORS)
             img.src = imageData;
-            
+
             await new Promise((resolve) => {
                 img.onload = resolve;
             });
@@ -24,9 +25,9 @@ export default function ExportModal({ imageData, filename, onClose }) {
             ctx.drawImage(img, 0, 0);
 
             // Convert to blob with quality
-            const mimeType = format === 'png' ? 'image/png' : 
-                           format === 'jpg' ? 'image/jpeg' : 'image/webp';
-            
+            const mimeType = format === 'png' ? 'image/png' :
+                format === 'jpg' ? 'image/jpeg' : 'image/webp';
+
             canvas.toBlob((blob) => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -109,8 +110,8 @@ export default function ExportModal({ imageData, filename, onClose }) {
                     <button onClick={onClose} style={styles.cancelBtn}>
                         Annulla
                     </button>
-                    <button 
-                        onClick={handleExport} 
+                    <button
+                        onClick={handleExport}
                         style={styles.exportBtn}
                         disabled={isConverting}
                     >

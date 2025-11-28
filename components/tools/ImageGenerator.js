@@ -76,51 +76,63 @@ export default function ImageGenerator() {
             setProgress(95);
             updateToast(toastId, { progress: 95, message: 'Elaborazione finale...' });
 
-            if (!response.ok) {
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    const text = await response.text();
-                    let errorMessage = 'Errore durante la generazione';
+            let imageUrl;
+
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || data.detail || 'Errore durante la generazione');
+                }
+
+                if (data.url) {
+                    // Prova a scaricare l'immagine per creare un blob locale (evita problemi CORS)
                     try {
-                        if (text && text.trim()) {
-                            const errorData = JSON.parse(text);
-                            errorMessage = errorData.error || errorMessage;
+                        const imgResp = await fetch(data.url);
+                        if (imgResp.ok) {
+                            const imgBlob = await imgResp.blob();
+                            imageUrl = URL.createObjectURL(imgBlob);
+                        } else {
+                            imageUrl = data.url; // Fallback URL diretto
                         }
-                    } catch { }
-                    throw new Error(errorMessage);
+                    } catch (e) {
+                        console.warn('Impossibile scaricare blob immagine, uso URL diretto:', e);
+                        imageUrl = data.url;
+                    }
                 } else {
+                    throw new Error('URL immagine non trovato nella risposta');
+                }
+            } else {
+                // Fallback per blob (se il backend cambiasse comportamento)
+                if (!response.ok) {
                     throw new Error(`Errore HTTP ${response.status}`);
                 }
+                const blob = await response.blob();
+                if (blob.size === 0) throw new Error('Immagine vuota ricevuta');
+                imageUrl = URL.createObjectURL(blob);
             }
 
-            const blob = await response.blob();
-
-            if (blob.size === 0) {
-                throw new Error('Immagine vuota ricevuta');
-            }
-
-            const url = URL.createObjectURL(blob);
-            setResult(url);
+            setResult(imageUrl);
             setProgress(100);
 
             const generationTime = ((Date.now() - startTime) / 1000).toFixed(2);
-            const imageSize = (blob.size / 1024 / 1024).toFixed(2);
 
             // Save to history
             saveToHistory({
                 tool: 'Generazione Immagini AI',
-                filename: `generated_${Date.now()}_4k.jpg`,
-                thumbnail: url,
+                filename: `generated_${Date.now()}.jpg`,
+                thumbnail: imageUrl,
                 params: { prompt, aspect, detail, realism },
-                result: url
+                result: imageUrl
             });
 
             updateToast(toastId, {
                 type: 'success',
                 message: 'Immagine generata con successo!',
                 progress: 100,
-                details: `Tempo generazione: ${generationTime}s • Dimensione: ${imageSize} MB • Risoluzione: ${aspect}`,
-                technical: `AI Model: Image Generation • Quality: 4K • Format: JPEG • Compression: ${((blob.size / (4096 * 4096 * 3)) * 100).toFixed(1)}%`
+                details: `Tempo generazione: ${generationTime}s • Risoluzione: ${aspect}`,
+                technical: `AI Model: DALL-E 3 • Quality: ${detail > 1.1 ? 'HD' : 'Standard'}`
             });
         } catch (err) {
             console.error('Generation error:', err);
