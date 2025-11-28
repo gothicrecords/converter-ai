@@ -7,47 +7,6 @@ export default function ExportModal({ imageData, filename, onClose }) {
     const [isConverting, setIsConverting] = useState(false);
 
     const handleExport = async () => {
-        setIsConverting(true);
-        try {
-            // Convert image to selected format
-            const img = new Image();
-            img.crossOrigin = "Anonymous"; // Necessario per immagini esterne (CORS)
-            img.src = imageData;
-
-            await new Promise((resolve) => {
-                img.onload = resolve;
-            });
-
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-
-            // Convert to blob with quality
-            const mimeType = format === 'png' ? 'image/png' :
-                format === 'jpg' ? 'image/jpeg' : 'image/webp';
-
-            canvas.toBlob((blob) => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${filename.replace(/\.[^/.]+$/, '')}.${format}`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                setIsConverting(false);
-                onClose();
-            }, mimeType, quality / 100);
-
-        } catch (error) {
-            console.error('Export error:', error);
-            setIsConverting(false);
-        }
-    };
-
-    return (
         <div style={styles.overlay} onClick={onClose}>
             <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
                 <div style={styles.header}>
