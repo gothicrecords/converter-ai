@@ -9,6 +9,14 @@ RUN apt-get update && \
     g++ \
     libopenblas-dev \
     liblapack-dev \
+    ffmpeg \
+    libgl1 \
+    libglib2.0-0 \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libjpeg-dev \
+    libopenjp2-7-dev \
+    libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
