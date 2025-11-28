@@ -49,9 +49,22 @@ function getPythonBackendUrl() {
     if (isLocalDevelopment()) {
       return 'http://localhost:8000';
     }
+    return null;
   }
   
-  return url;
+  // Pulisci l'URL: rimuovi eventuali path aggiuntivi (come /health, /api, ecc.)
+  // Mantieni solo il protocollo, dominio e porta
+  try {
+    const urlObj = new URL(url);
+    // Ricostruisci l'URL con solo protocollo, host e porta
+    const cleanUrl = `${urlObj.protocol}//${urlObj.host}${urlObj.port ? `:${urlObj.port}` : ''}`;
+    return cleanUrl;
+  } catch (e) {
+    // Se non è un URL valido, prova a pulirlo manualmente
+    // Rimuovi tutto dopo il dominio/porta
+    const match = url.match(/^(https?:\/\/[^\/]+)/);
+    return match ? match[1] : url;
+  }
 }
 
 /**
