@@ -151,6 +151,14 @@ function shouldUseNextJsOnly(endpoint) {
  * @returns {Promise<string>} Full URL to use
  */
 export async function getApiUrl(endpoint, forceBackend = false) {
+  // CRITICAL FIX: Se l'endpoint è già un URL completo, restituiscilo così com'è!
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    if (isLocalDevelopment()) {
+      console.log(`[getApiUrl] Endpoint già completo, restituito as-is: ${endpoint}`);
+    }
+    return endpoint;
+  }
+
   // Remove leading slash if present
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
@@ -231,6 +239,11 @@ export async function getApiUrl(endpoint, forceBackend = false) {
  * Uses cached backend status or assumes backend is available if configured
  */
 export function getApiUrlSync(endpoint) {
+  // CRITICAL FIX: Se l'endpoint è già un URL completo, restituiscilo così com'è!
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    return endpoint;
+  }
+
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
   // Se l'endpoint è nella lista Next.js only, usa sempre Next.js
