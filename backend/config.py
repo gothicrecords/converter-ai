@@ -17,9 +17,9 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = int(os.getenv("PORT", "8000"))  # Railway sets PORT env var automatically
     
-    # CORS - Use List[str] for better compatibility
-    # We'll handle "*" in main.py
-    CORS_ORIGINS: str = "*"  # Allow all origins for Railway
+    # CORS - Support both string and list formats
+    # Can be "*" for all origins, or comma-separated string, or list
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "*")  # Allow all origins by default
     
     # Database - Neon (PostgreSQL)
     NEON_DATABASE_URL: str = ""
@@ -37,8 +37,8 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     
-    # App URL
-    APP_URL: str = "http://localhost:3000"
+    # App URL - Frontend URL (for OAuth redirects, etc.)
+    APP_URL: str = os.getenv("APP_URL", "http://localhost:3000")
     
     # File Upload
     MAX_FILE_SIZE: int = 500 * 1024 * 1024  # 500MB

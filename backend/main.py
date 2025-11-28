@@ -94,9 +94,11 @@ app = FastAPI(
 )
 
 # CORS Middleware
-# Handle CORS origins - if "*" is set, don't use allow_credentials (not compatible)
+# Handle CORS origins - support "*", comma-separated string, or list
 cors_origins = settings.CORS_ORIGINS
-if cors_origins == "*" or (isinstance(cors_origins, list) and "*" in cors_origins):
+
+# Parse CORS origins - support multiple formats
+if cors_origins == "*":
     # Allow all origins without credentials
     app.add_middleware(
         CORSMiddleware,
@@ -107,8 +109,16 @@ if cors_origins == "*" or (isinstance(cors_origins, list) and "*" in cors_origin
         expose_headers=["*"],
     )
 else:
+    # Parse comma-separated string or use as-is if list
+    if isinstance(cors_origins, str):
+        # Split by comma and strip whitespace
+        origins_list = [origin.strip() for origin in cors_origins.split(",") if origin.strip()]
+    elif isinstance(cors_origins, list):
+        origins_list = cors_origins
+    else:
+        origins_list = [str(cors_origins)]
+    
     # Use specific origins with credentials
-    origins_list = cors_origins if isinstance(cors_origins, list) else [cors_origins]
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins_list,
