@@ -104,7 +104,7 @@ if cors_origins == "*":
         CORSMiddleware,
         allow_origins=["*"],
         allow_credentials=False,  # Cannot use credentials with "*"
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allow_headers=["*"],
         expose_headers=["*"],
     )
@@ -123,7 +123,7 @@ else:
         CORSMiddleware,
         allow_origins=origins_list,
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allow_headers=["*"],
         expose_headers=["*"],
     )
@@ -156,7 +156,7 @@ app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(stripe.router, prefix="/api/stripe", tags=["stripe"])
 app.include_router(support.router, prefix="/api/support", tags=["support"])
-app.include_router(health.router, prefix="/api", tags=["health"])
+app.include_router(health.router, prefix="", tags=["health"])  # Health endpoint at root level
 app.include_router(audio.router, prefix="/api/audio", tags=["audio"])
 app.include_router(video.router, prefix="/api/video", tags=["video"])
 
@@ -171,10 +171,7 @@ async def root():
     }
 
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
+# Health endpoint is handled by health.router at root level
 
 
 if __name__ == "__main__":
