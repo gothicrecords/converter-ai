@@ -169,6 +169,25 @@ function GenericConverter({ tool }) {
       let apiUrl = `/api/convert/${outputFormat}`;
       const toolSlug = tool?.slug || currentSlug;
       
+      // Determina il tipo di conversione basato sul formato di output
+      const audioFormats = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'weba', 'opus'];
+      const videoFormats = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'avif'];
+      const isAudioConversion = audioFormats.includes(outputFormat);
+      const isVideoConversion = videoFormats.includes(outputFormat);
+      
+      // Usa endpoint Python specifici per audio/video
+      if (isAudioConversion) {
+        apiUrl = '/api/audio/convert';
+        // Aggiungi target_format invece di target per il backend Python
+        form.set('target_format', outputFormat);
+        form.delete('target');
+      } else if (isVideoConversion) {
+        apiUrl = '/api/video/convert';
+        // Aggiungi target_format invece di target per il backend Python
+        form.set('target_format', outputFormat);
+        form.delete('target');
+      }
+      
       // Mappa dei convertitori PDF agli endpoint dedicati
       const pdfConverterMap = {
         'pdf-to-docx': '/api/pdf/pdf-to-docx',
