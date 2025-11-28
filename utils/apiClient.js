@@ -33,7 +33,7 @@ function isRetryableError(error, response) {
     // Network errors are retryable
     return true;
   }
-  
+
   // Retry on 5xx errors and 429 (rate limit)
   const status = response.status;
   return status >= 500 || status === 429 || status === 408;
@@ -53,12 +53,12 @@ export async function apiCall(endpoint, options = {}, retryWithFallback = true, 
       ...(options.headers || {}),
     },
   };
-  
+
   // Don't set Content-Type for FormData - browser will set it with boundary
   if (!(options.body instanceof FormData)) {
     defaultOptions.headers['Content-Type'] = 'application/json';
   }
-  
+
   const config = {
     ...defaultOptions,
     ...options,
@@ -76,35 +76,35 @@ export async function apiCall(endpoint, options = {}, retryWithFallback = true, 
     // Se getApiUrl fallisce, usa versione sync
     url = getApiUrlSync(endpoint);
   }
-  
+
   // Add timeout support
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), options.timeout || DEFAULT_TIMEOUT);
-  
+
   try {
     const response = await fetch(url, {
       ...config,
       signal: controller.signal,
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     // Handle rate limiting
     if (response.status === 429) {
       const retryAfter = response.headers.get('Retry-After');
       const retryAfterMs = retryAfter ? parseInt(retryAfter) * 1000 : RETRY_DELAY * Math.pow(2, MAX_RETRIES - retries);
-      
+
       if (retries > 0) {
         await sleep(retryAfterMs);
         return apiCall(endpoint, options, retryWithFallback, retries - 1);
       }
     }
-    
+
     // Handle non-JSON responses
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       const data = await response.json();
-      
+
       if (!response.ok) {
         // Check if error is retryable
         if (isRetryableError(null, response) && retries > 0) {
@@ -112,14 +112,14 @@ export async function apiCall(endpoint, options = {}, retryWithFallback = true, 
           await sleep(delay);
           return apiCall(endpoint, options, retryWithFallback, retries - 1);
         }
-        
+
         const error = new Error(data.error || data.message || `HTTP ${response.status}`);
         error.status = response.status;
         error.code = data.code;
         error.details = data.details;
         throw error;
       }
-      
+
       return data;
     } else {
       // For blob responses (images, files)
@@ -129,18 +129,18 @@ export async function apiCall(endpoint, options = {}, retryWithFallback = true, 
           await sleep(delay);
           return apiCall(endpoint, options, retryWithFallback, retries - 1);
         }
-        
+
         const text = await response.text();
         const error = new Error(text || `HTTP ${response.status}`);
         error.status = response.status;
         throw error;
       }
-      
+
       return await response.blob();
     }
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     // Handle timeout
     if (error.name === 'AbortError') {
       const timeoutError = new Error('Request timeout');
@@ -148,7 +148,7 @@ export async function apiCall(endpoint, options = {}, retryWithFallback = true, 
       timeoutError.status = 408;
       throw timeoutError;
     }
-    
+
     // Retry on network errors
     if (isRetryableError(error, null) && retries > 0) {
       const delay = RETRY_DELAY * Math.pow(2, MAX_RETRIES - retries);
@@ -156,44 +156,44 @@ export async function apiCall(endpoint, options = {}, retryWithFallback = true, 
       return apiCall(endpoint, options, retryWithFallback, retries - 1);
     }
     // Se è un errore di rete e retryWithFallback è true, prova con Next.js API
-    if (retryWithFallback && 
-        (error.name === 'TypeError' || 
-         error.message.includes('fetch') || 
-         error.message.includes('Failed to fetch') ||
-         error.message.includes('NetworkError'))) {
-      
+    if (retryWithFallback &&
+      (error.name === 'TypeError' ||
+        error.message.includes('fetch') ||
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError'))) {
+
       // Reset cache per forzare nuovo controllo
       resetBackendStatusCache();
-      
+
       // Prova con Next.js API (fallback)
       const fallbackUrl = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-      
+
       // Log solo in sviluppo locale
-      const isLocal = typeof window !== 'undefined' && 
-                     (window.location.hostname === 'localhost' || 
-                      window.location.hostname === '127.0.0.1');
+      const isLocal = typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1');
       if (isLocal) {
         console.warn(`[apiClient] Backend Python non disponibile, uso fallback Next.js API: ${fallbackUrl}`);
       }
-      
+
       try {
         const fallbackResponse = await fetch(fallbackUrl, config);
-        
+
         const contentType = fallbackResponse.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
           const data = await fallbackResponse.json();
-          
+
           if (!fallbackResponse.ok) {
             throw new Error(data.error || data.message || `HTTP ${fallbackResponse.status}`);
           }
-          
+
           return data;
         } else {
           if (!fallbackResponse.ok) {
             const text = await fallbackResponse.text();
             throw new Error(text || `HTTP ${fallbackResponse.status}`);
           }
-          
+
           return await fallbackResponse.blob();
         }
       } catch (fallbackError) {
@@ -202,7 +202,7 @@ export async function apiCall(endpoint, options = {}, retryWithFallback = true, 
         throw new Error(`Errore di connessione: ${error.message}. Verifica che il backend sia disponibile o che le API Next.js siano configurate correttamente.`);
       }
     }
-    
+
     console.error('API call error:', error);
     throw error;
   }
@@ -213,26 +213,32 @@ export async function apiCall(endpoint, options = {}, retryWithFallback = true, 
  */
 export async function uploadFile(endpoint, file, additionalFields = {}) {
   const formData = new FormData();
-  
+
   // Backend Python per jpg-to-pdf si aspetta 'images' invece di 'file'
-  const fieldName = endpoint.includes('/jpg-to-pdf') || endpoint.includes('/image-to-pdf') 
-    ? 'images' 
+  const fieldName = endpoint.includes('/jpg-to-pdf') || endpoint.includes('/image-to-pdf')
+    ? 'images'
     : 'file';
-  
+
   formData.append(fieldName, file);
-  
+
   // Add additional fields
   Object.entries(additionalFields).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       formData.append(key, String(value));
     }
   });
-  
+
   // Log per debug (solo in sviluppo per evitare spam in produzione)
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+  const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  if (isLocal) {
     console.log(`[uploadFile] Chiamata a: ${endpoint}, campo: ${fieldName}, file: ${file?.name || 'unknown'}`);
   }
-  
+
+  // CRITICAL DEBUG: log endpoint before it's used
+  console.log('[uploadFile] DEBUG - endpoint ricevuto:', endpoint);
+  console.log('[uploadFile] DEBUG - endpoint type:', typeof endpoint);
+  console.log('[uploadFile] DEBUG - endpoint starts with http:', endpoint.startsWith('http'));
+
   return apiCall(endpoint, {
     method: 'POST',
     body: formData,

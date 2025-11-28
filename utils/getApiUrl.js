@@ -16,14 +16,14 @@ const backendStatusCache = {
 function isLocalDevelopment() {
   if (typeof window !== 'undefined') {
     // Client-side: check if we're on localhost
-    return window.location.hostname === 'localhost' || 
-           window.location.hostname === '127.0.0.1' ||
-           window.location.hostname === '';
+    return window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '';
   }
   // Server-side: check NODE_ENV
-  return process.env.NODE_ENV === 'development' || 
-         !process.env.NODE_ENV ||
-         process.env.NEXT_PUBLIC_APP_URL?.includes('localhost');
+  return process.env.NODE_ENV === 'development' ||
+    !process.env.NODE_ENV ||
+    process.env.NEXT_PUBLIC_APP_URL?.includes('localhost');
 }
 
 /**
@@ -32,7 +32,7 @@ function isLocalDevelopment() {
  */
 function getPythonBackendUrl() {
   let url;
-  
+
   if (typeof window !== 'undefined') {
     url = (
       window.__NEXT_DATA__?.env?.NEXT_PUBLIC_API_URL ||
@@ -43,7 +43,7 @@ function getPythonBackendUrl() {
   } else {
     url = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_PYTHON_API_URL;
   }
-  
+
   // Se siamo in locale e non c'è URL configurato, usa localhost:8000
   if (!url || url === 'undefined' || url === '') {
     if (isLocalDevelopment()) {
@@ -51,13 +51,14 @@ function getPythonBackendUrl() {
     }
     return null;
   }
-  
+
   // Pulisci l'URL: rimuovi eventuali path aggiuntivi (come /health, /api, ecc.)
   // Mantieni solo il protocollo, dominio e porta
   try {
     const urlObj = new URL(url);
-    // Ricostruisci l'URL con solo protocollo, host e porta
-    const cleanUrl = `${urlObj.protocol}//${urlObj.host}${urlObj.port ? `:${urlObj.port}` : ''}`;
+    // Usa hostname (senza porta) e port separatamente
+    // Poi ricostruisci l'URL pulito
+    const cleanUrl = `${urlObj.protocol}//${urlObj.hostname}${urlObj.port ? `:${urlObj.port}` : ''}`;
     return cleanUrl;
   } catch (e) {
     // Se non è un URL valido, prova a pulirlo manualmente
@@ -78,8 +79,8 @@ export async function checkPythonBackend(baseUrl = null, forceCheck = false) {
 
   // Usa cache se disponibile e non è un controllo forzato
   const now = Date.now();
-  if (!forceCheck && backendStatusCache.isAvailable !== null && 
-      (now - backendStatusCache.lastCheck) < backendStatusCache.checkInterval) {
+  if (!forceCheck && backendStatusCache.isAvailable !== null &&
+    (now - backendStatusCache.lastCheck) < backendStatusCache.checkInterval) {
     return backendStatusCache.isAvailable;
   }
 
@@ -87,7 +88,7 @@ export async function checkPythonBackend(baseUrl = null, forceCheck = false) {
     // Costruisci URL health correttamente (sempre /health, non /health/health)
     const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
     const healthUrl = `${baseUrl}/health`;
-    
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 secondi timeout
 
@@ -185,12 +186,12 @@ export async function getApiUrl(endpoint, forceBackend = false) {
     const baseUrl = pythonApiUrl.endsWith('/') ? pythonApiUrl.slice(0, -1) : pythonApiUrl;
     const endpointPath = cleanEndpoint.startsWith('/') ? cleanEndpoint : `/${cleanEndpoint}`;
     const fullUrl = `${baseUrl}${endpointPath}`;
-    
+
     // Log solo in sviluppo per evitare spam in produzione
     if (isLocalDevelopment()) {
       console.log(`[getApiUrl] Forzo uso backend Python: ${fullUrl}`);
     }
-    
+
     return fullUrl;
   }
 
@@ -204,12 +205,12 @@ export async function getApiUrl(endpoint, forceBackend = false) {
     // Assicurati che cleanEndpoint inizi con / (già fatto sopra, ma doppio check)
     const endpointPath = cleanEndpoint.startsWith('/') ? cleanEndpoint : `/${cleanEndpoint}`;
     const fullUrl = `${baseUrl}${endpointPath}`;
-    
+
     // Log solo in sviluppo per evitare spam in produzione
     if (isLocalDevelopment()) {
       console.log(`[getApiUrl] Backend Python disponibile: ${fullUrl}`);
     }
-    
+
     return fullUrl;
   }
 
@@ -231,7 +232,7 @@ export async function getApiUrl(endpoint, forceBackend = false) {
  */
 export function getApiUrlSync(endpoint) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  
+
   // Se l'endpoint è nella lista Next.js only, usa sempre Next.js
   if (shouldUseNextJsOnly(cleanEndpoint)) {
     if (typeof window !== 'undefined') {
@@ -239,7 +240,7 @@ export function getApiUrlSync(endpoint) {
     }
     return `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}${cleanEndpoint}`;
   }
-  
+
   const pythonApiUrl = getPythonBackendUrl();
 
   if (!pythonApiUrl || pythonApiUrl === 'undefined' || pythonApiUrl === '') {
