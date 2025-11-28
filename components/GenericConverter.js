@@ -13,14 +13,14 @@ function GenericConverter({ tool }) {
   const router = useRouter();
   // Estrai lo slug dall'URL o dal tool
   const currentSlug = router.query.slug || tool?.slug || (tool?.href ? tool.href.replace('/tools/', '') : null);
-  
+
   // Formati disponibili per categoria
   const FORMAT_OPTIONS = {
     Audio: ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'weba'],
     Video: ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'avif'],
     Image: ['jpg', 'jpeg', 'png', 'webp', 'avif']
   };
-  
+
   // Determina il formato di output iniziale
   const getInitialFormat = () => {
     if (tool.category === 'Audio') {
@@ -31,7 +31,7 @@ function GenericConverter({ tool }) {
     }
     return tool.targetFormat;
   };
-  
+
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [outputFormat, setOutputFormat] = useState(getInitialFormat());
@@ -50,7 +50,7 @@ function GenericConverter({ tool }) {
   const [aBitrate, setABitrate] = useState('192k');
   const [page, setPage] = useState('0');
   const [isDragActive, setIsDragActive] = useState(false);
-  
+
   // Aggiorna il formato quando cambia il tool
   useEffect(() => {
     setOutputFormat(getInitialFormat());
@@ -78,12 +78,12 @@ function GenericConverter({ tool }) {
     if (selectedFile) {
       setFile(selectedFile);
       setError(null);
-      
+
       // Track file upload
       const fileType = selectedFile.type || selectedFile.name.split('.').pop();
       analytics.trackFileUpload(fileType, selectedFile.size, tool?.title || tool?.name);
       analytics.trackToolStart(tool?.title || tool?.name, fileType, selectedFile.size);
-      
+
       // Generate preview for images
       if (selectedFile.type.startsWith('image/')) {
         setPreview(URL.createObjectURL(selectedFile));
@@ -119,23 +119,23 @@ function GenericConverter({ tool }) {
       setError('Seleziona un file prima di convertire.');
       return;
     }
-    
+
     // Valida che il file non sia vuoto
     if (file.size === 0) {
       setError('Il file è vuoto. Carica un file valido.');
       return;
     }
-    
-    setLoading(true); 
+
+    setLoading(true);
     setProgress(0);
     setProgressMessage('Preparazione...');
-    setError(null); 
-    setResultDataUrl(null); 
+    setError(null);
+    setResultDataUrl(null);
     setResultName(null);
-    
+
     const startTime = Date.now();
     const fromFormat = file.name.split('.').pop() || file.type;
-    
+
     // Simulatore di progresso per l'upload
     const progressInterval = setInterval(() => {
       setProgress(prev => {
@@ -144,50 +144,32 @@ function GenericConverter({ tool }) {
         return Math.min(95, prev + increment);
       });
     }, 500);
-    
+
     try {
       // Verifica che il file esista e abbia una dimensione valida
       if (!file || file.size === 0) {
         throw new Error('Il file è vuoto o non valido. Carica un file valido.');
       }
-      
+
       setProgressMessage('Caricamento file...');
-      
-      const form = new FormData();
-      form.append('file', file);
-      form.append('target', outputFormat);
-      if (width) form.append('width', width);
-      if (height) form.append('height', height);
-      if (quality) form.append('quality', quality);
-      if (vWidth) form.append('vwidth', vWidth);
-        const outputs = [tool.targetFormat, 'pdf', 'txt', 'jpg', 'png', 'avif'];
-      if (vBitrate) form.append('vbitrate', vBitrate);
-      if (aBitrate) form.append('abitrate', aBitrate);
-      if (page) form.append('page', page);
-      
+
       // Determina quale API chiamare in base allo slug del tool
       let apiUrl = `/api/convert/${outputFormat}`;
       const toolSlug = tool?.slug || currentSlug;
-      
+
       // Determina il tipo di conversione basato sul formato di output
       const audioFormats = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'weba', 'opus'];
       const videoFormats = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'avif'];
       const isAudioConversion = audioFormats.includes(outputFormat);
       const isVideoConversion = videoFormats.includes(outputFormat);
-      
+
       // Usa endpoint Python specifici per audio/video
       if (isAudioConversion) {
         apiUrl = '/api/audio/convert';
-        // Aggiungi target_format invece di target per il backend Python
-        form.set('target_format', outputFormat);
-        form.delete('target');
       } else if (isVideoConversion) {
         apiUrl = '/api/video/convert';
-        // Aggiungi target_format invece di target per il backend Python
-        form.set('target_format', outputFormat);
-        form.delete('target');
       }
-      
+
       // Mappa dei convertitori PDF agli endpoint dedicati
       const pdfConverterMap = {
         'pdf-to-docx': '/api/pdf/pdf-to-docx',
@@ -208,23 +190,24 @@ function GenericConverter({ tool }) {
         'png-to-pdf': '/api/pdf/jpg-to-pdf', // PNG to PDF usa lo stesso endpoint
         'image-to-pdf': '/api/pdf/jpg-to-pdf'
       };
-      
+
       // Se è un convertitore PDF, usa l'endpoint dedicato
       if (toolSlug && pdfConverterMap[toolSlug]) {
         apiUrl = pdfConverterMap[toolSlug];
       }
-      
+
       // Verifica che l'URL sia valido
       if (!apiUrl || !apiUrl.startsWith('/')) {
         throw new Error(`URL API non valido: ${apiUrl}`);
       }
-      
+
       // Use getApiUrl to support Python backend with fallback
       const { getApiUrl } = await import('../utils/getApiUrl');
       const fullApiUrl = await getApiUrl(apiUrl);
-      
+
       // Prepara i campi aggiuntivi per la chiamata API
       const additionalFields = {
+        target: outputFormat, // Default: usa 'target'
         quality: quality || undefined,
         width: width || undefined,
         height: height || undefined,
@@ -234,17 +217,23 @@ function GenericConverter({ tool }) {
         vbitrate: vBitrate || undefined,
         abitrate: aBitrate || undefined,
       };
-      
+
+      // Se stiamo usando i convertitori audio/video Python, usa 'target_format' invece di 'target'
+      if (isAudioConversion || isVideoConversion) {
+        additionalFields.target_format = outputFormat;
+        delete additionalFields.target;
+      }
+
       // Rimuovi campi undefined
       Object.keys(additionalFields).forEach(key => {
         if (additionalFields[key] === undefined) {
           delete additionalFields[key];
         }
       });
-      
+
       setProgress(30);
       setProgressMessage('Conversione in corso...');
-      
+
       // Usa safeUploadFile per gestione automatica errori e validazione
       const data = await safeUploadFile(fullApiUrl, file, additionalFields, {
         validator: 'dataUrl',
@@ -252,19 +241,19 @@ function GenericConverter({ tool }) {
         timeout: 300000, // 5 minuti
         silentErrors: false,
       });
-      
+
       setProgress(80);
       setProgressMessage('Finalizzazione...');
-      
+
       const duration = Date.now() - startTime;
-      
+
       // I dati sono già validati da safeUploadFile
       // Gestisci due tipi di risposta:
       // 1. { name, dataUrl } - da /api/convert/[target]
       // 2. { name, url } - da /api/pdf/pdf-to-* (ConvertAPI o altro)
       let resultName = null;
       let resultDataUrl = null;
-      
+
       if (data.dataUrl) {
         // Formato standard { name, dataUrl } - già validato
         resultName = data.name || `converted.${outputFormat}`;
@@ -272,7 +261,7 @@ function GenericConverter({ tool }) {
       } else if (data.url) {
         // Formato PDF converter { url, name? } - già validato
         resultName = data.name || file.name.replace(/\.[^.]+$/, `.${outputFormat}`);
-        
+
         // Gestisci diversi tipi di URL:
         // 1. Data URL già presente (es. pdf-to-pptx, pdf-to-xlsx)
         // 2. URL esterno (es. ConvertAPI per pdf-to-docx)
@@ -284,13 +273,13 @@ function GenericConverter({ tool }) {
           try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minuto per download
-            
-            const fileResponse = await fetch(data.url, { 
-              signal: controller.signal 
+
+            const fileResponse = await fetch(data.url, {
+              signal: controller.signal
             });
-            
+
             clearTimeout(timeoutId);
-            
+
             if (!fileResponse.ok) {
               throw new Error(`Errore nel download del file convertito: HTTP ${fileResponse.status}`);
             }
@@ -323,7 +312,7 @@ function GenericConverter({ tool }) {
         console.error('Risposta non riconosciuta (dovrebbe essere già validata):', data);
         throw new Error('Formato risposta non riconosciuto dal server');
       }
-      
+
       // Track successful conversion
       analytics.trackConversion(
         'file_conversion',
@@ -333,18 +322,18 @@ function GenericConverter({ tool }) {
         duration
       );
       analytics.trackToolComplete(tool?.title || tool?.name, duration, true);
-      
+
       clearInterval(progressInterval);
       setProgress(100);
       setProgressMessage('Completato!');
-      
+
       setResultName(resultName);
       setResultDataUrl(resultDataUrl);
     } catch (e) {
       const duration = Date.now() - startTime;
-      
+
       clearInterval(progressInterval);
-      
+
       // Track failed conversion
       analytics.trackToolComplete(tool?.title || tool?.name, duration, false);
       analytics.trackError(
@@ -352,7 +341,7 @@ function GenericConverter({ tool }) {
         'GenericConverter',
         'conversion_error'
       );
-      
+
       // Error handling - safeUploadFile ha già mostrato il toast, ma impostiamo anche l'errore locale
       const handledError = handleError(e);
       setError(handledError.message);
@@ -360,7 +349,7 @@ function GenericConverter({ tool }) {
     } finally {
       clearInterval(progressInterval);
       setLoading(false);
-      
+
       // Reset progress dopo 2 secondi se c'è stato successo
       if (!error) {
         setTimeout(() => {
@@ -396,11 +385,11 @@ function GenericConverter({ tool }) {
     <div style={styles.wrap}>
       {/* Card dei convertitori della stessa categoria */}
       <ConverterCards currentTool={tool} currentSlug={currentSlug} />
-      
+
       <div style={styles.panel}>
         <h2 style={styles.title}>Converti {tool.title}</h2>
         <p style={styles.desc}>{tool.description}</p>
-        
+
         {/* Drag and Drop Zone */}
         {!file ? (
           <div
@@ -410,8 +399,8 @@ function GenericConverter({ tool }) {
               ...(isDragActive ? styles.dropzoneActive : {})
             }}
           >
-            <input 
-              {...getInputProps()} 
+            <input
+              {...getInputProps()}
               onChange={handleFileSelect}
               aria-label="Seleziona file da caricare"
               title="Clicca per selezionare un file o trascina qui"
@@ -441,9 +430,9 @@ function GenericConverter({ tool }) {
           </div>
         )}
         <label style={styles.label}>Formato di destinazione</label>
-        <select 
-          value={outputFormat} 
-          onChange={e => setOutputFormat(e.target.value)} 
+        <select
+          value={outputFormat}
+          onChange={e => setOutputFormat(e.target.value)}
           style={styles.select}
           disabled={loading}
         >
@@ -469,7 +458,7 @@ function GenericConverter({ tool }) {
             </div>
           </div>
         )}
-        {(['mp4','webm','avi','mkv','mov','flv'].includes(outputFormat)) && (
+        {(['mp4', 'webm', 'avi', 'mkv', 'mov', 'flv'].includes(outputFormat)) && (
           <div style={styles.optionsRow}>
             <div style={styles.optionField}>
               <label style={styles.label}>Video larghezza</label>
@@ -489,9 +478,9 @@ function GenericConverter({ tool }) {
             </div>
           </div>
         )}
-        <button 
-          onClick={handleConvert} 
-          disabled={!file || loading} 
+        <button
+          onClick={handleConvert}
+          disabled={!file || loading}
           style={{
             ...styles.btn,
             ...(loading ? styles.btnLoading : {}),
@@ -507,7 +496,7 @@ function GenericConverter({ tool }) {
             'Converti'
           )}
         </button>
-        
+
         {loading && progress > 0 && (
           <div style={styles.progressContainer}>
             <div style={styles.progressBar}>
@@ -518,16 +507,16 @@ function GenericConverter({ tool }) {
             </div>
           </div>
         )}
-        
+
         {error && <div style={styles.error}>{error}</div>}
       </div>
       {resultDataUrl && (
         <div style={styles.result}>
           <h3 style={styles.resultTitle}>✓ Conversione completata!</h3>
           <p style={styles.resultName}>{resultName}</p>
-          <a 
-            href={resultDataUrl} 
-            download={resultName} 
+          <a
+            href={resultDataUrl}
+            download={resultName}
             style={styles.downloadBtn}
             onClick={() => {
               const fileType = resultName.split('.').pop() || 'unknown';
@@ -554,10 +543,10 @@ function GenericConverter({ tool }) {
 export default memo(GenericConverter);
 
 const styles = {
-  wrap: { 
-    display: 'flex', 
-    flexDirection: 'column', 
-    gap: '32px', 
+  wrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '32px',
     marginTop: '24px',
     animation: 'fadeIn 0.5s ease-out',
     '@media (max-width: 768px)': {
@@ -565,10 +554,10 @@ const styles = {
       marginTop: '16px'
     }
   },
-  panel: { 
-    background: 'linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.8) 100%)', 
-    border: '1px solid rgba(102, 126, 234, 0.2)', 
-    padding: '32px', 
+  panel: {
+    background: 'linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.8) 100%)',
+    border: '1px solid rgba(102, 126, 234, 0.2)',
+    padding: '32px',
     borderRadius: '16px',
     backdropFilter: 'blur(10px)',
     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
@@ -578,9 +567,9 @@ const styles = {
       borderRadius: '12px'
     }
   },
-  title: { 
-    margin: '0 0 8px', 
-    fontSize: '24px', 
+  title: {
+    margin: '0 0 8px',
+    fontSize: '24px',
     fontWeight: 700,
     background: 'linear-gradient(135deg, #e2e8f0 0%, #a78bfa 100%)',
     WebkitBackgroundClip: 'text',
@@ -590,10 +579,10 @@ const styles = {
       fontSize: '20px'
     }
   },
-  desc: { 
-    margin: '0 0 24px', 
-    color: '#94a3b8', 
-    fontSize: '15px', 
+  desc: {
+    margin: '0 0 24px',
+    color: '#94a3b8',
+    fontSize: '15px',
     lineHeight: '1.6',
     '@media (max-width: 768px)': {
       fontSize: '14px',
@@ -714,34 +703,34 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center'
   },
-  label: { 
-    fontSize: '12px', 
-    textTransform: 'uppercase', 
-    letterSpacing: '0.05em', 
+  label: {
+    fontSize: '12px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
     color: '#94a3b8',
     fontWeight: 600,
     marginBottom: '8px',
     display: 'block'
   },
-  select: { 
-    margin: '8px 0 16px', 
-    padding: '12px', 
-    borderRadius: '10px', 
-    background: 'rgba(15, 23, 42, 0.8)', 
-    color: '#e6eef8', 
+  select: {
+    margin: '8px 0 16px',
+    padding: '12px',
+    borderRadius: '10px',
+    background: 'rgba(15, 23, 42, 0.8)',
+    color: '#e6eef8',
     border: '1px solid rgba(102, 126, 234, 0.3)',
     width: '100%',
     fontSize: '14px',
     cursor: 'pointer',
     transition: 'all 0.2s'
   },
-  btn: { 
-    padding: '14px 28px', 
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-    color: '#fff', 
-    border: 'none', 
-    borderRadius: '12px', 
-    cursor: 'pointer', 
+  btn: {
+    padding: '14px 28px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '12px',
+    cursor: 'pointer',
     fontWeight: 600,
     fontSize: '16px',
     display: 'flex',
@@ -776,43 +765,43 @@ const styles = {
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite'
   },
-  error: { 
-    marginTop: '16px', 
+  error: {
+    marginTop: '16px',
     padding: '12px 16px',
-    color: '#ef4444', 
+    color: '#ef4444',
     fontSize: '14px',
     background: 'rgba(239, 68, 68, 0.1)',
     border: '1px solid rgba(239, 68, 68, 0.3)',
     borderRadius: '8px'
   },
-  result: { 
-    background: 'linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.8) 100%)', 
-    border: '1px solid rgba(16, 185, 129, 0.3)', 
-    padding: '32px', 
+  result: {
+    background: 'linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.8) 100%)',
+    border: '1px solid rgba(16, 185, 129, 0.3)',
+    padding: '32px',
     borderRadius: '16px',
     backdropFilter: 'blur(10px)',
     animation: 'slideIn 0.5s ease-out'
   },
-  resultTitle: { 
-    margin: '0 0 12px', 
-    fontSize: '20px', 
+  resultTitle: {
+    margin: '0 0 12px',
+    fontSize: '20px',
     fontWeight: 700,
     color: '#10b981'
   },
-  resultName: { 
-    margin: '0 0 20px', 
-    color: '#94a3b8', 
-    fontSize: '14px' 
+  resultName: {
+    margin: '0 0 20px',
+    color: '#94a3b8',
+    fontSize: '14px'
   },
-  downloadBtn: { 
+  downloadBtn: {
     display: 'inline-flex',
     alignItems: 'center',
-    padding: '12px 24px', 
-    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
-    color: '#fff', 
-    borderRadius: '12px', 
-    textDecoration: 'none', 
-    fontSize: '14px', 
+    padding: '12px 24px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    color: '#fff',
+    borderRadius: '12px',
+    textDecoration: 'none',
+    fontSize: '14px',
     fontWeight: 600,
     transition: 'all 0.3s ease',
     boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
@@ -824,28 +813,28 @@ const styles = {
     overflow: 'hidden',
     border: '1px solid rgba(102, 126, 234, 0.2)'
   },
-  resultImg: { 
+  resultImg: {
     width: '100%',
     height: 'auto',
     display: 'block'
   },
-  previewText: { 
-    marginTop: '16px', 
-    width: '100%', 
-    minHeight: '160px', 
-    background: 'rgba(15, 23, 42, 0.8)', 
-    color: '#e6eef8', 
-    border: '1px solid rgba(102, 126, 234, 0.3)', 
-    borderRadius: '10px', 
-    padding: '16px', 
-    fontFamily: 'monospace', 
+  previewText: {
+    marginTop: '16px',
+    width: '100%',
+    minHeight: '160px',
+    background: 'rgba(15, 23, 42, 0.8)',
+    color: '#e6eef8',
+    border: '1px solid rgba(102, 126, 234, 0.3)',
+    borderRadius: '10px',
+    padding: '16px',
+    fontFamily: 'monospace',
     fontSize: '13px',
     lineHeight: '1.6',
     resize: 'vertical'
   },
-  optionsRow: { 
-    display: 'flex', 
-    gap: '12px', 
+  optionsRow: {
+    display: 'flex',
+    gap: '12px',
     marginBottom: '20px',
     flexWrap: 'wrap',
     '@media (max-width: 768px)': {
@@ -854,7 +843,7 @@ const styles = {
       marginBottom: '16px'
     }
   },
-  optionField: { 
+  optionField: {
     flex: '1 1 200px',
     minWidth: '150px',
     '@media (max-width: 768px)': {
@@ -862,12 +851,12 @@ const styles = {
       minWidth: '100%'
     }
   },
-  input: { 
-    width: '100%', 
-    padding: '12px', 
-    borderRadius: '10px', 
-    background: 'rgba(15, 23, 42, 0.8)', 
-    color: '#e6eef8', 
+  input: {
+    width: '100%',
+    padding: '12px',
+    borderRadius: '10px',
+    background: 'rgba(15, 23, 42, 0.8)',
+    color: '#e6eef8',
     border: '1px solid rgba(102, 126, 234, 0.3)',
     fontSize: '14px',
     transition: 'all 0.2s',
