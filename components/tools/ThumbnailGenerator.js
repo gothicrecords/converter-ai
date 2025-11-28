@@ -43,8 +43,12 @@ export default function ThumbnailGenerator() {
 
         try {
             const formData = new FormData();
-            formData.append('image', image);
-            formData.append('size', size);
+            formData.append('file', image); // Backend expects 'file'
+
+            // Parse size string (e.g. "1280x720") into width and height
+            const [width, height] = size.split('x');
+            formData.append('width', width);
+            formData.append('height', height);
 
             const { getApiUrl } = await import('../../utils/getApiUrl');
             const apiUrl = await getApiUrl('/api/tools/thumbnail-generator');
@@ -61,7 +65,7 @@ export default function ThumbnailGenerator() {
                         const errorData = JSON.parse(text);
                         errorMessage = errorData.error || errorMessage;
                     }
-                } catch {}
+                } catch { }
                 throw new Error(errorMessage);
             }
 
@@ -98,7 +102,7 @@ export default function ThumbnailGenerator() {
             <div style={styles.proInfo}>
                 <ProBadge size="medium" />
                 <p style={styles.proInfoText}>
-                    <strong>Piano Gratuito:</strong> 5 documenti/giorno • 
+                    <strong>Piano Gratuito:</strong> 5 documenti/giorno •
                     <Link href="/pricing" style={styles.proLink}>
                         <strong>Passa a PRO</strong>
                     </Link> per utilizzi illimitati
@@ -113,8 +117,8 @@ export default function ThumbnailGenerator() {
                         ...(isDragActive ? styles.dropzoneActive : {})
                     }}
                 >
-                    <input 
-                        {...getInputProps()} 
+                    <input
+                        {...getInputProps()}
                         aria-label="Seleziona immagine per generare thumbnail"
                         title="Seleziona immagine"
                     />
@@ -192,17 +196,17 @@ export default function ThumbnailGenerator() {
                         {result && (
                             <button
                                 onClick={handleDownload}
-                                style={{...styles.button, ...styles.buttonSuccess}}
+                                style={{ ...styles.button, ...styles.buttonSuccess }}
                             >
-                                <HiDownload style={{width: 20, height: 20}} />
+                                <HiDownload style={{ width: 20, height: 20 }} />
                                 <span>Scarica</span>
                             </button>
                         )}
                         <button
                             onClick={handleReset}
-                            style={{...styles.button, ...styles.buttonSecondary}}
+                            style={{ ...styles.button, ...styles.buttonSecondary }}
                         >
-                            <HiX style={{width: 20, height: 20}} />
+                            <HiX style={{ width: 20, height: 20 }} />
                             <span>Reset</span>
                         </button>
                     </div>

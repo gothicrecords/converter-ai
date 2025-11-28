@@ -35,7 +35,7 @@ export default function ImageGenerator() {
         const startTime = Date.now();
         const promptLength = prompt.length;
         const wordCount = prompt.trim().split(/\s+/).length;
-        
+
         const toastId = showToast('Generazione immagine AI in corso...', 'progress', 0, {
             progress: 0,
             details: `Prompt: ${wordCount} parole • Rapporto: ${aspect} • Dettaglio: ${detail.toFixed(1)}x`,
@@ -45,7 +45,7 @@ export default function ImageGenerator() {
         const progressInterval = setInterval(() => {
             setProgress(prev => {
                 const newProgress = Math.min(prev + 8, 90);
-                updateToast(toastId, { 
+                updateToast(toastId, {
                     progress: newProgress,
                     message: newProgress < 40 ? 'Elaborazione prompt...' : newProgress < 80 ? 'Generazione immagine...' : 'Finalizzazione...'
                 });
@@ -56,10 +56,20 @@ export default function ImageGenerator() {
         try {
             const { getApiUrl } = await import('../../utils/getApiUrl');
             const apiUrl = await getApiUrl('/api/tools/generate-image');
+
+            // Converti in FormData per compatibilità con il backend Python
+            const formData = new FormData();
+            formData.append('prompt', prompt);
+            formData.append('aspect', aspect);
+            // Mappa 'realism' a 'style' (natural/vivid)
+            formData.append('style', realism ? 'natural' : 'vivid');
+            // Mappa 'detail' a 'quality' (hd/standard)
+            formData.append('quality', detail > 1.1 ? 'hd' : 'standard');
+
             const response = await fetch(apiUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt, aspect, detail, realism }),
+                body: formData,
+                // Non impostare Content-Type header, il browser lo imposta automaticamente con boundary
             });
 
             clearInterval(progressInterval);
@@ -76,7 +86,7 @@ export default function ImageGenerator() {
                             const errorData = JSON.parse(text);
                             errorMessage = errorData.error || errorMessage;
                         }
-                    } catch {}
+                    } catch { }
                     throw new Error(errorMessage);
                 } else {
                     throw new Error(`Errore HTTP ${response.status}`);
@@ -84,11 +94,11 @@ export default function ImageGenerator() {
             }
 
             const blob = await response.blob();
-            
+
             if (blob.size === 0) {
                 throw new Error('Immagine vuota ricevuta');
             }
-            
+
             const url = URL.createObjectURL(blob);
             setResult(url);
             setProgress(100);
@@ -145,7 +155,7 @@ export default function ImageGenerator() {
             <div style={styles.proInfo}>
                 <ProBadge size="medium" />
                 <p style={styles.proInfoText}>
-                    <strong>Piano Gratuito:</strong> 5 documenti/giorno • 
+                    <strong>Piano Gratuito:</strong> 5 documenti/giorno •
                     <Link href="/pricing" style={styles.proLink}>
                         <strong>Passa a PRO</strong>
                     </Link> per utilizzi illimitati
@@ -260,7 +270,7 @@ export default function ImageGenerator() {
                     <div style={styles.loadingContainer}>
                         <div style={styles.spinner}></div>
                         <p style={styles.loadingText}>
-                            Generazione procedurale in corso - Immagine 4K ({aspect})...<br/>
+                            Generazione procedurale in corso - Immagine 4K ({aspect})...<br />
                             <span style={{ fontSize: '14px', color: '#64748b' }}>Elaborazione locale avanzata — può richiedere 20-40 secondi</span>
                         </p>
                     </div>
