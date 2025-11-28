@@ -7,6 +7,8 @@ from fastapi.responses import JSONResponse
 import logging
 
 from backend.services.tools_service import ToolsService
+from backend.utils.response_validator import validate_response
+from backend.utils.exceptions import ProcessingException
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,12 @@ async def upscale(
     try:
         file_content = await image.read()
         result = await tools_service.upscale(file_content, image.filename or "file.jpg", scale)
-        return JSONResponse(result)
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
+        return JSONResponse(validated)
+    except ProcessingException as exc:
+        logger.error(f"Upscale processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Upscale error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))

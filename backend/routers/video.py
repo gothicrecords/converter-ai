@@ -6,6 +6,8 @@ from fastapi.responses import JSONResponse
 from typing import Optional
 import logging
 from backend.services.tools_service import ToolsService
+from backend.utils.response_validator import validate_response
+from backend.utils.exceptions import ProcessingException
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -37,13 +39,14 @@ async def convert_video(
             abitrate=abitrate
         )
         
-        # Ensure consistent response format
-        return JSONResponse({
-            "name": result.get("name", "converted_video"),
-            "dataUrl": result.get("url") or result.get("dataUrl")
-        })
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
+        return JSONResponse(validated)
     except HTTPException:
         raise
+    except ProcessingException as exc:
+        logger.error(f"Video conversion processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
     except Exception as exc:
         logger.error(f"Video conversion error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))

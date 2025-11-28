@@ -24,3 +24,13 @@ psutil
 httpx
 passlib[bcrypt]
 psycopg2-binary
+rembg
+opencv-python-headless
+scikit-image
+noisereduce
+soundfile
+deep-translator
+googletrans==3.1.0a0
+translatepy
+language-tool-python
+easyocr

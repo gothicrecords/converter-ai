@@ -272,3 +272,72 @@ async def thumbnail_generator(
 
 
 
+
+@router.post("/convert-audio")
+async def convert_audio(
+    file: UploadFile = File(...),
+    target_format: str = Form(...),
+    abitrate: Optional[str] = Form(None),
+):
+    """Convert audio file to target format"""
+    try:
+        file_content = await file.read()
+        
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
+        
+        result = await tools_service.convert_audio(
+            file_content, 
+            file.filename or "audio", 
+            target_format,
+            abitrate=abitrate
+        )
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
+        return JSONResponse(validated)
+    except HTTPException:
+        raise
+    except ProcessingException as exc:
+        logger.error(f"Convert audio processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
+    except Exception as exc:
+        logger.error(f"Convert audio error: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/convert-video")
+async def convert_video(
+    file: UploadFile = File(...),
+    target_format: str = Form(...),
+    vwidth: Optional[str] = Form(None),
+    vheight: Optional[str] = Form(None),
+    vbitrate: Optional[str] = Form(None),
+    abitrate: Optional[str] = Form(None),
+):
+    """Convert video file to target format"""
+    try:
+        file_content = await file.read()
+        
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
+        
+        result = await tools_service.convert_video(
+            file_content, 
+            file.filename or "video", 
+            target_format,
+            vwidth=vwidth,
+            vheight=vheight,
+            vbitrate=vbitrate,
+            abitrate=abitrate
+        )
+        # Valida sempre la risposta prima di restituirla
+        validated = validate_response(result, response_type="dataUrl", required_fields=["url"])
+        return JSONResponse(validated)
+    except HTTPException:
+        raise
+    except ProcessingException as exc:
+        logger.error(f"Convert video processing error: {exc}", exc_info=True)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message)
+    except Exception as exc:
+        logger.error(f"Convert video error: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(exc))
