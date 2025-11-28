@@ -1,8 +1,9 @@
 """
 PDF router - handles PDF conversions
 """
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import JSONResponse
+from typing import List
 import logging
 
 from backend.services.pdf_converter import PDFConverterService
@@ -190,28 +191,45 @@ async def html_to_pdf(file: UploadFile = File(...)):
 
 
 @router.post("/jpg-to-pdf")
-async def jpg_to_pdf(images: list[UploadFile] = File(...)):
+async def jpg_to_pdf(request: Request):
     """Convert JPG/PNG to PDF - supports multiple images"""
     try:
+        # Parse form data to handle multiple files with same field name
+        form = await request.form()
+        
+        # Get all files - try "images" first, then "image", then "file"
+        images_list = []
+        for field_name in ["images", "image", "file"]:
+            if field_name in form:
+                files = form.getlist(field_name)
+                for file_item in files:
+                    # Check if it's an UploadFile object
+                    if hasattr(file_item, 'read') and hasattr(file_item, 'filename'):
+                        images_list.append(file_item)
+        
+        if not images_list:
+            raise HTTPException(status_code=400, detail="No images provided. Please upload at least one image.")
+        
         # Support both single file and multiple files
-        if len(images) == 1:
+        if len(images_list) == 1:
             # Single image
-            file_content = await images[0].read()
+            file_obj = images_list[0]
+            file_content = await file_obj.read()
             if not file_content or len(file_content) == 0:
                 raise HTTPException(status_code=400, detail="File is empty. Please upload a valid file.")
-            filename = images[0].filename or "file.jpg"
+            filename = file_obj.filename or "file.jpg"
             result = await pdf_service.jpg_to_pdf(file_content, filename)
         else:
             # Multiple images - combine into one PDF
             image_contents = []
             filename = "images.pdf"
-            for file in images:
-                content = await file.read()
+            for file_obj in images_list:
+                content = await file_obj.read()
                 if not content or len(content) == 0:
-                    raise HTTPException(status_code=400, detail=f"File {file.filename or 'unknown'} is empty. Please upload valid files.")
+                    raise HTTPException(status_code=400, detail=f"File {file_obj.filename or 'unknown'} is empty. Please upload valid files.")
                 image_contents.append(content)
                 if not filename or filename == "images.pdf":
-                    filename = file.filename or "file.jpg"
+                    filename = file_obj.filename or "file.jpg"
             
             # Use list to trigger multi-page PDF creation
             result = await pdf_service.jpg_to_pdf(image_contents, filename)
