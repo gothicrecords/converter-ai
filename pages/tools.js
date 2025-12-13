@@ -202,39 +202,73 @@ export default function ToolsPage() {
         });
     }, [allTools]);
 
-    // Ordina categorie per importanza (AI tools prima, poi convertitori)
+    // Define the new categories logic for PDF/Docs
     const categoryOrder = [
-        'Tutti',
-        'PDF',
-        'Documenti',
-        'Testo',
-        'Presentazioni',
-        'Fogli di Calcolo'
+        'Organize PDF', // Merge, Split, etc
+        'Optimize PDF', // Compress, Repair
+        'Convert PDF',  // All conversions
+        'Edit PDF',     // Text, Rotate, etc
+        'PDF Security'  // Protect, Unlock, Sign
     ];
 
-    // Core categories whitelist
-    const coreCategories = ['PDF', 'Documenti', 'Testo', 'Presentazioni', 'Fogli di Calcolo'];
+    // Helper map to assign tools to super-categories
+    // Since we don't have these properties on the tool objects, we map by slug/keyword
+    const assignCategory = (tool) => {
+        const h = tool.href || '';
+        const title = tool.title || '';
 
-    // Ottieni categorie uniche e ordinate
-    const uniqueCategories = [...new Set(normalizedTools.map(tool => tool.category))];
+        // Security
+        if (h.includes('protect') || h.includes('proteggi') || h.includes('unlock') || h.includes('sblocca') || h.includes('sign') || h.includes('firma')) return 'PDF Security';
 
-    // Filter categories to only keep core ones
-    const filteredUniqueCategories = uniqueCategories.filter(cat => coreCategories.includes(cat));
+        // Optimize
+        if (h.includes('compress') || h.includes('comprimi') || h.includes('repair') || h.includes('ripara')) return 'Optimize PDF';
 
-    const sortedCategories = categoryOrder.filter(cat =>
-        cat === 'Tutti' || filteredUniqueCategories.includes(cat)
-    );
-    // No remaining categories other than core
-    const categories = sortedCategories;
+        // Organize
+        if (h.includes('merge') || h.includes('combina') || h.includes('split') || h.includes('dividi') || h.includes('sort') || h.includes('ordina') || h.includes('delete') || h.includes('elimina')) return 'Organize PDF';
 
-    // Filtra strumenti per categoria - ottimizzato
+        // Edit
+        if (h.includes('rotate') || h.includes('ruota') || h.includes('number') || h.includes('numeri') || h.includes('watermark') || h.includes('ocr') || h.includes('edit') || h.includes('modifica') || tool.category === 'Testo' || tool.category === 'Text') return 'Edit PDF';
+
+        // Convert (default fallback for most PDF tools)
+        if (h.includes('to-pdf') || h.includes('pdf-to') || tool.category === 'PDF') return 'Convert PDF';
+
+        // Fallback for document AI tools
+        if (tool.category === 'Documenti' || tool.category === 'Document') return 'Edit PDF';
+
+        return null; // Non-core tools
+    };
+
+    const categorizedTools = useMemo(() => {
+        // Only consider core tools first
+        const coreTools = allTools.filter(t => {
+            const coreCats = ['PDF', 'Documenti', 'Document', 'Testo', 'Text', 'Presentazioni', 'Presentation', 'Fogli di Calcolo', 'Spreadsheet'];
+            return coreCats.includes(t.category) || (t.href && (t.href.includes('ocr') || t.href.includes('chat')));
+        });
+
+        // Add 'superCategory' property to tools
+        return coreTools.map(t => ({
+            ...t,
+            superCategory: assignCategory(t)
+        })).filter(t => t.superCategory); // remove nulls
+    }, [allTools]);
+
+
+    // Get unique super categories that actually have tools
+    const availableCategories = [...new Set(categorizedTools.map(t => t.superCategory))];
+    const categories = ['Tutti', ...categoryOrder.filter(c => availableCategories.includes(c))];
+
+    // Filter tools based on selection
     const filteredTools = useMemo(() => {
-        const coreCats = ['PDF', 'Documenti', 'Testo', 'Presentazioni', 'Fogli di Calcolo'];
         if (selectedCategory === 'Tutti') {
-            return normalizedTools.filter(t => coreCats.includes(t.category));
+            // Show all categorized tools
+            return categorizedTools;
         }
-        return normalizedTools.filter(tool => tool.category === selectedCategory);
-    }, [normalizedTools, selectedCategory]);
+        return categorizedTools.filter(t => t.superCategory === selectedCategory);
+    }, [categorizedTools, selectedCategory]);
+
+    // Legacy maps (kept empty/unused but defined to avoid breaking references if any)
+    const normalizedTools = categorizedTools;
+    const memoizedCategories = categories;
 
     // Memoize categories per evitare ricalcoli
     const memoizedCategories = useMemo(() => categories, [categories]);

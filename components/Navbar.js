@@ -124,40 +124,69 @@ const Navbar = () => {
 
     // Memoize categories computation per evitare re-calcolo ad ogni render
     const categories = useMemo(() => {
-        // Combine AI tools and conversion tools - categorizzazione migliorata
+        // Combine AI tools and conversion tools
         const conversionToolsByCat = getToolsByCategory();
 
-        // Unisco categorie simili per semplificare la navbar
-        const pdfAndDocs = [
-            ...tools.filter(t => t.category === 'PDF' || t.category === 'Testo'),
-            ...(conversionToolsByCat['Document'] || []),
-            ...(conversionToolsByCat['Presentation'] || []),
-            ...(conversionToolsByCat['Spreadsheet'] || [])
-        ];
-
-        // ONLY KEEP DOCUMENTS & PDF AS REQUESTED
-        const allCategories = {
-            'Documenti & PDF': pdfAndDocs
+        // Helper to find tool by slug part
+        const findTool = (slugPart) => {
+            const all = [...tools, ...Object.values(conversionToolsByCat).flat()];
+            return all.find(t => t.href && t.href.includes(slugPart));
         };
 
-        // Ordina i tool all'interno di ogni categoria: prima AI/Pro, poi gli altri
-        Object.keys(allCategories).forEach(cat => {
-            allCategories[cat].sort((a, b) => {
-                // Prima i tool AI/Pro
-                const aIsPro = a.pro === true || a.href?.includes('ai') || a.href?.includes('upscaler');
-                const bIsPro = b.pro === true || b.href?.includes('ai') || b.href?.includes('upscaler');
+        // Helper to find tools by category
+        const findToolsByCat = (cat) => {
+            return conversionToolsByCat[cat] || [];
+        }
 
-                if (aIsPro && !bIsPro) return -1;
-                if (!aIsPro && bIsPro) return 1;
+        // 1. Merge PDF
+        const mergeTools = [
+            findTool('combina-pdf') || findTool('merge-pdf'),
+            // Add alternates if any
+        ].filter(Boolean);
 
-                // Poi ordina alfabeticamente
-                return (a.title || '').localeCompare(b.title || '');
-            });
-        });
+        // 2. Split PDF
+        const splitTools = [
+            findTool('dividi-pdf') || findTool('split-pdf'),
+            findTool('estrai-pagine')
+        ].filter(Boolean);
 
-        // Filtra categorie vuote
+        // 3. Compress PDF
+        const compressTools = [
+            findTool('comprimi-pdf') || findTool('compress-pdf')
+        ].filter(Boolean);
+
+        // 4. Convert PDF (From and To)
+        const convertTools = [
+            // PDF to X
+            findTool('pdf-to-jpg'), findTool('pdf-to-word'), findTool('pdf-to-excel'), findTool('pdf-to-ppt'),
+            // X to PDF
+            findTool('jpg-to-pdf'), findTool('word-to-pdf'), findTool('excel-to-pdf'), findTool('ppt-to-pdf'),
+            findTool('html-to-pdf')
+        ].filter(Boolean);
+
+        // 5. Documenti (General AI & Others)
+        const docTools = [
+            ...tools.filter(t => t.category === 'Testo' || t.category === 'Documenti'),
+            findTool('ocr'),
+            findTool('riassunto'),
+            findTool('traduzione'),
+            findTool('chat')
+        ].filter(Boolean);
+
+        // Remove duplicates in docTools
+        const uniqueDocTools = [...new Map(docTools.map(item => [item.href, item])).values()];
+
+        const finalCategories = {
+            'Merge PDF': mergeTools,
+            'Split PDF': splitTools,
+            'Compress PDF': compressTools,
+            'Convert PDF': convertTools,
+            'All PDF Tools': uniqueDocTools
+        };
+
+        // Clean empty categories
         return Object.fromEntries(
-            Object.entries(allCategories).filter(([_, tools]) => tools && tools.length > 0)
+            Object.entries(finalCategories).filter(([_, tools]) => tools && tools.length > 0)
         );
     }, []);
 
