@@ -13,20 +13,20 @@ import { getAllConversionTools } from '../lib/conversionRegistry';
 const ToolCard = memo(({ tool, isMobile, getCardPadding, getIconSize, getIconInnerSize }) => {
     const [isHovered, setIsHovered] = useState(false);
     const IconComponent = tool.icon;
-    
+
     const handleMouseEnter = useCallback(() => setIsHovered(true), []);
     const handleMouseLeave = useCallback(() => setIsHovered(false), []);
-    
+
     return (
-        <Link 
+        <Link
             href={tool.href}
             prefetch={false}
             style={{
                 ...styles.toolCard,
                 padding: getCardPadding(),
                 transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-                boxShadow: isHovered 
-                    ? '0 12px 40px rgba(102, 126, 234, 0.3)' 
+                boxShadow: isHovered
+                    ? '0 12px 40px rgba(102, 126, 234, 0.3)'
                     : '0 4px 12px rgba(0, 0, 0, 0.1)'
             }}
             onMouseEnter={handleMouseEnter}
@@ -35,7 +35,7 @@ const ToolCard = memo(({ tool, isMobile, getCardPadding, getIconSize, getIconInn
             {tool.pro && (
                 <span style={styles.proBadge}>PRO</span>
             )}
-            <div 
+            <div
                 className="tool-icon-wrapper"
                 style={{
                     ...styles.toolIconWrapper,
@@ -87,7 +87,7 @@ export default function ToolsPage() {
     const router = useRouter();
     const [selectedCategory, setSelectedCategory] = useState('Tutti');
     const [isMobile, setIsMobile] = useState(false);
-    
+
     // Mappa categorie dalla Navbar alle categorie della pagina tools
     const navbarToToolsCategory = {
         'AI & Immagini': 'Immagini',
@@ -96,7 +96,7 @@ export default function ToolsPage() {
         'Grafica': 'Vettoriali',
         'Archivi & Ebook': 'Archivi'
     };
-    
+
     // Leggi categoria da URL query params
     useEffect(() => {
         if (router.query.category) {
@@ -173,7 +173,7 @@ export default function ToolsPage() {
         const conversionTools = getAllConversionTools();
         return [...aiTools, ...conversionTools];
     }, []);
-    
+
     // Map conversion tool categories to Italian - migliorata e più chiara
     const categoryMap = {
         'Image': 'Immagini',
@@ -189,7 +189,7 @@ export default function ToolsPage() {
         'PDF': 'PDF',
         'Text': 'Testo'
     };
-    
+
     // Normalize categories - migliorata logica con memoization
     const normalizedTools = useMemo(() => {
         return allTools.map(tool => {
@@ -201,46 +201,47 @@ export default function ToolsPage() {
             };
         });
     }, [allTools]);
-    
+
     // Ordina categorie per importanza (AI tools prima, poi convertitori)
     const categoryOrder = [
         'Tutti',
-        'Immagini',
-        'Video',
-        'Audio',
         'PDF',
         'Documenti',
         'Testo',
         'Presentazioni',
-        'Fogli di Calcolo',
-        'Vettoriali',
-        'Archivi',
-        'Ebook',
-        'Font'
+        'Fogli di Calcolo'
     ];
-    
+
+    // Core categories whitelist
+    const coreCategories = ['PDF', 'Documenti', 'Testo', 'Presentazioni', 'Fogli di Calcolo'];
+
     // Ottieni categorie uniche e ordinate
     const uniqueCategories = [...new Set(normalizedTools.map(tool => tool.category))];
-    const sortedCategories = categoryOrder.filter(cat => 
-        cat === 'Tutti' || uniqueCategories.includes(cat)
+
+    // Filter categories to only keep core ones
+    const filteredUniqueCategories = uniqueCategories.filter(cat => coreCategories.includes(cat));
+
+    const sortedCategories = categoryOrder.filter(cat =>
+        cat === 'Tutti' || filteredUniqueCategories.includes(cat)
     );
-    const remainingCategories = uniqueCategories.filter(cat => !categoryOrder.includes(cat));
-    const categories = [...sortedCategories, ...remainingCategories];
+    // No remaining categories other than core
+    const categories = sortedCategories;
 
     // Filtra strumenti per categoria - ottimizzato
     const filteredTools = useMemo(() => {
+        const coreCats = ['PDF', 'Documenti', 'Testo', 'Presentazioni', 'Fogli di Calcolo'];
         if (selectedCategory === 'Tutti') {
-            return normalizedTools;
+            return normalizedTools.filter(t => coreCats.includes(t.category));
         }
         return normalizedTools.filter(tool => tool.category === selectedCategory);
     }, [normalizedTools, selectedCategory]);
 
     // Memoize categories per evitare ricalcoli
     const memoizedCategories = useMemo(() => categories, [categories]);
-    
+
     // Scroll automatico del filtro selezionato su mobile - ottimizzato
     const activeFilterRef = useRef(null);
-    
+
     useEffect(() => {
         if (isMobile && activeFilterRef.current) {
             // Usa requestAnimationFrame per scroll più veloce
@@ -255,7 +256,7 @@ export default function ToolsPage() {
             });
         }
     }, [selectedCategory, isMobile]);
-    
+
     // Handler memoizzato per click sui filtri - ottimizzato per performance
     const handleFilterClick = useCallback((category) => {
         // Usa startTransition per renderizzare il cambio in modo non-blocking
@@ -263,7 +264,7 @@ export default function ToolsPage() {
             setSelectedCategory(category);
         });
     }, []);
-    
+
     // Stili dinamici basati su mobile
     const getCardPadding = () => (mobile ? '16px' : '28px');
     const getIconSize = () => (mobile ? 40 : 56);
@@ -309,7 +310,7 @@ export default function ToolsPage() {
                             borderBottom: '1px solid rgba(102, 126, 234, 0.1)',
                             marginBottom: '0',
                             zIndex: 10,
-                          }
+                        }
                         : {})
                 }}
             >
@@ -343,7 +344,7 @@ export default function ToolsPage() {
                         </div>
                     ) : (
                         <div style={styles.filterContainerDesktop}>
-                                {memoizedCategories.map((category) => (
+                            {memoizedCategories.map((category) => (
                                 <button
                                     key={category}
                                     onClick={(e) => {
@@ -362,7 +363,7 @@ export default function ToolsPage() {
                     )}
                 </div>
             </section>
-            
+
             <section style={styles.toolsSection}>
                 {filteredTools.length === 0 ? (
                     <div style={styles.noResults}>
@@ -373,7 +374,7 @@ export default function ToolsPage() {
                 ) : (
                     <>
                         <div style={styles.resultsCount}>
-                            {filteredTools.length} {filteredTools.length === 1 ? 'strumento' : 'strumenti'} 
+                            {filteredTools.length} {filteredTools.length === 1 ? 'strumento' : 'strumenti'}
                             {selectedCategory !== 'Tutti' && ` in ${selectedCategory}`}
                         </div>
                         <div style={styles.toolsGrid}>
@@ -384,7 +385,7 @@ export default function ToolsPage() {
                                         animation: `fadeInUp 0.4s ease-out ${i * 0.05}s both`
                                     }}
                                 >
-                                    <ToolCard 
+                                    <ToolCard
                                         tool={tool}
                                         isMobile={isMobile}
                                         getCardPadding={getCardPadding}
@@ -392,7 +393,7 @@ export default function ToolsPage() {
                                         getIconInnerSize={getIconInnerSize}
                                     />
                                 </div>
-                                ))}
+                            ))}
                         </div>
                     </>
                 )}
@@ -401,12 +402,12 @@ export default function ToolsPage() {
             <Footer />
         </div>
     );
-}const styles = {
+} const styles = {
     pageWrap: { minHeight: '100vh', background: '#0a0e1a', color: '#e6eef8' },
-    hero: { 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
-        padding: '100px 24px 50px', 
+    hero: {
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '100px 24px 50px',
         textAlign: 'center',
         display: 'flex',
         justifyContent: 'center',
@@ -415,31 +416,31 @@ export default function ToolsPage() {
             padding: '80px 16px 30px'
         }
     },
-    heroContent: { 
-        display: 'flex', 
-        flexDirection: 'column', 
-        gap: '16px', 
+    heroContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
         alignItems: 'center',
         maxWidth: '900px'
     },
-    heroTitle: { 
-        fontSize: 'clamp(32px, 6vw, 48px)', 
-        fontWeight: '900', 
-        lineHeight: '1.1', 
-        margin: 0, 
-        letterSpacing: '-0.02em', 
-        maxWidth: '800px', 
+    heroTitle: {
+        fontSize: 'clamp(32px, 6vw, 48px)',
+        fontWeight: '900',
+        lineHeight: '1.1',
+        margin: 0,
+        letterSpacing: '-0.02em',
+        maxWidth: '800px',
         background: 'linear-gradient(135deg, #e2e8f0 0%, #a78bfa 100%)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
         textAlign: 'center'
     },
-    heroSubtitle: { 
-        fontSize: '17px', 
-        color: '#94a3b8', 
-        lineHeight: '1.6', 
-        margin: 0, 
+    heroSubtitle: {
+        fontSize: '17px',
+        color: '#94a3b8',
+        lineHeight: '1.6',
+        margin: 0,
         maxWidth: '700px',
         textAlign: 'center',
         '@media (max-width: 768px)': {
@@ -447,9 +448,9 @@ export default function ToolsPage() {
             padding: '0 16px'
         }
     },
-    toolsSection: { 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
+    toolsSection: {
+        maxWidth: '1200px',
+        margin: '0 auto',
         padding: '40px 24px 80px',
         width: '100%',
         '@media (max-width: 768px)': {
@@ -468,13 +469,13 @@ export default function ToolsPage() {
             padding: '0'
         }
     },
-    toolCard: { 
-        position: 'relative', 
-        padding: '32px 28px', 
-        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.7) 100%)', 
-        border: '1px solid rgba(102, 126, 234, 0.25)', 
-        borderRadius: '20px', 
-        textDecoration: 'none', 
+    toolCard: {
+        position: 'relative',
+        padding: '32px 28px',
+        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.7) 100%)',
+        border: '1px solid rgba(102, 126, 234, 0.25)',
+        borderRadius: '20px',
+        textDecoration: 'none',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         display: 'flex',
         flexDirection: 'column',
@@ -557,9 +558,9 @@ export default function ToolsPage() {
             margin: '0 0 12px 0'
         }
     },
-    toolArrow: { 
-        display: 'flex', 
-        alignItems: 'center', 
+    toolArrow: {
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'flex-end',
         width: '100%',
         color: '#667eea',

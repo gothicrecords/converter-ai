@@ -1,9 +1,9 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
-export default function SEOHead({ 
-    title, 
-    description, 
+export default function SEOHead({
+    title,
+    description,
     canonical,
     toolName,
     toolCategory,
@@ -15,7 +15,8 @@ export default function SEOHead({
     faqItems = [],
     howToSteps = [],
     articleData = null,
-    videoData = null
+    videoData = null,
+    noIndex = false
 }) {
     const router = useRouter();
     const siteName = 'MegaPixelAI';
@@ -23,33 +24,33 @@ export default function SEOHead({
         process.env.NEXT_PUBLIC_URL ||
         (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
     const currentLocale = locale || router?.locale || 'en';
-    
+
     // Fallback per evitare che appaiano le chiavi di traduzione
-    const safeTitle = title && !title.startsWith('seo.') ? title : 'Strumenti AI Professionali';
-    const safeDescription = description && !description.startsWith('seo.') ? description : 'Piattaforma all-in-one con strumenti AI professionali';
-    
+    const safeTitle = title && !title.startsWith('seo.') ? title : 'Professional AI Tools';
+    const safeDescription = description && !description.startsWith('seo.') ? description : 'All-in-one platform with professional AI tools for documents and PDFs';
+
     const fullTitle = `${safeTitle} | ${siteName}`;
     const fullUrl = canonical ? `${siteUrl}${canonical}` : siteUrl;
     const ogImage = image || `${siteUrl}/og-image.jpg`;
 
     // Supported locales
     const supportedLocales = ['en', 'it', 'es', 'fr', 'de', 'pt', 'ru', 'ja', 'zh', 'ar', 'hi', 'ko'];
-    
+
     // Generate hreflang tags for all supported locales
     const generateHreflangTags = () => {
         const tags = [];
         const basePath = canonical || '/';
-        
+
         // Add current locale
         tags.push(
             <link key={`hreflang-${currentLocale}`} rel="alternate" hrefLang={currentLocale} href={fullUrl} />
         );
-        
+
         // Add x-default (usually English or main locale)
         tags.push(
             <link key="hreflang-x-default" rel="alternate" hrefLang="x-default" href={`${siteUrl}${basePath}`} />
         );
-        
+
         // Add alternate locales
         supportedLocales.forEach(loc => {
             if (loc !== currentLocale) {
@@ -59,7 +60,7 @@ export default function SEOHead({
                 );
             }
         });
-        
+
         return tags;
     };
 
@@ -77,7 +78,7 @@ export default function SEOHead({
                 "width": 512,
                 "height": 512
             },
-            "description": "Professional AI tools platform for image upscaling, PDF conversion, OCR, background removal, image generation, and more",
+            "description": "Professional AI tools platform for PDF conversion, OCR, text summarization, and document management",
             "foundingDate": "2024",
             "sameAs": [
                 // Add social media links if available
@@ -86,7 +87,7 @@ export default function SEOHead({
                 "@type": "ContactPoint",
                 "contactType": "Customer Service",
                 "availableLanguage": supportedLocales,
-                "areaServed": "Worldwide"
+                "areaServed": "US"
             },
             "aggregateRating": {
                 "@type": "AggregateRating",
@@ -102,7 +103,7 @@ export default function SEOHead({
             "@type": "WebSite",
             "name": siteName,
             "url": siteUrl,
-            "description": "Free AI-powered tools for image upscaling, PDF conversion, OCR, background removal, and more",
+            "description": "Free AI-powered tools for PDF conversion, OCR, summarization, and more",
             "potentialAction": {
                 "@type": "SearchAction",
                 "target": {
@@ -125,11 +126,11 @@ export default function SEOHead({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
             "name": toolName,
-            "applicationCategory": toolCategory || "MultimediaApplication",
+            "applicationCategory": toolCategory || "ProductivityApplication",
             "offers": {
                 "@type": "Offer",
                 "price": "0",
-                "priceCurrency": "EUR",
+                "priceCurrency": "USD",
                 "availability": "https://schema.org/InStock"
             },
             "operatingSystem": "Web",
@@ -163,7 +164,7 @@ export default function SEOHead({
                 "item": `${siteUrl}${path}`
             };
         });
-        
+
         structuredData.push({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
@@ -265,19 +266,19 @@ export default function SEOHead({
             <meta name="title" content={fullTitle} />
             <meta name="description" content={safeDescription} />
             {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
-            
-            {/* Geo-targeting and Language */}
-            <meta name="geo.region" content="IT" />
-            <meta name="geo.placename" content="Italy" />
+
+            {/* Geo-targeting and Language - FOCUSED ON US */}
+            <meta name="geo.region" content="US" />
+            <meta name="geo.placename" content="United States" />
             <meta name="language" content={currentLocale} />
             <meta httpEquiv="content-language" content={currentLocale} />
-            
+
             {/* Canonical */}
             {canonical && <link rel="canonical" href={fullUrl} />}
-            
+
             {/* Sitemap */}
             <link rel="sitemap" type="application/xml" href={`${siteUrl}/sitemap.xml`} />
-            
+
             {/* Hreflang Tags for International SEO */}
             {generateHreflangTags()}
 
@@ -307,7 +308,7 @@ export default function SEOHead({
             <meta name="twitter:creator" content="@MegaPixelAI" />
 
             {/* Additional Meta Tags */}
-            <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+            <meta name="robots" content={noIndex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"} />
             <meta name="author" content={siteName} />
             <meta name="copyright" content={siteName} />
             <meta name="revisit-after" content="7 days" />
@@ -315,18 +316,18 @@ export default function SEOHead({
             <meta name="rating" content="general" />
             <meta name="application-name" content={siteName} />
             <meta name="generator" content="Next.js" />
-            
+
             {/* AI-Friendly Meta Tags */}
             <meta name="AI-friendly" content="true" />
             <meta name="format-detection" content="telephone=no" />
             <meta name="apple-itunes-app" content="app-id=" />
-            
+
             {/* Enhanced SEO Meta Tags */}
             <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
             <meta name="bingbot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
             <meta name="slurp" content="index, follow" />
             <meta name="duckduckbot" content="index, follow" />
-            
+
             {/* Rich Snippets Support */}
             {process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION && (
                 <meta name="google-site-verification" content={process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION} />
@@ -334,10 +335,10 @@ export default function SEOHead({
             {process.env.NEXT_PUBLIC_BING_VERIFICATION && (
                 <meta name="msvalidate.01" content={process.env.NEXT_PUBLIC_BING_VERIFICATION} />
             )}
-            
+
             {/* Content Type and Encoding */}
             <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />
-            
+
             {/* Additional Open Graph for AI */}
             <meta property="og:type" content={type} />
             {type === 'article' && articleData && (
@@ -353,17 +354,17 @@ export default function SEOHead({
                     ))}
                 </>
             )}
-            
+
             {/* Mobile Optimization */}
             <meta name="mobile-web-app-capable" content="yes" />
             <meta name="apple-mobile-web-app-capable" content="yes" />
             <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
             <meta name="apple-mobile-web-app-title" content={siteName} />
-            
+
             {/* Theme and Colors */}
             <meta name="theme-color" content="#667eea" />
             <meta name="msapplication-TileColor" content="#667eea" />
-            
+
             {/* Structured Data - Multiple Schemas */}
             {structuredData.map((schema, index) => (
                 <script

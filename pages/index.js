@@ -41,7 +41,7 @@ FeatureCard.displayName = 'FeatureCard';
 const HomePage = () => {
   const { t } = useTranslation();
   const [isMobile, setIsMobile] = useState(false);
-  
+
   // Conta strumenti per categoria - memoized to avoid recalculation
   const categoryCounts = useMemo(() => {
     const counts = {
@@ -52,7 +52,7 @@ const HomePage = () => {
       'Testo': 0,
       'Documenti': 0
     };
-    
+
     // Conta AI tools
     tools.forEach(tool => {
       const category = tool.category;
@@ -60,7 +60,7 @@ const HomePage = () => {
         counts[category]++;
       }
     });
-    
+
     // Conta conversion tools
     const conversionTools = getAllConversionTools();
     const categoryMap = {
@@ -71,17 +71,17 @@ const HomePage = () => {
       'Text': 'Testo',
       'Document': 'Documenti'
     };
-    
+
     conversionTools.forEach(tool => {
       const mappedCategory = categoryMap[tool.category] || tool.category;
       if (counts.hasOwnProperty(mappedCategory)) {
         counts[mappedCategory]++;
       }
     });
-    
+
     return counts;
   }, []);
-  
+
   // Safe client-side mobile detection (no hydration mismatch)
   useEffect(() => {
     const checkMobile = () => {
@@ -91,7 +91,7 @@ const HomePage = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  
+
   // Memoize static data
   const stats = useMemo(() => [
     { value: '50K+', label: t('home.activeUsers'), delay: 0 },
@@ -99,15 +99,15 @@ const HomePage = () => {
     { value: '99.9%', label: t('home.uptime'), delay: 200 },
     { value: '4.9/5', label: t('home.avgRating'), delay: 300 }
   ], [t]);
-  
+
   return (
     <div style={styles.homeWrap}>
-      <SEOHead 
-        title={t('seo.homeTitle') || 'Strumenti AI Professionali per Immagini, PDF e Audio'}
-        description={t('seo.homeDesc') || 'Piattaforma all-in-one con oltre 250 strumenti AI: rimozione sfondo, upscaling 4K, generazione immagini, OCR, conversione PDF e molto altro. Gratis e professionale.'}
+      <SEOHead
+        title={t('seo.homeTitle') || 'Professional AI Tools for Documents & PDF'}
+        description={t('seo.homeDesc') || 'All-in-one platform for professional file management: PDF conversion, OCR, summarization, grammar check, and translation. Secure and efficient.'}
         canonical="/"
       />
-      
+
       {/* Animated background elements */}
       <div style={styles.bgOverlay}>
         <div style={styles.bgCircle1}></div>
@@ -115,13 +115,13 @@ const HomePage = () => {
         <div style={styles.bgCircle3}></div>
         <div style={styles.bgGrid}></div>
       </div>
-      
+
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {/* Preload risorse critiche - CSS ora importati come moduli */}
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
       </Head>
-      
+
       <Navbar />
 
       {/* Nuova sezione hero principale */}
@@ -135,13 +135,13 @@ const HomePage = () => {
             ...styles.mainHeroTitle,
             ...(isMobile ? { fontSize: 'clamp(28px, 8vw, 40px)', padding: '0 8px' } : {})
           }} className="animate-fade-in-up">
-            {t('home.heroTitle1')}<span style={styles.gradient}>{t('home.heroTitle2')}</span>
+            Professional <span style={styles.gradient}>Document AI</span>
           </h1>
           <p style={{
             ...styles.mainHeroSubtitle,
             ...(isMobile ? { fontSize: '15px', padding: '0 16px' } : {})
           }} className="animate-fade-in-up">
-            {t('home.heroSubtitle')}
+            The ultimate suite for PDF and Document processing. OCR, Translation, Summarization, and Conversion powered by advanced AI.
           </p>
           <div style={{
             ...styles.mainHeroCta,
@@ -149,9 +149,9 @@ const HomePage = () => {
           }} className="animate-fade-in-up">
             <Link href="/tools" style={{
               ...styles.mainPrimaryCta,
-              ...(isMobile ? { 
-                width: '100%', 
-                padding: '12px 24px', 
+              ...(isMobile ? {
+                width: '100%',
+                padding: '12px 24px',
                 fontSize: '15px',
                 justifyContent: 'center'
               } : {})
@@ -161,9 +161,9 @@ const HomePage = () => {
             </Link>
             <Link href="/home" style={{
               ...styles.mainSecondaryCta,
-              ...(isMobile ? { 
-                width: '100%', 
-                padding: '12px 24px', 
+              ...(isMobile ? {
+                width: '100%',
+                padding: '12px 24px',
                 fontSize: '15px',
                 display: 'flex',
                 justifyContent: 'center',
@@ -175,8 +175,8 @@ const HomePage = () => {
           </div>
           <div style={{
             ...styles.statsGrid,
-            ...(isMobile ? { 
-              gridTemplateColumns: 'repeat(2, 1fr)', 
+            ...(isMobile ? {
+              gridTemplateColumns: 'repeat(2, 1fr)',
               gap: '16px',
               padding: '24px 16px 0'
             } : {})
@@ -213,12 +213,12 @@ const HomePage = () => {
           }} className="animate-fade-in-up">
             {t('hero.subtitle')}
           </p>
-          
+
           {/* Features Grid */}
           <div style={{
             ...styles.aiDocumentsFeaturesGrid,
-            ...(isMobile ? { 
-              gridTemplateColumns: '1fr', 
+            ...(isMobile ? {
+              gridTemplateColumns: '1fr',
               gap: '16px',
               marginBottom: '32px'
             } : {})
@@ -347,8 +347,8 @@ const HomePage = () => {
 
       <div style={{
         ...styles.toolsPreview,
-        ...(isMobile ? { 
-          padding: '28px 12px', 
+        ...(isMobile ? {
+          padding: '28px 12px',
           borderRadius: '20px',
           margin: '0 16px 40px',
           maxWidth: 'none',
@@ -371,12 +371,12 @@ const HomePage = () => {
         }} className="animate-fade-in-up">
           {t('additionalTools.description')}
         </p>
-        
+
         {/* Tool highlights grid con icone SVG professionali */}
         <div style={{
           ...styles.toolHighlightsGrid,
-          ...(isMobile ? { 
-            gridTemplateColumns: 'repeat(2, 1fr)', 
+          ...(isMobile ? {
+            gridTemplateColumns: 'repeat(2, 1fr)',
             gap: '12px',
             maxWidth: '100%',
             padding: '0',
@@ -386,20 +386,6 @@ const HomePage = () => {
             marginRight: 'auto'
           } : {})
         }}>
-          <div style={{
-            ...styles.toolHighlight,
-            ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
-          }} className="animate-slide-up tool-highlight-hover" data-delay="0">
-            <div style={styles.toolHighlightIcon}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                <polyline points="21 15 16 10 5 21"></polyline>
-              </svg>
-            </div>
-            <div style={styles.toolHighlightTitle}>Immagini</div>
-            <div style={styles.toolHighlightCount}>{categoryCounts.Immagini}+ strumenti</div>
-          </div>
           <div style={{
             ...styles.toolHighlight,
             ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
@@ -414,21 +400,7 @@ const HomePage = () => {
               </svg>
             </div>
             <div style={styles.toolHighlightTitle}>PDF</div>
-            <div style={styles.toolHighlightCount}>{categoryCounts.PDF}+ strumenti</div>
-          </div>
-          <div style={{
-            ...styles.toolHighlight,
-            ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
-          }} className="animate-slide-up tool-highlight-hover" data-delay="2">
-            <div style={styles.toolHighlightIcon}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
-                <path d="M9 18V5l12-2v13"></path>
-                <circle cx="6" cy="18" r="3"></circle>
-                <circle cx="18" cy="16" r="3"></circle>
-              </svg>
-            </div>
-            <div style={styles.toolHighlightTitle}>Audio</div>
-            <div style={styles.toolHighlightCount}>{categoryCounts.Audio}+ strumenti</div>
+            <div style={styles.toolHighlightCount}>{categoryCounts.PDF}+ tools</div>
           </div>
           <div style={{
             ...styles.toolHighlight,
@@ -441,21 +413,8 @@ const HomePage = () => {
                 <line x1="12" y1="4" x2="12" y2="20"></line>
               </svg>
             </div>
-            <div style={styles.toolHighlightTitle}>Testo</div>
-            <div style={styles.toolHighlightCount}>{categoryCounts.Testo}+ strumenti</div>
-          </div>
-          <div style={{
-            ...styles.toolHighlight,
-            ...(isMobile ? { padding: '20px 16px', borderRadius: '16px' } : {})
-          }} className="animate-slide-up tool-highlight-hover" data-delay="4">
-            <div style={styles.toolHighlightIcon}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-              </svg>
-            </div>
-            <div style={styles.toolHighlightTitle}>Video</div>
-            <div style={styles.toolHighlightCount}>{categoryCounts.Video}+ strumenti</div>
+            <div style={styles.toolHighlightTitle}>Text</div>
+            <div style={styles.toolHighlightCount}>{categoryCounts.Testo}+ tools</div>
           </div>
           <div style={{
             ...styles.toolHighlight,
@@ -469,11 +428,11 @@ const HomePage = () => {
                 <line x1="16" y1="17" x2="8" y2="17"></line>
               </svg>
             </div>
-            <div style={styles.toolHighlightTitle}>Documenti</div>
-            <div style={styles.toolHighlightCount}>{categoryCounts.Documenti}+ strumenti</div>
+            <div style={styles.toolHighlightTitle}>Documents</div>
+            <div style={styles.toolHighlightCount}>{categoryCounts.Documenti}+ tools</div>
           </div>
         </div>
-        
+
         <Link href="/tools" style={styles.toolsPreviewCta} className="hover-lift animate-fade-in-up">
           {t('additionalTools.explore')}
           <HiArrowRight style={{ width: 18, height: 18 }} />

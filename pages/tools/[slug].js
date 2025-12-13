@@ -59,7 +59,7 @@ const ToolPage = ({ initialSlug, meta }) => {
             const toolWithSlug = { ...conversionTool, slug: slug };
             return <GenericConverter tool={toolWithSlug} />;
         }
-        
+
         // Lazy load component based on slug with Suspense fallback
         const ToolComponent = (() => {
             switch (slug) {
@@ -92,7 +92,7 @@ const ToolPage = ({ initialSlug, meta }) => {
                     return null;
             }
         })();
-        
+
         if (!ToolComponent) {
             return (
                 <div style={styles.comingSoon}>
@@ -103,7 +103,7 @@ const ToolPage = ({ initialSlug, meta }) => {
                 </div>
             );
         }
-        
+
         return (
             <Suspense fallback={<LoadingOverlay message="Caricamento strumento..." />}>
                 <ToolComponent />
@@ -119,6 +119,33 @@ const ToolPage = ({ initialSlug, meta }) => {
         tags: seoContent.keywords || []
     } : null;
 
+    // Determine if tool is "Core" (Document/PDF) or "Non-Core" (Image/Video/Audio)
+    // Core tools are indexed, others are noindex
+    const isCoreTool = useMemo(() => {
+        const coreSlugs = [
+            'ocr-avanzato-ai',
+            'riassunto-testo',
+            'elabora-e-riassumi',
+            'correttore-grammaticale',
+            'combina-splitta-pdf',
+            'traduzione-documenti-ai'
+        ];
+
+        if (coreSlugs.includes(slug)) return true;
+
+        // Check categories
+        if (aiTool) {
+            return aiTool.category === 'PDF' || aiTool.category === 'Testo';
+        }
+
+        if (conversionTool) {
+            const allowedCats = ['Document', 'Presentation', 'Spreadsheet'];
+            return allowedCats.includes(conversionTool.category);
+        }
+
+        return false;
+    }, [slug, aiTool, conversionTool]);
+
     return (
         <div style={styles.pageWrap}>
             <SEOHead
@@ -131,6 +158,7 @@ const ToolPage = ({ initialSlug, meta }) => {
                 faqItems={seoContent?.faq || []}
                 articleData={articleData}
                 type={seoContent ? "article" : "website"}
+                noIndex={!isCoreTool}
             />
 
             <Navbar />
@@ -170,7 +198,7 @@ const ToolPage = ({ initialSlug, meta }) => {
                         <p style={styles.contentText}>
                             {seoContent.mainDescription}
                         </p>
-                        
+
                         {seoContent.features && seoContent.features.length > 0 && (
                             <>
                                 <h3 style={styles.subsectionTitle}>Caratteristiche Principali</h3>
@@ -238,13 +266,13 @@ const ToolPage = ({ initialSlug, meta }) => {
                             return (
                                 <Link key={t.href} href={t.href} style={styles.toolCard}>
                                     <div style={styles.toolCardIcon}>
-                                        <IconComponent style={{width: 28, height: 28, color: '#a78bfa'}} />
+                                        <IconComponent style={{ width: 28, height: 28, color: '#a78bfa' }} />
                                     </div>
                                     <h3 style={styles.toolCardTitle}>{t.title}</h3>
                                     <p style={styles.toolCardDesc}>{t.description}</p>
                                     <div style={styles.toolCardFooter}>
                                         <span style={styles.toolCardCta}>Prova ora</span>
-                                        <HiArrowRight style={{width: 18, height: 18}} />
+                                        <HiArrowRight style={{ width: 18, height: 18 }} />
                                     </div>
                                 </Link>
                             );
@@ -262,8 +290,8 @@ export default memo(ToolPage);
 
 export async function getStaticPaths() {
     // Generate all pages on-demand to avoid Vercel build timeout
-    return { 
-        paths: [], 
+    return {
+        paths: [],
         fallback: 'blocking'
     };
 }
@@ -274,7 +302,7 @@ export async function getStaticProps({ params }) {
         if (!slug) {
             return { notFound: true };
         }
-        
+
         const aiTool = tools.find(t => t.href === `/tools/${slug}`);
         const conversionTool = getConversionTool(slug);
         const meta = aiTool
@@ -282,20 +310,20 @@ export async function getStaticProps({ params }) {
             : conversionTool
                 ? { title: conversionTool.title || 'Convertitore', description: conversionTool.description || '' }
                 : { title: 'Strumento non trovato', description: 'Lo strumento richiesto non esiste.' };
-        
-        return { 
-            props: { 
-                initialSlug: String(slug), 
-                meta 
-            }, 
-            revalidate: 3600 
+
+        return {
+            props: {
+                initialSlug: String(slug),
+                meta
+            },
+            revalidate: 3600
         };
     } catch (error) {
         console.error('Error in getStaticProps:', error);
-        return { 
-            props: { 
-                initialSlug: params?.slug || 'unknown', 
-                meta: { title: 'Errore', description: 'Errore nel caricamento dello strumento.' } 
+        return {
+            props: {
+                initialSlug: params?.slug || 'unknown',
+                meta: { title: 'Errore', description: 'Errore nel caricamento dello strumento.' }
             },
             revalidate: 60
         };

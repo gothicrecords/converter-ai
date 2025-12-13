@@ -12,7 +12,6 @@ const staticPages = [
   { path: '', priority: '1.0', changefreq: 'daily' },
   { path: '/home', priority: '0.95', changefreq: 'daily' },
   { path: '/tools', priority: '0.95', changefreq: 'daily' },
-  { path: '/upscaler', priority: '0.9', changefreq: 'daily' },
   { path: '/pdf', priority: '0.9', changefreq: 'daily' },
   { path: '/chat', priority: '0.85', changefreq: 'daily' },
   { path: '/pricing', priority: '0.85', changefreq: 'weekly' },
@@ -79,14 +78,14 @@ function generateSiteMap(allTools) {
       // Higher priority for main tools and popular tools
       let priority = tool.pro ? '0.9' : '0.85';
       let changefreq = 'daily';
-      
+
       // Boost priority for popular tools
       const popularTools = ['rimozione-sfondo-ai', 'generazione-immagini-ai', 'upscaler'];
       if (popularTools.some(pop => tool.href.includes(pop))) {
         priority = '0.95';
         changefreq = 'daily';
       }
-      
+
       sitemap += generateUrlEntry(tool.href, priority, changefreq);
     }
   });
@@ -113,9 +112,22 @@ export async function getServerSideProps({ res }) {
       console.warn('Error getting conversion tools:', err);
       conversionTools = [];
     }
-    
-    const allTools = [...(tools || []), ...conversionTools];
-    
+
+    const rawTools = [...(tools || []), ...conversionTools];
+
+    // Filter tools to only include core categories for the sitemap
+    const coreCats = ['PDF', 'Documenti', 'Document', 'Testo', 'Text', 'Presentazioni', 'Presentation', 'Fogli di Calcolo', 'Spreadsheet'];
+
+    const allTools = rawTools.filter(t => {
+      if (coreCats.includes(t.category)) return true;
+      const coreSlugs = ['ocr-avanzato-ai', 'riassunto-testo', 'chat'];
+      if (t.href) {
+        const slug = t.href.split('/').pop();
+        return coreSlugs.includes(slug);
+      }
+      return false;
+    });
+
     const sitemap = generateSiteMap(allTools);
 
     res.setHeader('Content-Type', 'text/xml');

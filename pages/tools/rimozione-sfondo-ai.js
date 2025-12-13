@@ -68,13 +68,14 @@ export default function RimozioneSfondoAIPage({ articleData }) {
         howToSteps={howToSteps}
         articleData={articleData}
         type="article"
+        noIndex={true}
       />
       <Navbar />
       <main style={styles.mainContent}>
         <header style={styles.header}>
           <h1 style={styles.title}>Rimozione Sfondo AI</h1>
           <p style={styles.subtitle}>
-            Rimuovi lo sfondo da qualsiasi immagine con un click usando l'intelligenza artificiale avanzata. 
+            Rimuovi lo sfondo da qualsiasi immagine con un click usando l'intelligenza artificiale avanzata.
             Il nostro strumento rileva automaticamente il soggetto principale e crea un ritaglio preciso con sfondo trasparente.
           </p>
         </header>
@@ -86,11 +87,11 @@ export default function RimozioneSfondoAIPage({ articleData }) {
         <section style={styles.contentSection}>
           <h2 style={styles.sectionTitle}>Come Rimuovere lo Sfondo dalle Immagini con AI</h2>
           <p style={styles.contentText}>
-            La rimozione dello sfondo è una delle operazioni più comuni nell'editing fotografico. 
-            Con il nostro strumento AI, puoi rimuovere lo sfondo da qualsiasi immagine in pochi secondi, 
+            La rimozione dello sfondo è una delle operazioni più comuni nell'editing fotografico.
+            Con il nostro strumento AI, puoi rimuovere lo sfondo da qualsiasi immagine in pochi secondi,
             senza bisogno di competenze tecniche o software complessi.
           </p>
-          
+
           <h3 style={styles.subsectionTitle}>Caratteristiche Principali</h3>
           <ul style={styles.featureList}>
             <li><strong>Rilevamento automatico:</strong> L'AI identifica automaticamente il soggetto principale dell'immagine</li>
@@ -165,18 +166,18 @@ const styles = {
   pageWrap: { minHeight: '100vh', background: '#0a0e1a', color: '#e6eef8' },
   mainContent: { maxWidth: '1200px', margin: '0 auto', padding: '48px 24px' },
   header: { textAlign: 'center', marginBottom: '40px' },
-  title: { 
-    fontSize: 'clamp(32px, 5vw, 48px)', 
-    fontWeight: 900, 
-    margin: 0, 
+  title: {
+    fontSize: 'clamp(32px, 5vw, 48px)',
+    fontWeight: 900,
+    margin: 0,
     letterSpacing: '-0.02em',
     background: 'linear-gradient(135deg, #e2e8f0 0%, #a78bfa 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text'
   },
-  subtitle: { 
-    color: '#94a3b8', 
+  subtitle: {
+    color: '#94a3b8',
     marginTop: 16,
     fontSize: '18px',
     lineHeight: 1.6,

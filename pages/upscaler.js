@@ -12,10 +12,10 @@ function useSafeAnalytics() {
     if (typeof window === 'undefined') return;
     import('../lib/analytics')
       .then((mod) => { if (mounted) setA(mod); })
-      .catch(() => {});
+      .catch(() => { });
     return () => { mounted = false; };
   }, []);
-  const noop = () => {};
+  const noop = () => { };
   return a || {
     pageview: noop,
     event: noop,
@@ -51,12 +51,12 @@ function Upscaler() {
     setOriginalUrl(url);
     setUpscaledUrl(null);
     setStatus(`Selezionato: ${file.name}`);
-    
+
     // Track file upload
     try {
       analytics.trackFileUpload(file.type, file.size, 'Image Upscaler');
       analytics.trackToolStart('Image Upscaler', file.type, file.size);
-    } catch {}
+    } catch { }
   };
 
   const onDrop = (e) => {
@@ -74,7 +74,7 @@ function Upscaler() {
     fd.append('image', originalFile);
     try {
       const res = await fetch('/api/upscale', { method: 'POST', body: fd });
-      
+
       // Check if response is JSON before parsing
       const contentType = res.headers.get('content-type');
       let j;
@@ -85,21 +85,21 @@ function Upscaler() {
         const text = await res.text();
         throw new Error(text || `Server error: ${res.status} ${res.statusText}`);
       }
-      
+
       if (!res.ok) {
         throw new Error(j.details || j.error || j.message || 'Upscale failed');
       }
-      
+
       if (!j.url) {
         throw new Error('No URL returned from server');
       }
-      
+
       const duration = Date.now() - startTime;
       try {
         analytics.trackToolComplete('Image Upscaler', duration, true);
         analytics.trackConversion('image_upscale', originalFile.type, 'upscaled_image', originalFile.size, duration);
-      } catch {}
-      
+      } catch { }
+
       setUpscaledUrl(j.url);
       setStatus('Fatto!');
     } catch (err) {
@@ -107,7 +107,7 @@ function Upscaler() {
       try {
         analytics.trackToolComplete('Image Upscaler', duration, false);
         analytics.trackError(err.message, 'Upscaler', 'upscale_error');
-      } catch {}
+      } catch { }
       setStatus(`Errore: ${err.message || 'Errore sconosciuto durante l\'upscaling'}`);
     } finally {
       setLoading(false);
@@ -127,11 +127,11 @@ function Upscaler() {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      
+
       // Track download
-      try { analytics.trackDownload('jpg', 'Image Upscaler', blob.size); } catch {}
+      try { analytics.trackDownload('jpg', 'Image Upscaler', blob.size); } catch { }
     } catch (e) {
-      try { analytics.trackError(e.message, 'Upscaler', 'download_error'); } catch {}
+      try { analytics.trackError(e.message, 'Upscaler', 'download_error'); } catch { }
       console.error('Download failed:', e);
     }
   };
@@ -161,7 +161,7 @@ function Upscaler() {
       };
       const onPointerDown = (e) => {
         dragging.current = true;
-        try { el.setPointerCapture(e.pointerId); } catch {}
+        try { el.setPointerCapture(e.pointerId); } catch { }
         pendingPos.current = getPercent(e.clientX);
         schedule();
       };
@@ -172,7 +172,7 @@ function Upscaler() {
       };
       const onPointerUp = (e) => {
         dragging.current = false;
-        try { el.releasePointerCapture(e.pointerId); } catch {}
+        try { el.releasePointerCapture(e.pointerId); } catch { }
       };
 
       el.addEventListener('pointerdown', onPointerDown);
@@ -187,7 +187,7 @@ function Upscaler() {
         el.removeEventListener('pointercancel', onPointerUp);
       };
     } catch (e) {
-      try { analytics.trackError(e.message, 'Upscaler', 'slider_init_error'); } catch {}
+      try { analytics.trackError(e.message, 'Upscaler', 'slider_init_error'); } catch { }
     }
   }, [upscaledUrl]);
 
@@ -197,74 +197,75 @@ function Upscaler() {
       <div className="container">
         <Head>
           <title>Upscaler AI - 8K Image Enhancement</title>
+          <meta name="robots" content="noindex, nofollow" />
         </Head>
 
         <div className="page-header">
-        <div className="header-badge">
-          <HiSparkles className="badge-icon" />
-          <span>AI Powered</span>
-        </div>
-        <h1 className="page-title">Upscaler AI</h1>
-        <p className="page-subtitle">Migliora le tue immagini con upscaling avanzato fino a 4K/8K - Completamente gratuito e locale</p>
-      </div>
-
-      {!originalUrl && (
-        <div
-          id="dropzone"
-          className="dropzone"
-          onDrop={onDrop}
-          onDragOver={(e) => e.preventDefault()}
-        >
-          <div className="dropzone-content">
-            <HiPhotograph className="dropzone-icon" />
-            <p className="dropzone-text">Trascina qui la tua immagine o clicca per selezionare</p>
-            <div className="file-formats">JPG, PNG, WebP supportati</div>
+          <div className="header-badge">
+            <HiSparkles className="badge-icon" />
+            <span>AI Powered</span>
           </div>
-          <input
-            id="fileInput"
-            type="file"
-            accept="image/*"
-            onChange={(e) => onFileSelect(e.target.files?.[0])}
-          />
+          <h1 className="page-title">Upscaler AI</h1>
+          <p className="page-subtitle">Migliora le tue immagini con upscaling avanzato fino a 4K/8K - Completamente gratuito e locale</p>
         </div>
-      )}
 
-      {originalUrl && !upscaledUrl && (
-        <div className="controls">
-          <button className="btn-primary" onClick={handleUpscale} disabled={loading}>
-            <HiUpload className="btn-icon" />
-            {loading ? 'Upscaling…' : 'Upscale'}
-          </button>
-        </div>
-      )}
-
-      <div className="status">{status}</div>
-
-      {originalUrl && upscaledUrl && (
-        <div className="result">
-          <div ref={sliderRef} className="slider" role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(sliderPos)}>
-            <img src={originalUrl} alt="Originale" />
-            <div className="badge left">Originale</div>
-            <div
-              className="clip"
-              style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
-            >
-              <img src={upscaledUrl} alt="Upscalata" />
+        {!originalUrl && (
+          <div
+            id="dropzone"
+            className="dropzone"
+            onDrop={onDrop}
+            onDragOver={(e) => e.preventDefault()}
+          >
+            <div className="dropzone-content">
+              <HiPhotograph className="dropzone-icon" />
+              <p className="dropzone-text">Trascina qui la tua immagine o clicca per selezionare</p>
+              <div className="file-formats">JPG, PNG, WebP supportati</div>
             </div>
-            <div className="divider" style={{ left: `${sliderPos}%`, transform: 'translateX(-50%)' }}>
-              <div className="handle">↔</div>
-            </div>
-            <div className="badge right">Upscalata 2x</div>
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/*"
+              onChange={(e) => onFileSelect(e.target.files?.[0])}
+            />
           </div>
-          <div className="download-actions">
-            <button onClick={handleDownload} className="btn-download">
-              <HiDownload className="btn-icon" />
-              Download
+        )}
+
+        {originalUrl && !upscaledUrl && (
+          <div className="controls">
+            <button className="btn-primary" onClick={handleUpscale} disabled={loading}>
+              <HiUpload className="btn-icon" />
+              {loading ? 'Upscaling…' : 'Upscale'}
             </button>
-            <a href={upscaledUrl} target="_blank" rel="noreferrer" className="open-link">Apri a piena risoluzione</a>
           </div>
-        </div>
-      )}
+        )}
+
+        <div className="status">{status}</div>
+
+        {originalUrl && upscaledUrl && (
+          <div className="result">
+            <div ref={sliderRef} className="slider" role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(sliderPos)}>
+              <img src={originalUrl} alt="Originale" />
+              <div className="badge left">Originale</div>
+              <div
+                className="clip"
+                style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
+              >
+                <img src={upscaledUrl} alt="Upscalata" />
+              </div>
+              <div className="divider" style={{ left: `${sliderPos}%`, transform: 'translateX(-50%)' }}>
+                <div className="handle">↔</div>
+              </div>
+              <div className="badge right">Upscalata 2x</div>
+            </div>
+            <div className="download-actions">
+              <button onClick={handleDownload} className="btn-download">
+                <HiDownload className="btn-icon" />
+                Download
+              </button>
+              <a href={upscaledUrl} target="_blank" rel="noreferrer" className="open-link">Apri a piena risoluzione</a>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

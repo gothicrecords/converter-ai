@@ -29,40 +29,40 @@ const Navbar = () => {
     // refs for dropdown buttons
     const buttonRefs = useRef({});
     const closeTimeoutRef = useRef(null);
-    
+
     // Safe client-side mobile detection with throttling
     useEffect(() => {
         if (typeof window === 'undefined') return;
-        
+
         const checkMobile = () => {
             const width = window.innerWidth;
             const isMobileWidth = width <= 768;
             setIsMobile(isMobileWidth);
-            
+
             // Se non è mobile, chiudi i menu
             if (!isMobileWidth) {
                 setMobileMenuOpen(false);
                 setMobileSecondaryMenuOpen(false);
             }
         };
-        
+
         // Check immediately
         checkMobile();
-        
+
         // Throttle resize events for better performance
         let resizeTimeout;
         const handleResize = () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(checkMobile, 150);
         };
-        
+
         window.addEventListener('resize', handleResize, { passive: true });
         return () => {
             window.removeEventListener('resize', handleResize);
             clearTimeout(resizeTimeout);
         };
     }, []);
-    
+
     useEffect(() => {
         if (!isMobile) {
             setMobileMenuOpen(false);
@@ -74,17 +74,17 @@ const Navbar = () => {
     // Prevent body scroll when mobile menu is open
     useEffect(() => {
         if (typeof document === 'undefined') return;
-        
+
         if (mobileMenuOpen || mobileSecondaryMenuOpen) {
             // Prevent scroll
             const originalOverflow = document.body.style.overflow;
             const originalPosition = document.body.style.position;
             const originalWidth = document.body.style.width;
-            
+
             document.body.style.overflow = 'hidden';
             document.body.style.position = 'fixed';
             document.body.style.width = '100%';
-            
+
             return () => {
                 // Restore scroll on cleanup
                 document.body.style.overflow = originalOverflow;
@@ -96,7 +96,7 @@ const Navbar = () => {
 
     useEffect(() => {
         if (typeof window === 'undefined' || typeof document === 'undefined') return;
-        
+
         // Throttle scroll handler for better performance
         const handleScroll = throttle(() => {
             setScrolled(window.scrollY > 50);
@@ -126,7 +126,7 @@ const Navbar = () => {
     const categories = useMemo(() => {
         // Combine AI tools and conversion tools - categorizzazione migliorata
         const conversionToolsByCat = getToolsByCategory();
-        
+
         // Unisco categorie simili per semplificare la navbar
         const pdfAndDocs = [
             ...tools.filter(t => t.category === 'PDF' || t.category === 'Testo'),
@@ -134,48 +134,27 @@ const Navbar = () => {
             ...(conversionToolsByCat['Presentation'] || []),
             ...(conversionToolsByCat['Spreadsheet'] || [])
         ];
-        
-        const mediaTools = [
-            ...(conversionToolsByCat['Video'] || []),
-            ...(conversionToolsByCat['Audio'] || [])
-        ];
-        
-        // Categorizzazione semplificata e intuitiva
+
+        // ONLY KEEP DOCUMENTS & PDF AS REQUESTED
         const allCategories = {
-            'AI & Immagini': [
-                ...tools.filter(t => t.category === 'Immagini'),
-                ...(conversionToolsByCat['Image'] || [])
-            ],
-            'Documenti & PDF': pdfAndDocs,
-            'Video & Audio': [
-                ...tools.filter(t => t.category === 'Video' || t.category === 'Audio'),
-                ...mediaTools
-            ],
-            'Grafica': [
-                ...(conversionToolsByCat['Vector'] || []),
-                ...(conversionToolsByCat['Font'] || [])
-            ],
-            'Archivi & Ebook': [
-                ...(conversionToolsByCat['Archive'] || []),
-                ...(conversionToolsByCat['Ebook'] || [])
-            ]
+            'Documenti & PDF': pdfAndDocs
         };
-        
+
         // Ordina i tool all'interno di ogni categoria: prima AI/Pro, poi gli altri
         Object.keys(allCategories).forEach(cat => {
             allCategories[cat].sort((a, b) => {
                 // Prima i tool AI/Pro
                 const aIsPro = a.pro === true || a.href?.includes('ai') || a.href?.includes('upscaler');
                 const bIsPro = b.pro === true || b.href?.includes('ai') || b.href?.includes('upscaler');
-                
+
                 if (aIsPro && !bIsPro) return -1;
                 if (!aIsPro && bIsPro) return 1;
-                
+
                 // Poi ordina alfabeticamente
                 return (a.title || '').localeCompare(b.title || '');
             });
         });
-        
+
         // Filtra categorie vuote
         return Object.fromEntries(
             Object.entries(allCategories).filter(([_, tools]) => tools && tools.length > 0)
@@ -596,444 +575,444 @@ const Navbar = () => {
             `}</style>
             <nav style={styles.navbar} ref={navRef} suppressHydrationWarning>
                 <div style={styles.navContent}>
-                {/* Logo */}
-                <Link href="/" style={styles.navLogo}>
-                    <svg width={scrolled ? "28" : "32"} height={scrolled ? "28" : "32"} viewBox="0 0 40 40" fill="none" style={{transition: 'all 0.3s'}}>
-                        {/* Background gradient circle */}
-                        <defs>
-                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style={{stopColor: '#667eea', stopOpacity: 1}} />
-                                <stop offset="100%" style={{stopColor: '#764ba2', stopOpacity: 1}} />
-                            </linearGradient>
-                            <filter id="glow">
-                                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                                <feMerge>
-                                    <feMergeNode in="coloredBlur"/>
-                                    <feMergeNode in="SourceGraphic"/>
-                                </feMerge>
-                            </filter>
-                        </defs>
-                        
-                        {/* Outer hexagon frame */}
-                        <path d="M20 2 L34 10 L34 26 L20 34 L6 26 L6 10 Z" 
-                              stroke="url(#logoGradient)" 
-                              strokeWidth="1.5" 
-                              fill="none"
-                              opacity="0.6"/>
-                        
-                        {/* Inner pixel grid representing "Mega Pixel" */}
-                        <rect x="14" y="12" width="4" height="4" fill="url(#logoGradient)" opacity="0.9"/>
-                        <rect x="22" y="12" width="4" height="4" fill="url(#logoGradient)" opacity="0.7"/>
-                        <rect x="14" y="18" width="4" height="4" fill="url(#logoGradient)" opacity="0.8"/>
-                        <rect x="22" y="18" width="4" height="4" fill="url(#logoGradient)" opacity="1" filter="url(#glow)"/>
-                        <rect x="14" y="24" width="4" height="4" fill="url(#logoGradient)" opacity="0.7"/>
-                        <rect x="22" y="24" width="4" height="4" fill="url(#logoGradient)" opacity="0.6"/>
-                        
-                        {/* AI neural network nodes */}
-                        <circle cx="10" cy="10" r="1.5" fill="#667eea" opacity="0.8"/>
-                        <circle cx="30" cy="10" r="1.5" fill="#764ba2" opacity="0.8"/>
-                        <circle cx="10" cy="30" r="1.5" fill="#764ba2" opacity="0.8"/>
-                        <circle cx="30" cy="30" r="1.5" fill="#667eea" opacity="0.8"/>
-                        
-                        {/* Connection lines representing AI */}
-                        <line x1="10" y1="10" x2="18" y2="14" stroke="#667eea" strokeWidth="0.5" opacity="0.4"/>
-                        <line x1="30" y1="10" x2="26" y2="14" stroke="#764ba2" strokeWidth="0.5" opacity="0.4"/>
-                        <line x1="10" y1="30" x2="18" y2="26" stroke="#764ba2" strokeWidth="0.5" opacity="0.4"/>
-                        <line x1="30" y1="30" x2="26" y2="26" stroke="#667eea" strokeWidth="0.5" opacity="0.4"/>
-                    </svg>
-                    <div style={styles.logoText}>
-                        <span style={styles.logoMain}>MegaPixelAI</span>
-                        <span style={styles.logoSub}>ToolSuite</span>
-                    </div>
-                </Link>
+                    {/* Logo */}
+                    <Link href="/" style={styles.navLogo}>
+                        <svg width={scrolled ? "28" : "32"} height={scrolled ? "28" : "32"} viewBox="0 0 40 40" fill="none" style={{ transition: 'all 0.3s' }}>
+                            {/* Background gradient circle */}
+                            <defs>
+                                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style={{ stopColor: '#667eea', stopOpacity: 1 }} />
+                                    <stop offset="100%" style={{ stopColor: '#764ba2', stopOpacity: 1 }} />
+                                </linearGradient>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur" />
+                                        <feMergeNode in="SourceGraphic" />
+                                    </feMerge>
+                                </filter>
+                            </defs>
 
-                <div style={styles.navMenu}>
-                    <Link 
-                        href="/tools" 
-                        style={{
-                            ...styles.dropdownBtn,
-                            background: hoveredItem === 'tools' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
-                            textDecoration: 'none'
-                        }}
-                        onMouseEnter={() => setHoveredItem('tools')}
-                        onMouseLeave={() => setHoveredItem(null)}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            router.push('/tools');
-                        }}
-                    >
-                        Tutti i Tool
-                    </Link>
+                            {/* Outer hexagon frame */}
+                            <path d="M20 2 L34 10 L34 26 L20 34 L6 26 L6 10 Z"
+                                stroke="url(#logoGradient)"
+                                strokeWidth="1.5"
+                                fill="none"
+                                opacity="0.6" />
 
-                    {Object.keys(categories).map(catName => {
-                        const isOpen = dropdownOpen === catName;
-                        return (
-                        <div
-                            key={catName}
-                            style={styles.dropdown}
-                            onMouseEnter={() => handleDropdownEnter(catName)}
-                            onMouseLeave={handleDropdownLeave}
-                        >
-                            <button
-                                style={{
-                                    ...styles.dropdownBtn,
-                                    background: hoveredItem === `cat-${catName}` || isOpen ? 'rgba(102, 126, 234, 0.15)' : 'transparent'
-                                }}
-                                ref={(el) => {
-                                    if (el) buttonRefs.current[catName] = el;
-                                }}
-                                onClick={() => setDropdownOpen(isOpen ? null : catName)}
-                                onMouseEnter={() => setHoveredItem(`cat-${catName}`)}
-                                onMouseLeave={() => setHoveredItem(null)}
-                            >
-                                {catName}
-                                <BsChevronDown 
-                                    style={{ 
-                                        marginLeft: '6px',
-                                        width: '14px',
-                                        height: '14px',
-                                        transition: 'transform 0.3s ease',
-                                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                                        opacity: 0.8
-                                    }} 
-                                />
-                            </button>
-                            {isOpen && buttonRefs.current[catName] && (
-                                <DropdownPortal
-                                    anchorEl={buttonRefs.current[catName]}
-                                    open={isOpen}
-                                    onClose={() => setDropdownOpen(null)}
-                                >
-                                    <div 
-                                        className="dropdown-menu-scroll"
-                                        style={{ ...styles.dropdownMenu, maxWidth: 'calc(100vw - 32px)' }}
-                                        onWheel={(e) => {
-                                            e.stopPropagation();
-                                        }}
-                                    >
-                                    {/* Mostra i tool ordinati (AI/Pro prima) */}
-                                    {categories[catName].slice(0, 20).map((tool, index) => {
-                                        // Aggiungi separatore visivo dopo i tool AI/Pro se necessario
-                                        const isPro = tool.pro === true || tool.href?.includes('ai') || tool.href?.includes('upscaler');
-                                        const nextTool = categories[catName][index + 1];
-                                        const nextIsPro = nextTool && (nextTool.pro === true || nextTool.href?.includes('ai') || nextTool.href?.includes('upscaler'));
-                                        const showSeparator = isPro && !nextIsPro && index < categories[catName].length - 1 && index < 19;
-                                        
-                                        return (
-                                            <React.Fragment key={tool.href}>
-                                                <div
-                                                    style={{
-                                                        ...styles.dropdownItem,
-                                                        background: hoveredItem === `item-${tool.href}` ? 'rgba(102, 126, 234, 0.2)' : 'transparent',
-                                                        cursor: 'pointer'
-                                                    }}
-                                                    onClick={(e) => {
-                                                        // Non fermare la propagazione per permettere la navigazione
-                                                        if (closeTimeoutRef.current) {
-                                                            clearTimeout(closeTimeoutRef.current);
-                                                        }
-                                                        setDropdownOpen(null);
-                                                        setHoveredItem(null);
-                                                        // Naviga usando router.push
-                                                        if (tool.href) {
-                                                            router.push(tool.href);
-                                                        }
-                                                    }}
-                                                    onMouseDown={(e) => {
-                                                        // Previeni la chiusura del dropdown quando si clicca
-                                                        e.stopPropagation();
-                                                    }}
-                                                    onMouseEnter={() => setHoveredItem(`item-${tool.href}`)}
-                                                    onMouseLeave={() => setHoveredItem(null)}
-                                                >
-                                                    {tool.icon && <tool.icon style={{ width: 18, height: 18, flexShrink: 0 }} />}
-                                                    <span style={{ flex: 1, minWidth: 0 }}>{tool.title}</span>
-                                                    {tool.pro && (
-                                                        <span style={{
-                                                            fontSize: '10px',
-                                                            padding: '2px 6px',
-                                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                                            borderRadius: '4px',
-                                                            fontWeight: '600',
-                                                            color: '#fff',
-                                                            textTransform: 'uppercase',
-                                                            letterSpacing: '0.5px'
-                                                        }}>
-                                                            PRO
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                {showSeparator && (
-                                                    <div style={{
-                                                        height: '1px',
-                                                        background: 'rgba(102, 126, 234, 0.2)',
-                                                        margin: '8px 0',
-                                                        marginLeft: '16px',
-                                                        marginRight: '16px'
-                                                    }} />
-                                                )}
-                                            </React.Fragment>
-                                        );
-                                    })}
-                                    {categories[catName].length > 20 && (
-                                        <Link
-                                            href="/tools"
-                                            style={{
-                                                ...styles.dropdownItem,
-                                                background: 'rgba(102, 126, 234, 0.1)',
-                                                fontWeight: '600',
-                                                justifyContent: 'center',
-                                                marginTop: '8px',
-                                                borderTop: '1px solid rgba(102, 126, 234, 0.2)',
-                                                paddingTop: '16px'
-                                            }}
-                                        >
-                                            <span>Vedi tutti ({categories[catName].length})</span>
-                                            <BsChevronRight style={{ marginLeft: '8px', width: '14px', height: '14px' }} />
-                                        </Link>
-                                    )}
-                                    </div>
-                                </DropdownPortal>
-                            )}
+                            {/* Inner pixel grid representing "Mega Pixel" */}
+                            <rect x="14" y="12" width="4" height="4" fill="url(#logoGradient)" opacity="0.9" />
+                            <rect x="22" y="12" width="4" height="4" fill="url(#logoGradient)" opacity="0.7" />
+                            <rect x="14" y="18" width="4" height="4" fill="url(#logoGradient)" opacity="0.8" />
+                            <rect x="22" y="18" width="4" height="4" fill="url(#logoGradient)" opacity="1" filter="url(#glow)" />
+                            <rect x="14" y="24" width="4" height="4" fill="url(#logoGradient)" opacity="0.7" />
+                            <rect x="22" y="24" width="4" height="4" fill="url(#logoGradient)" opacity="0.6" />
+
+                            {/* AI neural network nodes */}
+                            <circle cx="10" cy="10" r="1.5" fill="#667eea" opacity="0.8" />
+                            <circle cx="30" cy="10" r="1.5" fill="#764ba2" opacity="0.8" />
+                            <circle cx="10" cy="30" r="1.5" fill="#764ba2" opacity="0.8" />
+                            <circle cx="30" cy="30" r="1.5" fill="#667eea" opacity="0.8" />
+
+                            {/* Connection lines representing AI */}
+                            <line x1="10" y1="10" x2="18" y2="14" stroke="#667eea" strokeWidth="0.5" opacity="0.4" />
+                            <line x1="30" y1="10" x2="26" y2="14" stroke="#764ba2" strokeWidth="0.5" opacity="0.4" />
+                            <line x1="10" y1="30" x2="18" y2="26" stroke="#764ba2" strokeWidth="0.5" opacity="0.4" />
+                            <line x1="30" y1="30" x2="26" y2="26" stroke="#667eea" strokeWidth="0.5" opacity="0.4" />
+                        </svg>
+                        <div style={styles.logoText}>
+                            <span style={styles.logoMain}>MegaPixelAI</span>
+                            <span style={styles.logoSub}>ToolSuite</span>
                         </div>
-                    );
-                    })}
-                    
-                    <Link 
-                        href="/pricing" 
-                        style={{
-                            ...styles.dropdownBtn,
-                            background: hoveredItem === 'pricing' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
-                            textDecoration: 'none'
-                        }}
-                        onMouseEnter={() => setHoveredItem('pricing')}
-                        onMouseLeave={() => setHoveredItem(null)}
-                    >
-                        {t('nav.pricing')}
                     </Link>
-                    
-                    <Link 
-                        href="/faq" 
-                        style={{
-                            ...styles.dropdownBtn,
-                            background: 'transparent',
-                            textDecoration: 'none'
-                        }}
-                    >
-                        FAQ
-                    </Link>
-                    
-                    <Link 
-                        href="/login" 
-                        style={{
-                            ...styles.signupBtn,
-                            backgroundImage: hoveredItem === 'login' ? 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                            textDecoration: 'none'
-                        }}
-                        onMouseEnter={() => setHoveredItem('login')}
-                        onMouseLeave={() => setHoveredItem(null)}
-                    >
-                        Accedi
-                    </Link>
-                    
-                    <LanguageSwitcher />
-                </div>
 
-                {/* Mobile buttons - show only on mobile */}
-                {isMobile && (
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <button 
-                            style={styles.hamburgerBtn}
-                            onClick={() => {
-                                setMobileMenuOpen(!mobileMenuOpen);
-                                setMobileSecondaryMenuOpen(false);
+                    <div style={styles.navMenu}>
+                        <Link
+                            href="/tools"
+                            style={{
+                                ...styles.dropdownBtn,
+                                background: hoveredItem === 'tools' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
+                                textDecoration: 'none'
                             }}
-                            aria-label="Apri menu"
-                            title="Apri menu"
-                        >
-                            <HiMenu />
-                        </button>
-                        
-                        <button 
-                            style={styles.secondaryMenuBtn}
-                            onClick={() => {
-                                setMobileSecondaryMenuOpen(!mobileSecondaryMenuOpen);
-                                setMobileMenuOpen(false);
-                            }}
-                            aria-label="Apri menu secondario"
-                            title="Apri menu secondario"
-                        >
-                            <HiDotsVertical />
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            {/* Overlay per chiudere menu mobile */}
-            {isMobile && (mobileMenuOpen || mobileSecondaryMenuOpen) && (
-                <div 
-                    style={styles.mobileOverlay}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setMobileMenuOpen(false);
-                        setMobileSecondaryMenuOpen(false);
-                    }}
-                    onTouchStart={(e) => {
-                        e.stopPropagation();
-                        setMobileMenuOpen(false);
-                        setMobileSecondaryMenuOpen(false);
-                    }}
-                />
-            )}
-
-            {/* Mobile menu principale (categorie e strumenti) */}
-            {isMobile && (
-                <div 
-                    style={styles.mobileMenu}
-                    onClick={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                >
-                    <div style={styles.mobileMenuHeader}>
-                        <h3 style={styles.mobileMenuTitle}>Menu</h3>
-                        <button 
-                            style={styles.closeBtn}
+                            onMouseEnter={() => setHoveredItem('tools')}
+                            onMouseLeave={() => setHoveredItem(null)}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                setMobileMenuOpen(false);
+                                router.push('/tools');
                             }}
-                            onTouchEnd={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setMobileMenuOpen(false);
-                            }}
-                            aria-label="Chiudi menu"
-                            title="Chiudi menu"
                         >
-                            <HiX />
-                        </button>
+                            Tutti i Tool
+                        </Link>
+
+                        {Object.keys(categories).map(catName => {
+                            const isOpen = dropdownOpen === catName;
+                            return (
+                                <div
+                                    key={catName}
+                                    style={styles.dropdown}
+                                    onMouseEnter={() => handleDropdownEnter(catName)}
+                                    onMouseLeave={handleDropdownLeave}
+                                >
+                                    <button
+                                        style={{
+                                            ...styles.dropdownBtn,
+                                            background: hoveredItem === `cat-${catName}` || isOpen ? 'rgba(102, 126, 234, 0.15)' : 'transparent'
+                                        }}
+                                        ref={(el) => {
+                                            if (el) buttonRefs.current[catName] = el;
+                                        }}
+                                        onClick={() => setDropdownOpen(isOpen ? null : catName)}
+                                        onMouseEnter={() => setHoveredItem(`cat-${catName}`)}
+                                        onMouseLeave={() => setHoveredItem(null)}
+                                    >
+                                        {catName}
+                                        <BsChevronDown
+                                            style={{
+                                                marginLeft: '6px',
+                                                width: '14px',
+                                                height: '14px',
+                                                transition: 'transform 0.3s ease',
+                                                transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                                opacity: 0.8
+                                            }}
+                                        />
+                                    </button>
+                                    {isOpen && buttonRefs.current[catName] && (
+                                        <DropdownPortal
+                                            anchorEl={buttonRefs.current[catName]}
+                                            open={isOpen}
+                                            onClose={() => setDropdownOpen(null)}
+                                        >
+                                            <div
+                                                className="dropdown-menu-scroll"
+                                                style={{ ...styles.dropdownMenu, maxWidth: 'calc(100vw - 32px)' }}
+                                                onWheel={(e) => {
+                                                    e.stopPropagation();
+                                                }}
+                                            >
+                                                {/* Mostra i tool ordinati (AI/Pro prima) */}
+                                                {categories[catName].slice(0, 20).map((tool, index) => {
+                                                    // Aggiungi separatore visivo dopo i tool AI/Pro se necessario
+                                                    const isPro = tool.pro === true || tool.href?.includes('ai') || tool.href?.includes('upscaler');
+                                                    const nextTool = categories[catName][index + 1];
+                                                    const nextIsPro = nextTool && (nextTool.pro === true || nextTool.href?.includes('ai') || nextTool.href?.includes('upscaler'));
+                                                    const showSeparator = isPro && !nextIsPro && index < categories[catName].length - 1 && index < 19;
+
+                                                    return (
+                                                        <React.Fragment key={tool.href}>
+                                                            <div
+                                                                style={{
+                                                                    ...styles.dropdownItem,
+                                                                    background: hoveredItem === `item-${tool.href}` ? 'rgba(102, 126, 234, 0.2)' : 'transparent',
+                                                                    cursor: 'pointer'
+                                                                }}
+                                                                onClick={(e) => {
+                                                                    // Non fermare la propagazione per permettere la navigazione
+                                                                    if (closeTimeoutRef.current) {
+                                                                        clearTimeout(closeTimeoutRef.current);
+                                                                    }
+                                                                    setDropdownOpen(null);
+                                                                    setHoveredItem(null);
+                                                                    // Naviga usando router.push
+                                                                    if (tool.href) {
+                                                                        router.push(tool.href);
+                                                                    }
+                                                                }}
+                                                                onMouseDown={(e) => {
+                                                                    // Previeni la chiusura del dropdown quando si clicca
+                                                                    e.stopPropagation();
+                                                                }}
+                                                                onMouseEnter={() => setHoveredItem(`item-${tool.href}`)}
+                                                                onMouseLeave={() => setHoveredItem(null)}
+                                                            >
+                                                                {tool.icon && <tool.icon style={{ width: 18, height: 18, flexShrink: 0 }} />}
+                                                                <span style={{ flex: 1, minWidth: 0 }}>{tool.title}</span>
+                                                                {tool.pro && (
+                                                                    <span style={{
+                                                                        fontSize: '10px',
+                                                                        padding: '2px 6px',
+                                                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                                        borderRadius: '4px',
+                                                                        fontWeight: '600',
+                                                                        color: '#fff',
+                                                                        textTransform: 'uppercase',
+                                                                        letterSpacing: '0.5px'
+                                                                    }}>
+                                                                        PRO
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {showSeparator && (
+                                                                <div style={{
+                                                                    height: '1px',
+                                                                    background: 'rgba(102, 126, 234, 0.2)',
+                                                                    margin: '8px 0',
+                                                                    marginLeft: '16px',
+                                                                    marginRight: '16px'
+                                                                }} />
+                                                            )}
+                                                        </React.Fragment>
+                                                    );
+                                                })}
+                                                {categories[catName].length > 20 && (
+                                                    <Link
+                                                        href="/tools"
+                                                        style={{
+                                                            ...styles.dropdownItem,
+                                                            background: 'rgba(102, 126, 234, 0.1)',
+                                                            fontWeight: '600',
+                                                            justifyContent: 'center',
+                                                            marginTop: '8px',
+                                                            borderTop: '1px solid rgba(102, 126, 234, 0.2)',
+                                                            paddingTop: '16px'
+                                                        }}
+                                                    >
+                                                        <span>Vedi tutti ({categories[catName].length})</span>
+                                                        <BsChevronRight style={{ marginLeft: '8px', width: '14px', height: '14px' }} />
+                                                    </Link>
+                                                )}
+                                            </div>
+                                        </DropdownPortal>
+                                    )}
+                                </div>
+                            );
+                        })}
+
+                        <Link
+                            href="/pricing"
+                            style={{
+                                ...styles.dropdownBtn,
+                                background: hoveredItem === 'pricing' ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
+                                textDecoration: 'none'
+                            }}
+                            onMouseEnter={() => setHoveredItem('pricing')}
+                            onMouseLeave={() => setHoveredItem(null)}
+                        >
+                            {t('nav.pricing')}
+                        </Link>
+
+                        <Link
+                            href="/faq"
+                            style={{
+                                ...styles.dropdownBtn,
+                                background: 'transparent',
+                                textDecoration: 'none'
+                            }}
+                        >
+                            FAQ
+                        </Link>
+
+                        <Link
+                            href="/login"
+                            style={{
+                                ...styles.signupBtn,
+                                backgroundImage: hoveredItem === 'login' ? 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                textDecoration: 'none'
+                            }}
+                            onMouseEnter={() => setHoveredItem('login')}
+                            onMouseLeave={() => setHoveredItem(null)}
+                        >
+                            Accedi
+                        </Link>
+
+                        <LanguageSwitcher />
                     </div>
 
-                    <Link 
-                        href="/tools" 
-                        style={styles.mobileMenuItem}
+                    {/* Mobile buttons - show only on mobile */}
+                    {isMobile && (
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <button
+                                style={styles.hamburgerBtn}
+                                onClick={() => {
+                                    setMobileMenuOpen(!mobileMenuOpen);
+                                    setMobileSecondaryMenuOpen(false);
+                                }}
+                                aria-label="Apri menu"
+                                title="Apri menu"
+                            >
+                                <HiMenu />
+                            </button>
+
+                            <button
+                                style={styles.secondaryMenuBtn}
+                                onClick={() => {
+                                    setMobileSecondaryMenuOpen(!mobileSecondaryMenuOpen);
+                                    setMobileMenuOpen(false);
+                                }}
+                                aria-label="Apri menu secondario"
+                                title="Apri menu secondario"
+                            >
+                                <HiDotsVertical />
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Overlay per chiudere menu mobile */}
+                {isMobile && (mobileMenuOpen || mobileSecondaryMenuOpen) && (
+                    <div
+                        style={styles.mobileOverlay}
                         onClick={(e) => {
                             e.stopPropagation();
                             setMobileMenuOpen(false);
-                            router.push('/tools');
+                            setMobileSecondaryMenuOpen(false);
                         }}
+                        onTouchStart={(e) => {
+                            e.stopPropagation();
+                            setMobileMenuOpen(false);
+                            setMobileSecondaryMenuOpen(false);
+                        }}
+                    />
+                )}
+
+                {/* Mobile menu principale (categorie e strumenti) */}
+                {isMobile && (
+                    <div
+                        style={styles.mobileMenu}
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
                     >
-                        Tutti i Tool
-                    </Link>
-
-                    {Object.keys(categories).map(catName => (
-                        <div key={catName}>
-                            <div 
-                                style={styles.mobileCategoryHeader}
-                                onClick={() => setExpandedCategory(expandedCategory === catName ? null : catName)}
+                        <div style={styles.mobileMenuHeader}>
+                            <h3 style={styles.mobileMenuTitle}>Menu</h3>
+                            <button
+                                style={styles.closeBtn}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setMobileMenuOpen(false);
+                                }}
+                                onTouchEnd={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setMobileMenuOpen(false);
+                                }}
+                                aria-label="Chiudi menu"
+                                title="Chiudi menu"
                             >
-                                <span>{catName}</span>
-                                <BsChevronRight 
-                                    style={{ 
-                                        width: 16, 
-                                        height: 16,
-                                        transform: expandedCategory === catName ? 'rotate(90deg)' : 'rotate(0deg)',
-                                        transition: 'transform 0.3s ease'
-                                    }} 
-                                />
-                            </div>
-                            {expandedCategory === catName && categories[catName].slice(0, 15).map(tool => (
-                                <Link
-                                    key={tool.href}
-                                    href={tool.href}
-                                    style={styles.mobileDropdownItem}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    {tool.icon && <tool.icon style={{ width: 18, height: 18 }} />}
-                                    <span>{tool.title}</span>
-                                </Link>
-                            ))}
-                            {expandedCategory === catName && categories[catName].length > 15 && (
-                                <Link
-                                    href="/tools"
-                                    style={{
-                                        ...styles.mobileDropdownItem,
-                                        background: 'rgba(102, 126, 234, 0.1)',
-                                        fontWeight: '600',
-                                        justifyContent: 'center'
-                                    }}
-                                >
-                                    <span>Vedi tutti ({categories[catName].length})</span>
-                                </Link>
-                            )}
+                                <HiX />
+                            </button>
                         </div>
-                    ))}
-                </div>
-            )}
 
-            {/* Mobile menu secondario (login, pricing, faq, lingua) */}
-            {isMobile && (
-                <div 
-                    style={styles.mobileSecondaryMenu}
-                    onClick={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                >
-                    <div style={styles.mobileMenuHeader}>
-                        <h3 style={styles.mobileMenuTitle}>Account</h3>
-                        <button 
-                            style={styles.closeBtn}
+                        <Link
+                            href="/tools"
+                            style={styles.mobileMenuItem}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                setMobileSecondaryMenuOpen(false);
+                                setMobileMenuOpen(false);
+                                router.push('/tools');
                             }}
-                            onTouchEnd={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setMobileSecondaryMenuOpen(false);
-                            }}
-                            aria-label="Chiudi menu"
-                            title="Chiudi menu"
                         >
-                            <HiX />
-                        </button>
+                            Tutti i Tool
+                        </Link>
+
+                        {Object.keys(categories).map(catName => (
+                            <div key={catName}>
+                                <div
+                                    style={styles.mobileCategoryHeader}
+                                    onClick={() => setExpandedCategory(expandedCategory === catName ? null : catName)}
+                                >
+                                    <span>{catName}</span>
+                                    <BsChevronRight
+                                        style={{
+                                            width: 16,
+                                            height: 16,
+                                            transform: expandedCategory === catName ? 'rotate(90deg)' : 'rotate(0deg)',
+                                            transition: 'transform 0.3s ease'
+                                        }}
+                                    />
+                                </div>
+                                {expandedCategory === catName && categories[catName].slice(0, 15).map(tool => (
+                                    <Link
+                                        key={tool.href}
+                                        href={tool.href}
+                                        style={styles.mobileDropdownItem}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        {tool.icon && <tool.icon style={{ width: 18, height: 18 }} />}
+                                        <span>{tool.title}</span>
+                                    </Link>
+                                ))}
+                                {expandedCategory === catName && categories[catName].length > 15 && (
+                                    <Link
+                                        href="/tools"
+                                        style={{
+                                            ...styles.mobileDropdownItem,
+                                            background: 'rgba(102, 126, 234, 0.1)',
+                                            fontWeight: '600',
+                                            justifyContent: 'center'
+                                        }}
+                                    >
+                                        <span>Vedi tutti ({categories[catName].length})</span>
+                                    </Link>
+                                )}
+                            </div>
+                        ))}
                     </div>
+                )}
 
-                    <Link 
-                        href="/login" 
-                        style={{
-                            ...styles.mobileMenuItem,
-                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                            color: '#fff'
-                        }}
-                        onClick={() => setMobileSecondaryMenuOpen(false)}
+                {/* Mobile menu secondario (login, pricing, faq, lingua) */}
+                {isMobile && (
+                    <div
+                        style={styles.mobileSecondaryMenu}
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
                     >
-                        Accedi
-                    </Link>
-                    
-                    <Link 
-                        href="/pricing" 
-                        style={styles.mobileMenuItem}
-                        onClick={() => setMobileSecondaryMenuOpen(false)}
-                    >
-                        {t('nav.pricing')}
-                    </Link>
-                    
-                    <Link 
-                        href="/faq" 
-                        style={styles.mobileMenuItem}
-                        onClick={() => setMobileSecondaryMenuOpen(false)}
-                    >
-                        FAQ
-                    </Link>
-
-                    <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(102, 126, 234, 0.2)' }}>
-                        <div style={{ marginBottom: '12px', fontSize: '13px', color: '#667eea', fontWeight: '600' }}>
-                            Lingua
+                        <div style={styles.mobileMenuHeader}>
+                            <h3 style={styles.mobileMenuTitle}>Account</h3>
+                            <button
+                                style={styles.closeBtn}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setMobileSecondaryMenuOpen(false);
+                                }}
+                                onTouchEnd={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setMobileSecondaryMenuOpen(false);
+                                }}
+                                aria-label="Chiudi menu"
+                                title="Chiudi menu"
+                            >
+                                <HiX />
+                            </button>
                         </div>
-                        <LanguageSwitcher />
+
+                        <Link
+                            href="/login"
+                            style={{
+                                ...styles.mobileMenuItem,
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                color: '#fff'
+                            }}
+                            onClick={() => setMobileSecondaryMenuOpen(false)}
+                        >
+                            Accedi
+                        </Link>
+
+                        <Link
+                            href="/pricing"
+                            style={styles.mobileMenuItem}
+                            onClick={() => setMobileSecondaryMenuOpen(false)}
+                        >
+                            {t('nav.pricing')}
+                        </Link>
+
+                        <Link
+                            href="/faq"
+                            style={styles.mobileMenuItem}
+                            onClick={() => setMobileSecondaryMenuOpen(false)}
+                        >
+                            FAQ
+                        </Link>
+
+                        <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(102, 126, 234, 0.2)' }}>
+                            <div style={{ marginBottom: '12px', fontSize: '13px', color: '#667eea', fontWeight: '600' }}>
+                                Lingua
+                            </div>
+                            <LanguageSwitcher />
+                        </div>
                     </div>
-                </div>
-            )}
-        </nav>
+                )}
+            </nav>
         </>
     );
 };

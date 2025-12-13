@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { useState, useEffect, useMemo, memo, useCallback } from 'react';
-import { 
-    HiSparkles, HiLightningBolt, HiShieldCheck, HiTrendingUp, 
-    HiUsers, HiCheckCircle, HiArrowRight, HiStar 
+import {
+    HiSparkles, HiLightningBolt, HiShieldCheck, HiTrendingUp,
+    HiUsers, HiCheckCircle, HiArrowRight, HiStar
 } from 'react-icons/hi';
 import { useTranslation } from '../lib/i18n';
 import Navbar from '../components/Navbar';
@@ -19,10 +19,10 @@ const LandingPage = memo(function LandingPage() {
     // Optimized mobile detection with throttling
     useEffect(() => {
         if (typeof window === 'undefined') return;
-        
+
         const checkMobile = () => setIsMobile(window.innerWidth <= 768);
         checkMobile();
-        
+
         // Throttle resize events for better performance
         const throttledCheck = throttle(checkMobile, 150);
         window.addEventListener('resize', throttledCheck, { passive: true });
@@ -51,7 +51,7 @@ const LandingPage = memo(function LandingPage() {
     ], [t]);
 
     const styles = useMemo(() => getStyles(isMobile), [isMobile]);
-    
+
     return (
         <div style={styles.pageWrap} suppressHydrationWarning>
             <SEOHead
@@ -59,6 +59,7 @@ const LandingPage = memo(function LandingPage() {
                 description={t('seo.homeDesc') || 'Piattaforma all-in-one con oltre 300 strumenti AI: rimozione sfondo, upscaling 4K, generazione immagini, OCR, conversione PDF e molto altro. Gratis e professionale.'}
                 canonical="/"
                 keywords={['AI tools', 'image upscaler', 'background remover', 'PDF converter', 'OCR', 'strumenti AI']}
+                noIndex={true}
             />
             <Navbar />
 
@@ -156,175 +157,175 @@ export default LandingPage;
 
 const getStyles = (isMobile) => ({
     pageWrap: { minHeight: '100vh', background: '#0a0e1a', color: '#e6eef8' },
-    hero: { 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
-        padding: isMobile ? '80px 16px 50px' : '120px 24px 80px', 
-        textAlign: 'center' 
+    hero: {
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: isMobile ? '80px 16px 50px' : '120px 24px 80px',
+        textAlign: 'center'
     },
     heroContent: { display: 'flex', flexDirection: 'column', gap: isMobile ? '20px' : '24px', alignItems: 'center' },
-    heroBadge: { 
-        display: 'inline-flex', 
-        alignItems: 'center', 
-        gap: '8px', 
-        padding: isMobile ? '6px 12px' : '8px 16px', 
-        background: 'rgba(102, 126, 234, 0.15)', 
-        border: '1px solid rgba(102, 126, 234, 0.3)', 
-        borderRadius: '24px', 
-        color: '#667eea', 
-        fontSize: isMobile ? '12px' : '14px', 
-        fontWeight: '600' 
+    heroBadge: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: isMobile ? '6px 12px' : '8px 16px',
+        background: 'rgba(102, 126, 234, 0.15)',
+        border: '1px solid rgba(102, 126, 234, 0.3)',
+        borderRadius: '24px',
+        color: '#667eea',
+        fontSize: isMobile ? '12px' : '14px',
+        fontWeight: '600'
     },
-    heroTitle: { 
-        fontSize: isMobile ? 'clamp(28px, 8vw, 40px)' : 'clamp(32px, 6vw, 56px)', 
-        fontWeight: '900', 
-        lineHeight: '1.1', 
-        margin: 0, 
-        letterSpacing: '-0.02em', 
+    heroTitle: {
+        fontSize: isMobile ? 'clamp(28px, 8vw, 40px)' : 'clamp(32px, 6vw, 56px)',
+        fontWeight: '900',
+        lineHeight: '1.1',
+        margin: 0,
+        letterSpacing: '-0.02em',
         maxWidth: '900px',
         padding: isMobile ? '0 8px' : '0'
     },
     gradient: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' },
-    heroSubtitle: { 
-        fontSize: isMobile ? '15px' : '18px', 
-        color: '#94a3b8', 
-        lineHeight: '1.6', 
-        margin: 0, 
+    heroSubtitle: {
+        fontSize: isMobile ? '15px' : '18px',
+        color: '#94a3b8',
+        lineHeight: '1.6',
+        margin: 0,
         maxWidth: '700px',
         padding: isMobile ? '0 16px' : '0'
     },
-    heroCta: { 
-        display: 'flex', 
-        gap: isMobile ? '12px' : '16px', 
-        marginTop: '16px', 
-        flexWrap: 'wrap', 
+    heroCta: {
+        display: 'flex',
+        gap: isMobile ? '12px' : '16px',
+        marginTop: '16px',
+        flexWrap: 'wrap',
         justifyContent: 'center',
         width: isMobile ? '100%' : 'auto',
         padding: isMobile ? '0 16px' : '0'
     },
-    ctaPrimary: { 
-        padding: isMobile ? '12px 24px' : '14px 32px', 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-        border: 'none', 
-        borderRadius: '12px', 
-        color: '#ffffff', 
-        fontSize: isMobile ? '14px' : '16px', 
-        fontWeight: '600', 
-        cursor: 'pointer', 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: '8px', 
-        textDecoration: 'none', 
+    ctaPrimary: {
+        padding: isMobile ? '12px 24px' : '14px 32px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        border: 'none',
+        borderRadius: '12px',
+        color: '#ffffff',
+        fontSize: isMobile ? '14px' : '16px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        textDecoration: 'none',
         transition: 'transform 0.2s',
         width: isMobile ? '100%' : 'auto',
         justifyContent: 'center',
         WebkitTapHighlightColor: 'transparent',
         touchAction: 'manipulation'
     },
-    ctaSecondary: { 
-        padding: isMobile ? '12px 24px' : '14px 32px', 
-        background: 'rgba(102, 126, 234, 0.1)', 
-        border: '1px solid rgba(102, 126, 234, 0.3)', 
-        borderRadius: '12px', 
-        color: '#cbd5e1', 
-        fontSize: isMobile ? '14px' : '16px', 
-        fontWeight: '600', 
-        cursor: 'pointer', 
-        textDecoration: 'none', 
+    ctaSecondary: {
+        padding: isMobile ? '12px 24px' : '14px 32px',
+        background: 'rgba(102, 126, 234, 0.1)',
+        border: '1px solid rgba(102, 126, 234, 0.3)',
+        borderRadius: '12px',
+        color: '#cbd5e1',
+        fontSize: isMobile ? '14px' : '16px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        textDecoration: 'none',
         transition: 'all 0.2s',
         width: isMobile ? '100%' : 'auto',
         textAlign: 'center',
         WebkitTapHighlightColor: 'transparent',
         touchAction: 'manipulation'
     },
-    heroStats: { 
-        display: 'grid', 
-        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(120px, 1fr))', 
-        gap: isMobile ? '16px' : '24px', 
-        marginTop: isMobile ? '24px' : '32px', 
-        paddingTop: isMobile ? '24px' : '32px', 
-        borderTop: '1px solid rgba(148, 163, 184, 0.2)', 
-        maxWidth: '800px', 
+    heroStats: {
+        display: 'grid',
+        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(120px, 1fr))',
+        gap: isMobile ? '16px' : '24px',
+        marginTop: isMobile ? '24px' : '32px',
+        paddingTop: isMobile ? '24px' : '32px',
+        borderTop: '1px solid rgba(148, 163, 184, 0.2)',
+        maxWidth: '800px',
         width: '100%',
         padding: isMobile ? '24px 16px 0' : '32px 0 0'
     },
     statItem: { textAlign: 'center' },
     statValue: { fontSize: isMobile ? '24px' : '28px', fontWeight: '800', color: '#667eea', marginBottom: '4px' },
     statLabel: { fontSize: isMobile ? '11px' : '13px', color: '#94a3b8', fontWeight: '500' },
-    features: { 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
-        padding: isMobile ? '50px 16px' : '80px 24px' 
+    features: {
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: isMobile ? '50px 16px' : '80px 24px'
     },
-    sectionHeader: { 
-        textAlign: 'center', 
-        marginBottom: isMobile ? '40px' : '60px' 
+    sectionHeader: {
+        textAlign: 'center',
+        marginBottom: isMobile ? '40px' : '60px'
     },
-    sectionTitle: { 
-        fontSize: isMobile ? 'clamp(24px, 6vw, 32px)' : 'clamp(28px, 5vw, 42px)', 
-        fontWeight: '800', 
-        margin: '0 0 16px', 
+    sectionTitle: {
+        fontSize: isMobile ? 'clamp(24px, 6vw, 32px)' : 'clamp(28px, 5vw, 42px)',
+        fontWeight: '800',
+        margin: '0 0 16px',
         letterSpacing: '-0.02em',
         padding: isMobile ? '0 16px' : '0'
     },
-    sectionSubtitle: { 
-        fontSize: isMobile ? '15px' : '18px', 
-        color: '#94a3b8', 
+    sectionSubtitle: {
+        fontSize: isMobile ? '15px' : '18px',
+        color: '#94a3b8',
         margin: 0,
         padding: isMobile ? '0 16px' : '0'
     },
-    featuresGrid: { 
-        display: 'grid', 
-        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(260px, 1fr))', 
-        gap: isMobile ? '20px' : '32px' 
+    featuresGrid: {
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(260px, 1fr))',
+        gap: isMobile ? '20px' : '32px'
     },
-    featureCard: { 
-        padding: isMobile ? '24px 20px' : '32px', 
-        background: 'rgba(102, 126, 234, 0.05)', 
-        border: '1px solid rgba(102, 126, 234, 0.2)', 
-        borderRadius: '16px', 
-        transition: 'all 0.3s' 
+    featureCard: {
+        padding: isMobile ? '24px 20px' : '32px',
+        background: 'rgba(102, 126, 234, 0.05)',
+        border: '1px solid rgba(102, 126, 234, 0.2)',
+        borderRadius: '16px',
+        transition: 'all 0.3s'
     },
-    featureIcon: { 
-        width: isMobile ? '56px' : '64px', 
-        height: isMobile ? '56px' : '64px', 
-        background: 'rgba(102, 126, 234, 0.15)', 
-        borderRadius: '16px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        color: '#667eea', 
-        marginBottom: isMobile ? '16px' : '20px' 
+    featureIcon: {
+        width: isMobile ? '56px' : '64px',
+        height: isMobile ? '56px' : '64px',
+        background: 'rgba(102, 126, 234, 0.15)',
+        borderRadius: '16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#667eea',
+        marginBottom: isMobile ? '16px' : '20px'
     },
-    featureTitle: { 
-        fontSize: isMobile ? '18px' : '20px', 
-        fontWeight: '700', 
-        margin: '0 0 12px', 
-        color: '#e2e8f0' 
+    featureTitle: {
+        fontSize: isMobile ? '18px' : '20px',
+        fontWeight: '700',
+        margin: '0 0 12px',
+        color: '#e2e8f0'
     },
-    featureDesc: { 
-        fontSize: isMobile ? '14px' : '15px', 
-        color: '#94a3b8', 
-        lineHeight: '1.6', 
-        margin: 0 
+    featureDesc: {
+        fontSize: isMobile ? '14px' : '15px',
+        color: '#94a3b8',
+        lineHeight: '1.6',
+        margin: 0
     },
-    toolsSection: { 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
-        padding: isMobile ? '50px 16px' : '80px 24px' 
+    toolsSection: {
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: isMobile ? '50px 16px' : '80px 24px'
     },
-    toolsGrid: { 
-        display: 'grid', 
-        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))', 
-        gap: isMobile ? '16px' : '24px' 
+    toolsGrid: {
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))',
+        gap: isMobile ? '16px' : '24px'
     },
-    toolCard: { 
-        position: 'relative', 
-        padding: '24px', 
-        background: 'rgba(30, 41, 59, 0.5)', 
-        border: '1px solid rgba(102, 126, 234, 0.2)', 
-        borderRadius: '12px', 
-        textDecoration: 'none', 
+    toolCard: {
+        position: 'relative',
+        padding: '24px',
+        background: 'rgba(30, 41, 59, 0.5)',
+        border: '1px solid rgba(102, 126, 234, 0.2)',
+        borderRadius: '12px',
+        textDecoration: 'none',
         transition: 'all 0.3s ease',
         display: 'flex',
         flexDirection: 'column',
@@ -374,93 +375,93 @@ const getStyles = (isMobile) => ({
         textAlign: 'left',
         flex: 1
     },
-    toolArrow: { 
-        display: 'flex', 
-        alignItems: 'center', 
+    toolArrow: {
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'flex-end',
         width: '100%',
         color: '#667eea',
         marginTop: 'auto'
     },
     enterpriseFooter: { textAlign: 'center', padding: '32px 24px', background: 'rgba(15, 23, 42, 0.5)', borderTop: '1px solid rgba(255, 255, 255, 0.05)', color: '#cbd5e1' },
-    testimonials: { 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
-        padding: isMobile ? '50px 16px' : '80px 24px' 
+    testimonials: {
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: isMobile ? '50px 16px' : '80px 24px'
     },
-    testimonialsGrid: { 
-        display: 'grid', 
-        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))', 
-        gap: isMobile ? '20px' : '32px' 
+    testimonialsGrid: {
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: isMobile ? '20px' : '32px'
     },
-    testimonialCard: { 
-        padding: isMobile ? '24px 20px' : '32px', 
-        background: 'rgba(102, 126, 234, 0.05)', 
-        border: '1px solid rgba(102, 126, 234, 0.2)', 
-        borderRadius: '16px' 
+    testimonialCard: {
+        padding: isMobile ? '24px 20px' : '32px',
+        background: 'rgba(102, 126, 234, 0.05)',
+        border: '1px solid rgba(102, 126, 234, 0.2)',
+        borderRadius: '16px'
     },
     testimonialRating: { display: 'flex', gap: '4px', marginBottom: '16px' },
-    testimonialText: { 
-        fontSize: isMobile ? '14px' : '15px', 
-        color: '#cbd5e1', 
-        lineHeight: '1.6', 
-        marginBottom: isMobile ? '20px' : '24px', 
-        fontStyle: 'italic' 
+    testimonialText: {
+        fontSize: isMobile ? '14px' : '15px',
+        color: '#cbd5e1',
+        lineHeight: '1.6',
+        marginBottom: isMobile ? '20px' : '24px',
+        fontStyle: 'italic'
     },
     testimonialAuthor: { display: 'flex', alignItems: 'center', gap: '12px' },
-    testimonialAvatar: { 
-        width: isMobile ? '40px' : '48px', 
-        height: isMobile ? '40px' : '48px', 
-        borderRadius: '50%', 
-        background: 'rgba(102, 126, 234, 0.2)', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        fontSize: isMobile ? '20px' : '24px' 
+    testimonialAvatar: {
+        width: isMobile ? '40px' : '48px',
+        height: isMobile ? '40px' : '48px',
+        borderRadius: '50%',
+        background: 'rgba(102, 126, 234, 0.2)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: isMobile ? '20px' : '24px'
     },
-    testimonialName: { 
-        fontSize: isMobile ? '14px' : '16px', 
-        fontWeight: '700', 
-        color: '#e2e8f0' 
+    testimonialName: {
+        fontSize: isMobile ? '14px' : '16px',
+        fontWeight: '700',
+        color: '#e2e8f0'
     },
-    testimonialRole: { 
-        fontSize: isMobile ? '12px' : '14px', 
-        color: '#94a3b8' 
+    testimonialRole: {
+        fontSize: isMobile ? '12px' : '14px',
+        color: '#94a3b8'
     },
-    ctaSection: { 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-        padding: isMobile ? '50px 16px' : '80px 24px', 
-        margin: isMobile ? '50px 0' : '80px 0' 
+    ctaSection: {
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: isMobile ? '50px 16px' : '80px 24px',
+        margin: isMobile ? '50px 0' : '80px 0'
     },
-    ctaContent: { 
-        maxWidth: '800px', 
-        margin: '0 auto', 
-        textAlign: 'center' 
+    ctaContent: {
+        maxWidth: '800px',
+        margin: '0 auto',
+        textAlign: 'center'
     },
-    ctaTitle: { 
-        fontSize: isMobile ? 'clamp(24px, 6vw, 32px)' : 'clamp(32px, 5vw, 48px)', 
-        fontWeight: '900', 
-        margin: '0 0 16px', 
+    ctaTitle: {
+        fontSize: isMobile ? 'clamp(24px, 6vw, 32px)' : 'clamp(32px, 5vw, 48px)',
+        fontWeight: '900',
+        margin: '0 0 16px',
         color: '#ffffff',
         padding: isMobile ? '0 8px' : '0'
     },
-    ctaText: { 
-        fontSize: isMobile ? '15px' : '18px', 
-        color: 'rgba(255,255,255,0.9)', 
+    ctaText: {
+        fontSize: isMobile ? '15px' : '18px',
+        color: 'rgba(255,255,255,0.9)',
         marginBottom: isMobile ? '24px' : '32px',
         padding: isMobile ? '0 8px' : '0'
     },
-    ctaButton: { 
-        display: 'inline-flex', 
-        alignItems: 'center', 
-        gap: '8px', 
-        padding: isMobile ? '14px 32px' : '16px 40px', 
-        background: '#ffffff', 
-        color: '#667eea', 
-        borderRadius: '12px', 
-        fontSize: isMobile ? '16px' : '18px', 
-        fontWeight: '700', 
-        textDecoration: 'none', 
+    ctaButton: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: isMobile ? '14px 32px' : '16px 40px',
+        background: '#ffffff',
+        color: '#667eea',
+        borderRadius: '12px',
+        fontSize: isMobile ? '16px' : '18px',
+        fontWeight: '700',
+        textDecoration: 'none',
         transition: 'transform 0.2s',
         WebkitTapHighlightColor: 'transparent',
         touchAction: 'manipulation'
