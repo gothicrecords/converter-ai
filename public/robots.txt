@@ -140,10 +140,10 @@ Disallow: /dashboard/
 Crawl-delay: 1
 
 # Sitemap locations
-Sitemap: https://best-upscaler-ia.vercel.app/sitemap.xml
+Sitemap: https://www.best-upscaler-ia.com/sitemap.xml
 
 # AI.txt location (for AI crawlers)
-# AI crawlers can find more information at: https://best-upscaler-ia.vercel.app/.well-known/ai.txt
+# AI crawlers can find more information at: https://www.best-upscaler-ia.com/.well-known/ai.txt
 
 # Performance optimization hints
 # Allow crawling of static assets for better indexing

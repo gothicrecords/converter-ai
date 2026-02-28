@@ -5,8 +5,6 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, Component, useState } from 'react';
 import Script from 'next/script';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../lib/i18n';
 import ToastContainer from '../components/Toast';
@@ -67,10 +65,10 @@ class ErrorBoundary extends Component {
           {error?.stack && (
             <details style={{ marginTop: '16px', textAlign: 'left', maxWidth: '600px', fontSize: '12px', color: '#999' }}>
               <summary style={{ cursor: 'pointer', marginBottom: '8px' }}>Error Details</summary>
-              <pre style={{ 
-                background: '#f5f5f5', 
-                padding: '12px', 
-                borderRadius: '4px', 
+              <pre style={{
+                background: '#f5f5f5',
+                padding: '12px',
+                borderRadius: '4px',
                 overflow: 'auto',
                 maxHeight: '200px'
               }}>
@@ -130,7 +128,7 @@ function MyApp({ Component, pageProps }) {
         }
         originalError.apply(console, args);
       };
-      
+
       return () => {
         console.error = originalError;
       };
@@ -150,7 +148,7 @@ function MyApp({ Component, pageProps }) {
       }
     }
   }, []);
-  
+
   // Applica classe per abilitare animazioni solo lato client
   useEffect(() => {
     if (!mounted) return;
@@ -166,7 +164,7 @@ function MyApp({ Component, pageProps }) {
           }
         });
       }
-      
+
       // Setup lazy loading and Core Web Vitals optimizations
       try {
         if (typeof optimizeCoreWebVitals === 'function') {
@@ -205,7 +203,7 @@ function MyApp({ Component, pageProps }) {
       document.body.style.overflowX = 'hidden';
       document.documentElement.style.overflowX = 'hidden';
     }
-    
+
     // Intelligent prefetching after page load for better performance
     if (typeof window !== 'undefined') {
       // Wait for page to be fully interactive
@@ -213,46 +211,46 @@ function MyApp({ Component, pageProps }) {
         // Prefetch critical routes based on current page
         const currentPath = router.asPath;
         const criticalRoutes = [];
-        
+
         // Always prefetch main navigation routes
         criticalRoutes.push('/tools', '/upscaler', '/pdf');
-        
+
         // Add route-specific prefetches
         if (currentPath === '/') {
           criticalRoutes.push('/home', '/tools/rimozione-sfondo-ai', '/tools/generazione-immagini-ai');
         } else if (currentPath.startsWith('/tools')) {
           criticalRoutes.push('/tools/rimozione-sfondo-ai', '/upscaler');
         }
-        
+
         // Prefetch routes with delay to avoid blocking
         criticalRoutes.slice(0, 5).forEach((route, index) => {
           setTimeout(() => {
-            router.prefetch(route).catch(() => {}); // Ignore errors
+            router.prefetch(route).catch(() => { }); // Ignore errors
           }, index * 200 + 1000); // Start after 1s, 200ms between each
         });
       };
-      
+
       // Use requestIdleCallback if available, otherwise use setTimeout
       if ('requestIdleCallback' in window) {
         requestIdleCallback(prefetchCriticalRoutes, { timeout: 3000 });
       } else {
         setTimeout(prefetchCriticalRoutes, 2000);
       }
-      
+
       // Prefetch on link hover (user intent)
       const prefetchOnHover = (e) => {
         const link = e.target.closest('a[href]');
         if (link && link.href.startsWith(window.location.origin)) {
           const href = link.getAttribute('href');
           if (href && !href.startsWith('#') && !href.startsWith('http')) {
-            router.prefetch(href).catch(() => {});
+            router.prefetch(href).catch(() => { });
           }
         }
       };
-      
+
       // Add prefetch on hover for better UX
       document.addEventListener('mouseover', prefetchOnHover, { passive: true });
-      
+
       // Cleanup
       return () => {
         document.removeEventListener('mouseover', prefetchOnHover);
@@ -264,12 +262,12 @@ function MyApp({ Component, pageProps }) {
       analytics.pageview(url);
     };
     router.events.on('routeChangeComplete', handleRouteChange);
-    
+
     // Track initial pageview
     if (router.asPath) {
       analytics.pageview(router.asPath);
     }
-    
+
     return () => {
       router.events.off('routeChangeComplete', handleRouteChange);
     };
@@ -353,52 +351,52 @@ function MyApp({ Component, pageProps }) {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <LanguageProvider initialTranslations={pageProps.translations || {}}>
-        <Head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-          <meta name="mobile-web-app-capable" content="yes" />
-          <meta name="apple-mobile-web-app-capable" content="yes" />
-          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-          <meta name="apple-mobile-web-app-title" content="MegaPixelAI ToolSuite" />
-          <meta name="theme-color" content="#0a0e1a" />
-          <meta name="msapplication-TileColor" content="#0a0e1a" />
-          <meta name="msapplication-navbutton-color" content="#0a0e1a" />
-          <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-          <link rel="alternate icon" href="/logo.svg" type="image/svg+xml" />
-          <link rel="apple-touch-icon" href="/logo-with-text.jpg" />
-          
-          {/* Performance: Preconnect to external domains */}
-          <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
-          <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
-          <link rel="preconnect" href="https://connect.facebook.net" crossOrigin="anonymous" />
-          <link rel="preconnect" href="https://www.clarity.ms" crossOrigin="anonymous" />
-          <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          
-          {/* DNS Prefetch for faster resolution */}
-          <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-          <link rel="dns-prefetch" href="https://www.google-analytics.com" />
-          <link rel="dns-prefetch" href="https://connect.facebook.net" />
-          <link rel="dns-prefetch" href="https://www.clarity.ms" />
-          <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-          <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-          
-          {/* CSS files are already imported above, no need for link tags */}
-          
-          {/* DNS prefetch for external resources */}
-          <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-          <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-          
-          {/* Resource hints for critical routes (prefetch in production only) */}
-          {process.env.NODE_ENV === 'production' && (
-            <>
-              <link rel="prefetch" href="/tools" as="document" />
-              <link rel="prefetch" href="/upscaler" as="document" />
-              <link rel="prefetch" href="/pdf" as="document" />
-            </>
-          )}
-          
-          <title>Tool Suite - Upscaler AI & PDF Converter</title>
-          <style>{`
+          <Head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+            <meta name="mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+            <meta name="apple-mobile-web-app-title" content="MegaPixelAI ToolSuite" />
+            <meta name="theme-color" content="#0a0e1a" />
+            <meta name="msapplication-TileColor" content="#0a0e1a" />
+            <meta name="msapplication-navbutton-color" content="#0a0e1a" />
+            <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+            <link rel="alternate icon" href="/logo.svg" type="image/svg+xml" />
+            <link rel="apple-touch-icon" href="/logo-with-text.jpg" />
+
+            {/* Performance: Preconnect to external domains */}
+            <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+            <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
+            <link rel="preconnect" href="https://connect.facebook.net" crossOrigin="anonymous" />
+            <link rel="preconnect" href="https://www.clarity.ms" crossOrigin="anonymous" />
+            <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+            {/* DNS Prefetch for faster resolution */}
+            <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+            <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+            <link rel="dns-prefetch" href="https://connect.facebook.net" />
+            <link rel="dns-prefetch" href="https://www.clarity.ms" />
+            <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+            <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+
+            {/* CSS files are already imported above, no need for link tags */}
+
+            {/* DNS prefetch for external resources */}
+            <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+            <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+
+            {/* Resource hints for critical routes (prefetch in production only) */}
+            {process.env.NODE_ENV === 'production' && (
+              <>
+                <link rel="prefetch" href="/tools" as="document" />
+                <link rel="prefetch" href="/upscaler" as="document" />
+                <link rel="prefetch" href="/pdf" as="document" />
+              </>
+            )}
+
+            <title>Tool Suite - Upscaler AI & PDF Converter</title>
+            <style>{`
             html {
               overflow-y: scroll;
               overflow-x: hidden;
@@ -482,19 +480,19 @@ function MyApp({ Component, pageProps }) {
               }
             }
           `}</style>
-        </Head>
+          </Head>
 
-      {/* Google Analytics 4 - Primary (G-34NK4NEB9B) */}
-      <Script
-        id="google-analytics"
-        strategy="afterInteractive"
-        src="https://www.googletagmanager.com/gtag/js?id=G-34NK4NEB9B"
-      />
-      <Script
-        id="google-analytics-init"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
+          {/* Google Analytics 4 - Primary (G-34NK4NEB9B) */}
+          <Script
+            id="google-analytics"
+            strategy="afterInteractive"
+            src="https://www.googletagmanager.com/gtag/js?id=G-34NK4NEB9B"
+          />
+          <Script
+            id="google-analytics-init"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
@@ -505,48 +503,48 @@ function MyApp({ Component, pageProps }) {
               send_page_view: true,
             });
           `,
-        }}
-      />
+            }}
+          />
 
-      {/* Google Tag Manager - Always enabled if GTM_ID is configured */}
-      {analytics.GTM_ID && analytics.GTM_ID !== 'GTM-XXXXXXX' && (
-        <>
-          <Script
-            id="gtm-script"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
+          {/* Google Tag Manager - Always enabled if GTM_ID is configured */}
+          {analytics.GTM_ID && analytics.GTM_ID !== 'GTM-XXXXXXX' && (
+            <>
+              <Script
+                id="gtm-script"
+                strategy="afterInteractive"
+                dangerouslySetInnerHTML={{
+                  __html: `
                 (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
                 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
                 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
                 })(window,document,'script','dataLayer','${analytics.GTM_ID}');
               `,
-            }}
-          />
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${analytics.GTM_ID}`}
-              height="0"
-              width="0"
-              style={{ display: 'none', visibility: 'hidden' }}
-            />
-          </noscript>
-        </>
-      )}
+                }}
+              />
+              <noscript>
+                <iframe
+                  src={`https://www.googletagmanager.com/ns.html?id=${analytics.GTM_ID}`}
+                  height="0"
+                  width="0"
+                  style={{ display: 'none', visibility: 'hidden' }}
+                />
+              </noscript>
+            </>
+          )}
 
-      {/* Google Analytics 4 - Enhanced (Additional tracking if configured) */}
-      {analytics.ENABLE_ANALYTICS && analytics.GA_TRACKING_ID !== 'G-XXXXXXXXXX' && analytics.GA_TRACKING_ID !== 'G-34NK4NEB9B' && (
-        <>
-          <Script
-            strategy="afterInteractive"
-            src={`https://www.googletagmanager.com/gtag/js?id=${analytics.GA_TRACKING_ID}`}
-          />
-          <Script
-            id="gtag-init"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
+          {/* Google Analytics 4 - Enhanced (Additional tracking if configured) */}
+          {analytics.ENABLE_ANALYTICS && analytics.GA_TRACKING_ID !== 'G-XXXXXXXXXX' && analytics.GA_TRACKING_ID !== 'G-34NK4NEB9B' && (
+            <>
+              <Script
+                strategy="afterInteractive"
+                src={`https://www.googletagmanager.com/gtag/js?id=${analytics.GA_TRACKING_ID}`}
+              />
+              <Script
+                id="gtag-init"
+                strategy="afterInteractive"
+                dangerouslySetInnerHTML={{
+                  __html: `
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
@@ -559,19 +557,19 @@ function MyApp({ Component, pageProps }) {
                   cookie_flags: 'SameSite=None;Secure',
                 });
               `,
-            }}
-          />
-        </>
-      )}
+                }}
+              />
+            </>
+          )}
 
-      {/* Meta Pixel (Facebook Pixel) */}
-      {analytics.isMetaPixelEnabled && analytics.isMetaPixelEnabled() && (
-        <>
-          <Script
-            id="meta-pixel"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
+          {/* Meta Pixel (Facebook Pixel) */}
+          {analytics.isMetaPixelEnabled && analytics.isMetaPixelEnabled() && (
+            <>
+              <Script
+                id="meta-pixel"
+                strategy="afterInteractive"
+                dangerouslySetInnerHTML={{
+                  __html: `
                 !function(f,b,e,v,n,t,s)
                 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
                 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -583,47 +581,45 @@ function MyApp({ Component, pageProps }) {
                 fbq('init', '${analytics.META_PIXEL_ID}');
                 fbq('track', 'PageView');
               `,
-            }}
-          />
-          <noscript>
-            <img
-              height="1"
-              width="1"
-              style={{ display: 'none' }}
-              src={`https://www.facebook.com/tr?id=${analytics.META_PIXEL_ID}&ev=PageView&noscript=1`}
-              alt=""
-            />
-          </noscript>
-        </>
-      )}
+                }}
+              />
+              <noscript>
+                <img
+                  height="1"
+                  width="1"
+                  style={{ display: 'none' }}
+                  src={`https://www.facebook.com/tr?id=${analytics.META_PIXEL_ID}&ev=PageView&noscript=1`}
+                  alt=""
+                />
+              </noscript>
+            </>
+          )}
 
-      {/* Bing Webmaster Tools Tracking */}
-      {analytics.isBingWebmasterEnabled && analytics.isBingWebmasterEnabled() && (
-        <Script
-          id="bing-webmaster"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
+          {/* Bing Webmaster Tools Tracking */}
+          {analytics.isBingWebmasterEnabled && analytics.isBingWebmasterEnabled() && (
+            <Script
+              id="bing-webmaster"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
               (function(c,l,a,r,i,t,y){
                 c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
                 t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
                 y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
               })(window, document, "clarity", "script", "${analytics.BING_WEBMASTER_ID}");
             `,
-          }}
-        />
-      )}
+              }}
+            />
+          )}
 
-        <ToastContainer />
-        <Component {...pageProps} />
-        <DownloadManager />
-        {mounted && <ChatSupport />}
-        {process.env.NODE_ENV === 'production' && (
-          <>
-            <SpeedInsights />
-            <Analytics />
-          </>
-        )}
+          <ToastContainer />
+          <Component {...pageProps} />
+          <DownloadManager />
+          {mounted && <ChatSupport />}
+          {process.env.NODE_ENV === 'production' && (
+            <>
+            </>
+          )}
         </LanguageProvider>
       </QueryClientProvider>
     </ErrorBoundary>
