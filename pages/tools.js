@@ -266,9 +266,7 @@ export default function ToolsPage() {
         return categorizedTools.filter(t => t.superCategory === selectedCategory);
     }, [categorizedTools, selectedCategory]);
 
-    // Legacy maps (kept empty/unused but defined to avoid breaking references if any)
-    const normalizedTools = categorizedTools;
-    const memoizedCategories = categories;
+
 
     // Memoize categories per evitare ricalcoli
     const memoizedCategories = useMemo(() => categories, [categories]);
@@ -740,8 +738,4 @@ export default function ToolsPage() {
     }
 };
 
-export async function getServerSideProps() {
-    return {
-        props: {}
-    };
-}
+

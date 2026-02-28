@@ -79,13 +79,13 @@ function ChatPage() {
 
     // Combina fileIds passati esplicitamente con quelli disponibili nello stato
     const allFileIds = new Set();
-    
+
     if (fileIds && Array.isArray(fileIds)) {
       fileIds.forEach(id => {
         if (id) allFileIds.add(String(id));
       });
     }
-    
+
     // Aggiungi anche i fileId dei file caricati
     files.forEach(f => {
       const id = f.fileId || f.id;
@@ -98,7 +98,7 @@ function ChatPage() {
     const finalFileIds = Array.from(allFileIds);
     console.log('Final fileIds to send to API:', finalFileIds);
     console.log('Final fileIds count:', finalFileIds.length);
-    
+
     if (finalFileIds.length === 0 && files.length > 0) {
       console.warn('⚠️ WARNING: Files in state but no fileIds extracted!');
       console.warn('Files structure:', files.map(f => ({ id: f.id, fileId: f.fileId, name: f.name })));
@@ -179,7 +179,7 @@ function ChatPage() {
     } catch (error) {
       console.error('Send message error:', error);
       setMessages(prev => prev.filter(m => !m.thinking));
-      
+
       // Show user-friendly error message
       const errorMessage = error.message || 'Errore sconosciuto durante l\'invio del messaggio';
       const errorMsg = {
@@ -188,7 +188,7 @@ function ChatPage() {
         error: true,
         created_at: new Date().toISOString(),
       };
-      
+
       setMessages(prev => [...prev, errorMsg]);
     } finally {
       setSending(false);
@@ -201,12 +201,12 @@ function ChatPage() {
 
   const handleFilesUploaded = (uploadedFiles) => {
     console.log('Files uploaded and analyzed:', uploadedFiles);
-    
+
     if (!uploadedFiles || !Array.isArray(uploadedFiles)) {
       console.error('Invalid uploadedFiles:', uploadedFiles);
       return;
     }
-    
+
     // I file sono già stati analizzati dal server e hanno fileId
     const processedFiles = uploadedFiles
       .filter(f => f && (f.fileId || f.id)) // Filtra solo file validi con ID
@@ -231,11 +231,11 @@ function ChatPage() {
         const fileId = f.fileId || f.id;
         return fileId && !existingIds.has(fileId);
       });
-      
+
       console.log('Adding new files to state:', newFiles);
       console.log('Previous files count:', prev.length);
       console.log('New files count:', newFiles.length);
-      
+
       // Mostra messaggio di successo nella chat
       if (newFiles.length > 0) {
         const fileNames = newFiles.map(f => f.name).join(', ');
@@ -245,18 +245,18 @@ function ChatPage() {
           file_references: newFiles,
           created_at: new Date().toISOString(),
         };
-        
+
         setMessages(prevMsgs => [...prevMsgs, successMsg]);
       }
-      
+
       return [...prev, ...newFiles];
     });
-    
+
     // Chiudi automaticamente il pannello dopo il caricamento con successo
     if (processedFiles.length > 0) {
       setShowUpload(false);
     }
-    
+
     // Mostra messaggio di successo nella console
     if (processedFiles.length > 0) {
       const successCount = processedFiles.filter(f => f.fileId || f.id).length;
@@ -316,7 +316,7 @@ function ChatPage() {
                   conversations.map((conv) => (
                     <button
                       key={conv.id}
-                      onClick={() => {/* load conversation */}}
+                      onClick={() => {/* load conversation */ }}
                       style={styles.conversationItem}
                     >
                       {conv.title}
@@ -333,17 +333,17 @@ function ChatPage() {
                   </svg>
                   <span>Your Documents</span>
                 </div>
-                
+
                 {files.length === 0 ? (
-                  <div style={{ 
-                    padding: '24px 16px', 
+                  <div style={{
+                    padding: '24px 16px',
                     textAlign: 'center',
                     background: 'rgba(102, 126, 234, 0.05)',
                     border: '2px dashed rgba(102, 126, 234, 0.3)',
                     borderRadius: '12px',
                     cursor: 'pointer'
                   }}
-                  onClick={() => setShowUpload(true)}
+                    onClick={() => setShowUpload(true)}
                   >
                     <div style={{ fontSize: '48px', marginBottom: '8px' }}>
                       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ margin: '0 auto', color: '#667eea' }}>
@@ -355,8 +355,8 @@ function ChatPage() {
                     <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>
                       No documents uploaded
                     </div>
-                    <div style={{ 
-                      fontSize: '12px', 
+                    <div style={{
+                      fontSize: '12px',
                       color: '#667eea',
                       fontWeight: '600'
                     }}>
@@ -377,9 +377,9 @@ function ChatPage() {
                       ))}
                     </div>
                     {files.length > 10 && (
-                      <div style={{ 
-                        textAlign: 'center', 
-                        fontSize: '12px', 
+                      <div style={{
+                        textAlign: 'center',
+                        fontSize: '12px',
                         color: '#64748b',
                         marginTop: '8px'
                       }}>
@@ -448,7 +448,7 @@ function ChatPage() {
             {/* Messages */}
             <div style={styles.messagesContainer}>
               {showUpload ? (
-                <div 
+                <div
                   style={{ padding: '24px' }}
                   onClick={(e) => {
                     // Ferma la propagazione per evitare che i click chiudano il pannello
@@ -578,104 +578,104 @@ function ChatPage() {
                       </p>
 
                       <div style={styles.suggestedPrompts}>
-                    <button
-                      onClick={() => handleSendMessage({ content: 'How does document analysis work?', fileIds: [] })}
-                      style={styles.promptBtn}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
-                        e.currentTarget.style.background = 'rgba(102, 126, 234, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                      }}
-                    >
-                      <div style={styles.promptIconPro}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <line x1="12" y1="16" x2="12" y2="12"></line>
-                          <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                        </svg>
-                      </div>
-                      <div>
-                        <div style={styles.promptTitle}>How It Works</div>
-                        <div style={styles.promptDesc}>Discover the features</div>
-                      </div>
-                    </button>
+                        <button
+                          onClick={() => handleSendMessage({ content: 'How does document analysis work?', fileIds: [] })}
+                          style={styles.promptBtn}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                            e.currentTarget.style.background = 'rgba(102, 126, 234, 0.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                          }}
+                        >
+                          <div style={styles.promptIconPro}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="12" y1="16" x2="12" y2="12"></line>
+                              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                          </div>
+                          <div>
+                            <div style={styles.promptTitle}>How It Works</div>
+                            <div style={styles.promptDesc}>Discover the features</div>
+                          </div>
+                        </button>
 
-                    <button
-                      onClick={() => handleSendMessage({ content: 'What file formats are supported?', fileIds: [] })}
-                      style={styles.promptBtn}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
-                        e.currentTarget.style.background = 'rgba(102, 126, 234, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                      }}
-                    >
-                      <div style={styles.promptIconPro}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                          <polyline points="14 2 14 8 20 8"></polyline>
-                        </svg>
-                      </div>
-                      <div>
-                        <div style={styles.promptTitle}>Supported Formats</div>
-                        <div style={styles.promptDesc}>PDF, DOCX, XLSX, images</div>
-                      </div>
-                    </button>
+                        <button
+                          onClick={() => handleSendMessage({ content: 'What file formats are supported?', fileIds: [] })}
+                          style={styles.promptBtn}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                            e.currentTarget.style.background = 'rgba(102, 126, 234, 0.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                          }}
+                        >
+                          <div style={styles.promptIconPro}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                              <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                          </div>
+                          <div>
+                            <div style={styles.promptTitle}>Supported Formats</div>
+                            <div style={styles.promptDesc}>PDF, DOCX, XLSX, images</div>
+                          </div>
+                        </button>
 
-                    <button
-                      onClick={() => handleSendMessage({ content: 'What can you do with my documents?', fileIds: [] })}
-                      style={styles.promptBtn}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
-                        e.currentTarget.style.background = 'rgba(102, 126, 234, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                      }}
-                    >
-                      <div style={styles.promptIconPro}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <path d="m21 21-4.35-4.35"></path>
-                        </svg>
-                      </div>
-                      <div>
-                        <div style={styles.promptTitle}>AI Capabilities</div>
-                        <div style={styles.promptDesc}>Analysis and semantic search</div>
-                      </div>
-                    </button>
+                        <button
+                          onClick={() => handleSendMessage({ content: 'What can you do with my documents?', fileIds: [] })}
+                          style={styles.promptBtn}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                            e.currentTarget.style.background = 'rgba(102, 126, 234, 0.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                          }}
+                        >
+                          <div style={styles.promptIconPro}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="11" cy="11" r="8"></circle>
+                              <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                          </div>
+                          <div>
+                            <div style={styles.promptTitle}>AI Capabilities</div>
+                            <div style={styles.promptDesc}>Analysis and semantic search</div>
+                          </div>
+                        </button>
 
-                    <button
-                      onClick={() => setShowUpload(true)}
-                      style={styles.promptBtn}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
-                        e.currentTarget.style.background = 'rgba(102, 126, 234, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                      }}
-                    >
-                      <div style={styles.promptIconPro}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                          <polyline points="17 8 12 3 7 8"></polyline>
-                          <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
+                        <button
+                          onClick={() => setShowUpload(true)}
+                          style={styles.promptBtn}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                            e.currentTarget.style.background = 'rgba(102, 126, 234, 0.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                          }}
+                        >
+                          <div style={styles.promptIconPro}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                              <polyline points="17 8 12 3 7 8"></polyline>
+                              <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                          </div>
+                          <div>
+                            <div style={styles.promptTitle}>Upload Documents</div>
+                            <div style={styles.promptDesc}>Start analysis</div>
+                          </div>
+                        </button>
                       </div>
-                      <div>
-                        <div style={styles.promptTitle}>Upload Documents</div>
-                        <div style={styles.promptDesc}>Start analysis</div>
-                      </div>
-                    </button>
-                  </div>
                     </>
                   )}
                 </div>
@@ -723,12 +723,7 @@ function ChatPage() {
   );
 }
 
-// Disabilita pre-rendering per questa pagina (usa localStorage)
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}
+
 
 export default ChatPage;
 

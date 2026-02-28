@@ -45,7 +45,7 @@ const TOOL_META = {
   }
 }
 
-export default function PdfToolPage({ initialActive }){
+export default function PdfToolPage({ initialActive }) {
   const router = useRouter();
   const meta = TOOL_META[initialActive] || TOOL_META.jpg2pdf;
 
@@ -63,12 +63,15 @@ export default function PdfToolPage({ initialActive }){
   );
 }
 
-export function getStaticPaths(){
-  // Generate all PDF pages on-demand to avoid build errors
-  return { paths: [], fallback: 'blocking' };
+export function getStaticPaths() {
+  const slugs = Object.keys(TOOL_META);
+  return {
+    paths: slugs.map(slug => ({ params: { slug } })),
+    fallback: false
+  };
 }
 
-export function getStaticProps({ params }){
+export function getStaticProps({ params }) {
   const slug = params.slug || 'jpg2pdf';
   return { props: { initialActive: slug } };
 }

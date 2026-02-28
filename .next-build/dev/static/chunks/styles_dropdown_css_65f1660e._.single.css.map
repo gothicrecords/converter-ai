@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/styles/dropdown.css"],"sourcesContent":[".dropdown-portal{pointer-events:auto;}\r\n.dropdown-portal .dropdown-menu-scroll{box-shadow:0 12px 48px rgba(0,0,0,0.6), 0 0 30px rgba(102,126,234,0.2);border-radius:16px;}\r\n.language-dropdown{scrollbar-width:none;-ms-overflow-style:none;}\r\n.language-dropdown::-webkit-scrollbar{width:0;height:0;}\r\n"],"names":[],"mappings":"AAAA;;;;AACA;;;;;AACA;;;;;AACA"}}]
-}

@@ -1,3 +1,0 @@
-module.exports=[929985,a=>{"use strict";var b=a.i(522734),c=a.i(814747);async function d(a="en"){try{var e;let d=c.default.join(process.cwd(),"public","locales",a,"common.json"),f=(e=b.default.readFileSync(d,"utf8"))?65279===e.charCodeAt(0)?e.slice(1):e.replace(/^\uFEFF/,""):e;return JSON.parse(f)}catch(b){if(console.error("Error loading translations SSR:",b),"en"!==a)return d("en");return{}}}a.s(["loadTranslationsSSR",()=>d])}];
-
-//# sourceMappingURL=lib_i18n-server_edb26081.js.map

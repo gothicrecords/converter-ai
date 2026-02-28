@@ -475,7 +475,6 @@ export async function getStaticProps({ locale }) {
     return {
         props: {
             translations,
-        },
-        revalidate: 86400,
+        }
     };
 }

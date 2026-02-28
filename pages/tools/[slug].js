@@ -289,10 +289,22 @@ const ToolPage = ({ initialSlug, meta }) => {
 export default memo(ToolPage);
 
 export async function getStaticPaths() {
-    // Generate all pages on-demand to avoid Vercel build timeout
+    const { tools } = await import('../../lib/tools');
+    const { listConversionSlugs } = await import('../../lib/conversionRegistry');
+
+    const aiSlugs = tools
+        .map(t => {
+            const parts = t.href.split('/');
+            return parts[parts.length - 1];
+        })
+        .filter(slug => slug && slug !== 'tools');
+
+    const conversionSlugs = listConversionSlugs();
+    const allSlugs = [...new Set([...aiSlugs, ...conversionSlugs])];
+
     return {
-        paths: [],
-        fallback: 'blocking'
+        paths: allSlugs.map(slug => ({ params: { slug } })),
+        fallback: false
     };
 }
 
@@ -315,8 +327,7 @@ export async function getStaticProps({ params }) {
             props: {
                 initialSlug: String(slug),
                 meta
-            },
-            revalidate: 3600
+            }
         };
     } catch (error) {
         console.error('Error in getStaticProps:', error);
@@ -324,8 +335,7 @@ export async function getStaticProps({ params }) {
             props: {
                 initialSlug: params?.slug || 'unknown',
                 meta: { title: 'Errore', description: 'Errore nel caricamento dello strumento.' }
-            },
-            revalidate: 60
+            }
         };
     }
 }

@@ -32,7 +32,7 @@ function PricingPage() {
         }
 
         setLoading(true);
-        
+
         // Track begin checkout
         const planName = priceId.includes('pro') ? 'pro' : 'premium';
         const planPrice = planName === 'pro' ? 3.99 : 9.99;
@@ -42,7 +42,7 @@ function PricingPage() {
             price: planPrice,
             quantity: 1,
         }]);
-        
+
         try {
             // Crea sessione checkout con dati utente reali
             const response = await fetch('/api/stripe/create-checkout-session', {
@@ -58,15 +58,15 @@ function PricingPage() {
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ 
+                const errorData = await response.json().catch(() => ({
                     success: false,
                     error: 'Errore sconosciuto',
                     code: 'UNKNOWN_ERROR'
                 }));
-                
+
                 // Messaggi di errore più specifici
                 let errorMessage = errorData.error || `Errore ${response.status}: ${response.statusText}`;
-                
+
                 if (errorData.code === 'INVALID_PRICE_ID' || errorData.code === 'STRIPE_RESOURCE_MISSING') {
                     errorMessage = 'Il price ID configurato non è valido. Contatta il supporto.';
                 } else if (errorData.code === 'STRIPE_NOT_CONFIGURED') {
@@ -74,30 +74,30 @@ function PricingPage() {
                 } else if (errorData.code === 'MISSING_PRICE_ID') {
                     errorMessage = 'Price ID mancante. Contatta il supporto.';
                 }
-                
+
                 throw new Error(errorMessage);
             }
 
             const data = await response.json();
-            
+
             if (!data.success || !data.url) {
                 throw new Error(data.error || 'URL di checkout non ricevuto');
             }
-            
+
             // Track checkout redirect
             analytics.trackButtonClick('Checkout Redirect', 'Pricing Page');
-            
+
             // Redirect a Stripe Checkout
             window.location.href = data.url;
         } catch (error) {
             analytics.trackError(error.message, 'Pricing Page', 'checkout_error');
             console.error('Subscription error:', error);
-            
+
             // Mostra un messaggio di errore più user-friendly
-            const userMessage = error.message.includes('Price ID') 
+            const userMessage = error.message.includes('Price ID')
                 ? 'Errore di configurazione del pagamento. Il price ID non è valido. Contatta il supporto tecnico.'
                 : `Errore durante il pagamento: ${error.message}. Riprova più tardi o contatta il supporto.`;
-            
+
             alert(userMessage);
         } finally {
             setLoading(false);
@@ -218,51 +218,51 @@ function PricingPage() {
 
             {/* Box speciale vantaggi PRO */}
             <div style={styles.proBenefitsBox}>
-                    <h2 style={styles.proBenefitsTitle}>Perché scegliere il Piano PRO?</h2>
-                    <div style={styles.proBenefitsGrid}>
-                        <div style={styles.proBenefitItem}>
-                            <HiLightningBolt style={styles.proBenefitIcon} />
-                            <h3 style={styles.proBenefitTitle}>Elaborazioni Illimitate</h3>
-                            <p style={styles.proBenefitText}>Nessun limite giornaliero o mensile. Elabora migliaia di file senza preoccuparti di raggiungere il limite.</p>
-                        </div>
-                        <div style={styles.proBenefitItem}>
-                            <HiSparkles style={styles.proBenefitIcon} />
-                            <h3 style={styles.proBenefitTitle}>Qualità 4K Premium</h3>
-                            <p style={styles.proBenefitText}>Risultati di qualità professionale con risoluzione fino a 4K. Perfetto per stampa, pubblicazioni e progetti commerciali.</p>
-                        </div>
-                        <div style={styles.proBenefitItem}>
-                            <HiLockClosed style={styles.proBenefitIcon} />
-                            <h3 style={styles.proBenefitTitle}>Nessun Watermark</h3>
-                            <p style={styles.proBenefitText}>File puliti e pronti per l'uso commerciale. Nessun logo o watermark sui tuoi risultati.</p>
-                        </div>
-                        <div style={styles.proBenefitItem}>
-                            <HiCog style={styles.proBenefitIcon} />
-                            <h3 style={styles.proBenefitTitle}>Tutti i Tool PRO</h3>
-                            <p style={styles.proBenefitText}>Accesso completo a tutti gli strumenti AI avanzati: OCR, generazione immagini, traduzione documenti, upscaling 4K e molto altro.</p>
-                        </div>
-                        <div style={styles.proBenefitItem}>
-                            <HiArrowUp style={styles.proBenefitIcon} />
-                            <h3 style={styles.proBenefitTitle}>Priorità Assoluta</h3>
-                            <p style={styles.proBenefitText}>Le tue elaborazioni vengono processate per prime, senza code d'attesa. Risultati più veloci sempre.</p>
-                        </div>
-                        <div style={styles.proBenefitItem}>
-                            <HiCloud style={styles.proBenefitIcon} />
-                            <h3 style={styles.proBenefitTitle}>File Fino a 100MB</h3>
-                            <p style={styles.proBenefitText}>Elabora file di grandi dimensioni senza limitazioni. Perfetto per progetti professionali complessi.</p>
-                        </div>
+                <h2 style={styles.proBenefitsTitle}>Perché scegliere il Piano PRO?</h2>
+                <div style={styles.proBenefitsGrid}>
+                    <div style={styles.proBenefitItem}>
+                        <HiLightningBolt style={styles.proBenefitIcon} />
+                        <h3 style={styles.proBenefitTitle}>Elaborazioni Illimitate</h3>
+                        <p style={styles.proBenefitText}>Nessun limite giornaliero o mensile. Elabora migliaia di file senza preoccuparti di raggiungere il limite.</p>
                     </div>
+                    <div style={styles.proBenefitItem}>
+                        <HiSparkles style={styles.proBenefitIcon} />
+                        <h3 style={styles.proBenefitTitle}>Qualità 4K Premium</h3>
+                        <p style={styles.proBenefitText}>Risultati di qualità professionale con risoluzione fino a 4K. Perfetto per stampa, pubblicazioni e progetti commerciali.</p>
+                    </div>
+                    <div style={styles.proBenefitItem}>
+                        <HiLockClosed style={styles.proBenefitIcon} />
+                        <h3 style={styles.proBenefitTitle}>Nessun Watermark</h3>
+                        <p style={styles.proBenefitText}>File puliti e pronti per l'uso commerciale. Nessun logo o watermark sui tuoi risultati.</p>
+                    </div>
+                    <div style={styles.proBenefitItem}>
+                        <HiCog style={styles.proBenefitIcon} />
+                        <h3 style={styles.proBenefitTitle}>Tutti i Tool PRO</h3>
+                        <p style={styles.proBenefitText}>Accesso completo a tutti gli strumenti AI avanzati: OCR, generazione immagini, traduzione documenti, upscaling 4K e molto altro.</p>
+                    </div>
+                    <div style={styles.proBenefitItem}>
+                        <HiArrowUp style={styles.proBenefitIcon} />
+                        <h3 style={styles.proBenefitTitle}>Priorità Assoluta</h3>
+                        <p style={styles.proBenefitText}>Le tue elaborazioni vengono processate per prime, senza code d'attesa. Risultati più veloci sempre.</p>
+                    </div>
+                    <div style={styles.proBenefitItem}>
+                        <HiCloud style={styles.proBenefitIcon} />
+                        <h3 style={styles.proBenefitTitle}>File Fino a 100MB</h3>
+                        <p style={styles.proBenefitText}>Elabora file di grandi dimensioni senza limitazioni. Perfetto per progetti professionali complessi.</p>
+                    </div>
+                </div>
             </div>
 
             <section style={styles.pricing}>
                 <div style={styles.pricingGrid}>
                     {plans.map((plan, i) => (
                         <div key={i} style={{
-                            ...styles.pricingCard, 
+                            ...styles.pricingCard,
                             ...(plan.popular ? styles.popularCard : {}),
                             ...(plan.singleColumn ? styles.centeredCard : {})
                         }}>
                             {plan.popular && <div style={styles.popularBadge}>{t('pricing.mostPopular')}</div>}
-                            
+
                             {plan.singleColumn ? (
                                 // Layout centrato per Free ed Enterprise
                                 <div style={styles.centeredContent}>
@@ -272,13 +272,13 @@ function PricingPage() {
                                         <span style={styles.pricePeriod}>{plan.period}</span>
                                     </div>
                                     <p style={styles.planDescription}>{plan.description}</p>
-                                    
+
                                     {plan.stripePrice ? (
-                                        <button 
+                                        <button
                                             onClick={() => handleSubscribe(plan.stripePrice)}
                                             disabled={loading}
                                             style={{
-                                                ...styles.planCta, 
+                                                ...styles.planCta,
                                                 ...(plan.popular ? styles.popularCta : {}),
                                                 ...(loading ? { opacity: 0.6, cursor: 'not-allowed' } : {})
                                             }}
@@ -287,17 +287,17 @@ function PricingPage() {
                                         </button>
                                     ) : (
                                         <Link href={plan.href} style={{
-                                            ...styles.planCta, 
+                                            ...styles.planCta,
                                             ...(plan.popular ? styles.popularCta : {})
                                         }}>
                                             {plan.cta}
                                         </Link>
                                     )}
-                                    
+
                                     <ul style={styles.featureListSingle}>
                                         {plan.features.map((feature, j) => {
-                                            const displayFeature = feature.includes(' - ') 
-                                                ? feature.split(' - ')[0] 
+                                            const displayFeature = feature.includes(' - ')
+                                                ? feature.split(' - ')[0]
                                                 : feature;
                                             return (
                                                 <li key={j} style={styles.featureItemCentered}>
@@ -311,18 +311,18 @@ function PricingPage() {
                             ) : (
                                 // Layout normale per PRO
                                 <>
-                                    <h3 style={{...styles.planName, textAlign: 'center'}}>{plan.name}</h3>
+                                    <h3 style={{ ...styles.planName, textAlign: 'center' }}>{plan.name}</h3>
                                     <div style={styles.planPrice}>
                                         <span style={styles.priceAmount}>{plan.price}</span>
                                         <span style={styles.pricePeriod}>{plan.period}</span>
                                     </div>
-                                    <p style={{...styles.planDescription, textAlign: 'center'}}>{plan.description}</p>
+                                    <p style={{ ...styles.planDescription, textAlign: 'center' }}>{plan.description}</p>
                                     {plan.stripePrice ? (
-                                        <button 
+                                        <button
                                             onClick={() => handleSubscribe(plan.stripePrice)}
                                             disabled={loading}
                                             style={{
-                                                ...styles.planCta, 
+                                                ...styles.planCta,
                                                 ...(plan.popular ? styles.popularCta : {}),
                                                 ...(loading ? { opacity: 0.6, cursor: 'not-allowed' } : {}),
                                                 ...styles.proCta
@@ -331,14 +331,14 @@ function PricingPage() {
                                             {loading ? 'Caricamento...' : plan.cta}
                                         </button>
                                     ) : (
-                                        <Link href={plan.href} style={{...styles.planCta, ...(plan.popular ? styles.popularCta : {})}}>
+                                        <Link href={plan.href} style={{ ...styles.planCta, ...(plan.popular ? styles.popularCta : {}) }}>
                                             {plan.cta}
                                         </Link>
                                     )}
                                     <ul style={styles.featureList}>
                                         {plan.features.map((feature, j) => {
-                                            const displayFeature = feature.includes(' - ') 
-                                                ? feature.split(' - ')[0] 
+                                            const displayFeature = feature.includes(' - ')
+                                                ? feature.split(' - ')[0]
                                                 : feature;
                                             return (
                                                 <li key={j} style={styles.featureItem}>
@@ -447,12 +447,7 @@ function PricingPage() {
     );
 }
 
-// Disabilita pre-rendering per questa pagina (usa window)
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}
+
 
 export default PricingPage;
 
@@ -464,13 +459,13 @@ const styles = {
     heroSubtitle: { fontSize: '18px', color: '#94a3b8', lineHeight: '1.6', margin: 0 },
     pricing: { maxWidth: '1200px', margin: '0 auto', padding: '60px 24px' },
     pricingGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', alignItems: 'start' },
-    pricingCard: { 
-        position: 'relative', 
-        padding: '28px 20px', 
-        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%)', 
+    pricingCard: {
+        position: 'relative',
+        padding: '28px 20px',
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%)',
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(102, 126, 234, 0.25)', 
-        borderRadius: '20px', 
+        border: '1px solid rgba(102, 126, 234, 0.25)',
+        borderRadius: '20px',
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(102, 126, 234, 0.1)',
         overflow: 'visible',
@@ -479,23 +474,23 @@ const styles = {
         minHeight: '420px',
         height: '100%'
     },
-    popularCard: { 
-        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.12) 100%)', 
-        border: '2px solid #667eea', 
+    popularCard: {
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.12) 100%)',
+        border: '2px solid #667eea',
         transform: 'scale(1.05)',
         boxShadow: '0 8px 32px rgba(102, 126, 234, 0.4), 0 0 40px rgba(102, 126, 234, 0.2)'
     },
-    popularBadge: { 
-        position: 'absolute', 
-        top: '-12px', 
-        left: '50%', 
-        transform: 'translateX(-50%)', 
-        padding: '6px 20px', 
+    popularBadge: {
+        position: 'absolute',
+        top: '-12px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        padding: '6px 20px',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         backgroundSize: '200% 200%',
-        borderRadius: '20px', 
-        fontSize: '11px', 
-        fontWeight: '700', 
+        borderRadius: '20px',
+        fontSize: '11px',
+        fontWeight: '700',
         color: '#ffffff',
         boxShadow: '0 4px 16px rgba(102, 126, 234, 0.5)',
         letterSpacing: '0.3px',
@@ -507,18 +502,18 @@ const styles = {
     priceAmount: { fontSize: '32px', fontWeight: '900', color: '#667eea' },
     pricePeriod: { fontSize: '13px', color: '#94a3b8' },
     planDescription: { fontSize: '12px', color: '#94a3b8', lineHeight: '1.4', margin: '0 0 20px 0', textAlign: 'inherit' },
-    planCta: { 
-        display: 'block', 
-        width: '100%', 
-        padding: '12px 20px', 
-        background: 'rgba(102, 126, 234, 0.15)', 
-        border: '1px solid #667eea', 
-        borderRadius: '10px', 
-        color: '#cbd5e1', 
-        fontSize: '14px', 
-        fontWeight: '700', 
-        textAlign: 'center', 
-        textDecoration: 'none', 
+    planCta: {
+        display: 'block',
+        width: '100%',
+        padding: '12px 20px',
+        background: 'rgba(102, 126, 234, 0.15)',
+        border: '1px solid #667eea',
+        borderRadius: '10px',
+        color: '#cbd5e1',
+        fontSize: '14px',
+        fontWeight: '700',
+        textAlign: 'center',
+        textDecoration: 'none',
         margin: '0 0 24px 0',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         backdropFilter: 'blur(10px)',
@@ -527,10 +522,10 @@ const styles = {
         willChange: 'transform, box-shadow',
         cursor: 'pointer'
     },
-    popularCta: { 
+    popularCta: {
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         backgroundSize: '200% 200%',
-        color: '#ffffff', 
+        color: '#ffffff',
         border: 'none',
         boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4), 0 0 20px rgba(102, 126, 234, 0.2)'
     },
@@ -540,14 +535,14 @@ const styles = {
         fontSize: '14px',
         fontWeight: '700'
     },
-    featureList: { 
-        listStyle: 'none', 
-        padding: 0, 
-        margin: 0, 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(2, 1fr)', 
-        gap: '6px 10px', 
-        flex: 1 
+    featureList: {
+        listStyle: 'none',
+        padding: 0,
+        margin: 0,
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '6px 10px',
+        flex: 1
     },
     featureListSingle: {
         display: 'flex',
@@ -575,12 +570,12 @@ const styles = {
         gap: '12px',
         width: '100%'
     },
-    featureItem: { 
-        display: 'flex', 
-        alignItems: 'flex-start', 
-        gap: '6px', 
-        fontSize: '12px', 
-        color: '#cbd5e1', 
+    featureItem: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '6px',
+        fontSize: '12px',
+        color: '#cbd5e1',
         lineHeight: '1.3'
     },
     featureItemCentered: {
@@ -596,11 +591,11 @@ const styles = {
     checkIcon: { width: 16, height: 16, color: '#10b981', flexShrink: 0, marginTop: '1px' },
     comparison: { maxWidth: '1200px', margin: '0 auto', padding: '80px 24px' },
     comparisonTitle: { fontSize: '32px', fontWeight: '800', textAlign: 'center', marginBottom: '48px', color: '#e2e8f0' },
-    comparisonTable: { 
-        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%)', 
+    comparisonTable: {
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%)',
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(102, 126, 234, 0.25)', 
-        borderRadius: '20px', 
+        border: '1px solid rgba(102, 126, 234, 0.25)',
+        borderRadius: '20px',
         overflow: 'hidden',
         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(102, 126, 234, 0.1)'
     },
@@ -613,11 +608,11 @@ const styles = {
     faq: { maxWidth: '900px', margin: '0 auto', padding: '80px 24px' },
     faqTitle: { fontSize: '32px', fontWeight: '800', textAlign: 'center', marginBottom: '48px', color: '#e2e8f0' },
     faqGrid: { display: 'flex', flexDirection: 'column', gap: '24px' },
-    faqItem: { 
-        padding: '36px', 
-        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%)', 
+    faqItem: {
+        padding: '36px',
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%)',
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(102, 126, 234, 0.25)', 
+        border: '1px solid rgba(102, 126, 234, 0.25)',
         borderRadius: '20px',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), 0 0 20px rgba(102, 126, 234, 0.1)'

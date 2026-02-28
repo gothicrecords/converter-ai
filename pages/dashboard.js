@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Navbar from '../components/Navbar';
 import SEOHead from '../components/SEOHead';
-import { 
-    HiUser, HiLogout, HiChartBar, HiClock, HiStar, HiCog, 
+import {
+    HiUser, HiLogout, HiChartBar, HiClock, HiStar, HiCog,
     HiDownload, HiTrendingUp, HiCheckCircle, HiSparkles, HiEye
 } from 'react-icons/hi';
 import { getCurrentUser, logout, isAuthenticated, getUserStats } from '../lib/auth';
@@ -28,7 +28,7 @@ function DashboardPage() {
                         method: 'GET',
                         credentials: 'include', // Include cookies
                     });
-                    
+
                     if (response.ok) {
                         const data = await response.json();
                         if (data.sessionToken) {
@@ -43,7 +43,7 @@ function DashboardPage() {
                     console.error('Failed to sync session:', error);
                 }
             }
-            
+
             if (!isAuthenticated()) {
                 router.push('/login');
                 return;
@@ -69,7 +69,7 @@ function DashboardPage() {
             const userStats = getUserStats(userData);
             setStats(userStats);
             setHistory(getHistory());
-            
+
             if (router.query.welcome === 'true') {
                 setShowWelcome(true);
                 setTimeout(() => setShowWelcome(false), 5000);
@@ -143,7 +143,7 @@ function DashboardPage() {
                 {/* Statistiche principali */}
                 <div style={styles.statsGrid}>
                     <div style={styles.statCard}>
-                        <div style={{...styles.statIcon, background: 'rgba(102, 126, 234, 0.15)' }}>
+                        <div style={{ ...styles.statIcon, background: 'rgba(102, 126, 234, 0.15)' }}>
                             <HiDownload style={{ width: 24, height: 24, color: '#667eea' }} />
                         </div>
                         <div>
@@ -153,7 +153,7 @@ function DashboardPage() {
                     </div>
 
                     <div style={styles.statCard}>
-                        <div style={{...styles.statIcon, background: 'rgba(16, 185, 129, 0.15)' }}>
+                        <div style={{ ...styles.statIcon, background: 'rgba(16, 185, 129, 0.15)' }}>
                             <HiTrendingUp style={{ width: 24, height: 24, color: '#10b981' }} />
                         </div>
                         <div>
@@ -163,7 +163,7 @@ function DashboardPage() {
                     </div>
 
                     <div style={styles.statCard}>
-                        <div style={{...styles.statIcon, background: 'rgba(245, 158, 11, 0.15)' }}>
+                        <div style={{ ...styles.statIcon, background: 'rgba(245, 158, 11, 0.15)' }}>
                             <HiClock style={{ width: 24, height: 24, color: '#f59e0b' }} />
                         </div>
                         <div>
@@ -173,7 +173,7 @@ function DashboardPage() {
                     </div>
 
                     <div style={styles.statCard}>
-                        <div style={{...styles.statIcon, background: 'rgba(139, 92, 246, 0.15)' }}>
+                        <div style={{ ...styles.statIcon, background: 'rgba(139, 92, 246, 0.15)' }}>
                             <HiChartBar style={{ width: 24, height: 24, color: '#8b5cf6' }} />
                         </div>
                         <div>
@@ -342,12 +342,7 @@ function DashboardPage() {
     );
 }
 
-// Disabilita pre-rendering per questa pagina (usa localStorage)
-export async function getServerSideProps() {
-  return {
-    props: {},
-  };
-}
+
 
 export default DashboardPage;
 
